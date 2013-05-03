@@ -6,8 +6,7 @@ angular.module('angular-google-analytics', [])
     .provider('Analytics', function() {
         var created = false,
             trackRoutes = true,
-            accountId,
-            _gaq = null;
+            accountId;
 
           this._logs = [];
 
@@ -22,14 +21,14 @@ angular.module('angular-google-analytics', [])
           };
 
         // public service
-        this.$get = ['$document', '$rootScope', '$location', function($document, $rootScope, $location) {
+        this.$get = ['$document', '$rootScope', '$location', '$window', function($document, $rootScope, $location, $window) {
           // private methods
           function _createScriptTag() {
             // inject the google analytics tag
             if (!accountId) return;
-            _gaq = [];
-            _gaq.push(['_setAccount', accountId]);
-            if (trackRoutes) _gaq.push(['_trackPageview']);
+            $window._gaq = [];
+            $window._gaq.push(['_setAccount', accountId]);
+            if (trackRoutes) $window._gaq.push(['_trackPageview']);
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
@@ -43,14 +42,14 @@ angular.module('angular-google-analytics', [])
             this._logs.push(arguments);
           };
           this._trackPage = function(url) {
-            if (trackRoutes && _gaq) {
-              _gaq.push(['_trackPageview', url]);
+            if (trackRoutes && $window._gaq) {
+              $window._gaq.push(['_trackPageview', url]);
               this._log('_trackPageview', arguments);
             }
           };
           this._trackEvent = function(category, action, label, value) {
-            if (_gaq) {
-              _gaq.push(['_trackEvent', category, action, label, value]);
+            if ($window._gaq) {
+              $window._gaq.push(['_trackEvent', category, action, label, value]);
               this._log('trackEvent', arguments);
             }
           };
