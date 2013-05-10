@@ -38,3 +38,6 @@ AnalyticsProvider.setAccount('UA-XXXXX-xx');
 // automatic route tracking (default=true)
 AnalyticsProvider.trackPages(false);
 ```
+
+## Licence
+As AngularJS itself, this module is released under the permissive [MIT license](http://revolunet.mit-license.org). Your contributions are always welcome.
