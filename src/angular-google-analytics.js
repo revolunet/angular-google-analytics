@@ -6,7 +6,8 @@ angular.module('angular-google-analytics', [])
     .provider('Analytics', function() {
         var created = false,
             trackRoutes = true,
-            accountId;
+            accountId,
+            trackPrefix = '';
 
           this._logs = [];
 
@@ -17,6 +18,10 @@ angular.module('angular-google-analytics', [])
           };
           this.trackPages = function(doTrack) {
               trackRoutes = doTrack;
+              return true;
+          };
+          this.trackPrefix = function(prefix) {
+              trackPrefix = prefix;
               return true;
           };
 
@@ -43,7 +48,7 @@ angular.module('angular-google-analytics', [])
           };
           this._trackPage = function(url) {
             if (trackRoutes && $window._gaq) {
-              $window._gaq.push(['_trackPageview', url]);
+              $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             }
           };
@@ -54,17 +59,67 @@ angular.module('angular-google-analytics', [])
             }
           };
 
-          // creates the ganalytics tracker
-          _createScriptTag();
+          /**
+           * Add transaction
+           * https://developers.google.com/analytics/devguides/collection/gajs/methods/gaJSApiEcommerce#_gat.GA_Tracker_._addTrans
+           * @param transactionId
+           * @param affiliation
+           * @param total
+           * @param tax
+           * @param shipping
+           * @param city
+           * @param state
+           * @param country
+           * @private
+           */
+          this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country) {
+            if ($window._gaq) {
+              $window._gaq.push(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
+              this._log('_addTrans', arguments);
+            }
+          };
 
-          var me = this;
+          /**
+           * Add item to transaction
+           * https://developers.google.com/analytics/devguides/collection/gajs/methods/gaJSApiEcommerce#_gat.GA_Tracker_._addItem
+           * @param transactionId
+           * @param sku
+           * @param name
+           * @param category
+           * @param price
+           * @param quantity
+           * @private
+           */
+          this._addItem = function (transactionId, sku, name, category, price, quantity) {
+            if ($window._gaq) {
+              $window._gaq.push(['_addItem', transactionId, sku, name, category, price, quantity]);
+              this._log('_addItem', arguments);
+            }
+          };
 
-          // activates page tracking
-          if (trackRoutes) $rootScope.$on('$routeChangeSuccess', function(scope, current, previous) {
-            me._trackPage($location.path());
-          });
+          /**
+           * Track transaction
+           * https://developers.google.com/analytics/devguides/collection/gajs/methods/gaJSApiEcommerce#_gat.GA_Tracker_._trackTrans
+           * @private
+           */
+          this._trackTrans = function () {
+            if ($window._gaq) {
+              $window._gaq.push(['_trackTrans']);
+            }
+            this._log('_trackTrans', arguments);
+          };
 
-          return {
+            // creates the ganalytics tracker
+            _createScriptTag();
+
+            var me = this;
+
+            // activates page tracking
+            if (trackRoutes) $rootScope.$on('$routeChangeSuccess', function() {
+              me._trackPage($location.path());
+            });
+
+            return {
                 _logs: me._logs,
                 trackPage: function(url) {
                     // add a page event
@@ -73,9 +128,17 @@ angular.module('angular-google-analytics', [])
                 trackEvent: function(category, action, label, value) {
                     // add an action event
                     me._trackEvent(category, action, label, value);
+                },
+                addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country) {
+                    me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country);
+                },
+                addItem: function (transactionId, sku, name, category, price, quantity) {
+                    me._addItem(transactionId, sku, name, category, price, quantity);
+                },
+                trackTrans: function () {
+                    me._trackTrans();
                 }
             };
         }];
 
     });
-
