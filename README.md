@@ -9,6 +9,7 @@ Proudly brought to you by the [@revolunet](http://twitter.com/revolunet) team.
  - configurable
  - automatic page tracking
  - events tracking
+ - e-commerce tracking
 
 ## example
 
@@ -20,6 +21,10 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // track all routes (or not)
         AnalyticsProvider.trackPages(true);
+        
+        // url prefix (default is empty)
+        // - for example: when an app doesn't run in the root directory
+        AnalyticsProvider.trackPrefix('my-application');
     }))
     .controller('SampleController', function(Analytic) {
         // create a new pageview event
@@ -27,6 +32,17 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // create a new tracking event
         Analytic.trackEvent('video', 'play', 'django.mp4');
+        
+        // tracking e-commerce
+        // - create transaction
+        Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
+        
+        // - add items to transaction
+        Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
+        Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
+        
+        // - complete transaction
+        Analytics.trackTrans();
     });
 ```
 
