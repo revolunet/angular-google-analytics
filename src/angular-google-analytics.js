@@ -7,7 +7,8 @@ angular.module('angular-google-analytics', [])
         var created = false,
             trackRoutes = true,
             accountId,
-            trackPrefix = '';
+            trackPrefix = ''',
+            domainName;
 
           this._logs = [];
 
@@ -25,6 +26,11 @@ angular.module('angular-google-analytics', [])
               return true;
           };
 
+          this.setDomainName = function(domain) {
+            domainName = domain;
+            return true;
+          };
+
         // public service
         this.$get = ['$document', '$rootScope', '$location', '$window', function($document, $rootScope, $location, $window) {
           // private methods
@@ -34,6 +40,7 @@ angular.module('angular-google-analytics', [])
             $window._gaq = [];
             $window._gaq.push(['_setAccount', accountId]);
             if (trackRoutes) $window._gaq.push(['_trackPageview']);
+            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
