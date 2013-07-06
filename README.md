@@ -10,6 +10,7 @@ Proudly brought to you by the [@revolunet](http://twitter.com/revolunet) team.
  - automatic page tracking
  - events tracking
  - e-commerce tracking
+ - multiple-domains
 
 ## example
 
@@ -21,7 +22,10 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // track all routes (or not)
         AnalyticsProvider.trackPages(true);
-        
+
+        //Optional set domain (Use 'none' for testing on localhost)
+        //AnalyticsProvider.setDomainName('XXX');
+
         // url prefix (default is empty)
         // - for example: when an app doesn't run in the root directory
         AnalyticsProvider.trackPrefix('my-application');
@@ -53,6 +57,9 @@ var app = angular.module('app', ['angular-google-analytics'])
 AnalyticsProvider.setAccount('UA-XXXXX-xx');
 // automatic route tracking (default=true)
 AnalyticsProvider.trackPages(false);
+//Optional set domain (Use 'none' for testing on localhost)
+AnalyticsProvider.setDomainName('XXX');
+
 ```
 
 ## Licence
