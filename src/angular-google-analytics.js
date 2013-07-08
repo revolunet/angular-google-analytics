@@ -7,7 +7,7 @@ angular.module('angular-google-analytics', [])
         var created = false,
             trackRoutes = true,
             accountId,
-            trackPrefix = ''',
+            trackPrefix = '',
             domainName;
 
           this._logs = [];
