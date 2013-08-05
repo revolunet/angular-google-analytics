@@ -30,12 +30,12 @@ var app = angular.module('app', ['angular-google-analytics'])
         // - for example: when an app doesn't run in the root directory
         AnalyticsProvider.trackPrefix('my-application');
     }))
-    .controller('SampleController', function(Analytic) {
+    .controller('SampleController', function(Analytics) {
         // create a new pageview event
-        Analytic.trackPage('/video/detail/XXX');
+        Analytics.trackPage('/video/detail/XXX');
 
         // create a new tracking event
-        Analytic.trackEvent('video', 'play', 'django.mp4');
+        Analytics.trackEvent('video', 'play', 'django.mp4');
         
         // tracking e-commerce
         // - create transaction
