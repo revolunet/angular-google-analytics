@@ -77,5 +77,19 @@ describe('angular-google-analytics', function(){
     });
   });
 
+  describe('supports analytics.js', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.setFilename('analytics.js');
+    }));
+
+    it('should inject the Analytics script', function() {
+      inject(function(Analytics) {
+        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/analytics.js']").length).toBe(1);
+      });
+    });
+
+  });
+
+
 });
 

@@ -8,7 +8,8 @@ angular.module('angular-google-analytics', [])
             trackRoutes = true,
             accountId,
             trackPrefix = '',
-            domainName;
+            domainName,
+            filename = 'ga.js';
 
           this._logs = [];
 
@@ -31,6 +32,11 @@ angular.module('angular-google-analytics', [])
             return true;
           };
 
+          this.setFilename = function(name) {
+            filename = name;
+            return true;
+          };
+
         // public service
         this.$get = ['$document', '$rootScope', '$location', '$window', function($document, $rootScope, $location, $window) {
           // private methods
@@ -44,7 +50,7 @@ angular.module('angular-google-analytics', [])
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              ga.src = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/' + filename;
               var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
             })();
             created = true;
