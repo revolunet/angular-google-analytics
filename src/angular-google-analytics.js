@@ -51,7 +51,7 @@ angular.module('angular-google-analytics', [])
             return true;
           };
 
-          this.setECommerce = function (val) {
+          this.useECommerce = function (val) {
             ecommerce = !!val;
             return true;
           };

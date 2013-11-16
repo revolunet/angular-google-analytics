@@ -87,7 +87,7 @@ describe('angular-google-analytics', function(){
     beforeEach(module(function(AnalyticsProvider) {
       AnalyticsProvider.useAnalytics(true);
       AnalyticsProvider.setCookieConfig(cookieConfig);
-      AnalyticsProvider.setECommerce(true);
+      AnalyticsProvider.useECommerce(true);
     }));
 
     it('should inject the Analytics script', function() {
@@ -135,7 +135,7 @@ describe('angular-google-analytics', function(){
   describe('e-commerce transactions with analytics.js', function() {
     beforeEach(module(function(AnalyticsProvider) {
       AnalyticsProvider.useAnalytics(true);
-      AnalyticsProvider.setECommerce(true);
+      AnalyticsProvider.useECommerce(true);
     }));
 
     it('should add transcation', function() {
