@@ -9,7 +9,8 @@ angular.module('angular-google-analytics', [])
             accountId,
             trackPrefix = '',
             domainName,
-            filename = 'ga.js';
+            filename = 'ga.js',
+            pageEvent = '$routeChangeSuccess';
 
           this._logs = [];
 
@@ -34,6 +35,11 @@ angular.module('angular-google-analytics', [])
 
           this.setFilename = function(name) {
             filename = name;
+            return true;
+          };
+
+          this.setPageEvent = function(name) {
+            pageEvent = name;
             return true;
           };
 
@@ -128,7 +134,7 @@ angular.module('angular-google-analytics', [])
             var me = this;
 
             // activates page tracking
-            if (trackRoutes) $rootScope.$on('$routeChangeSuccess', function() {
+            if (trackRoutes) $rootScope.$on(pageEvent, function() {
               me._trackPage($location.path());
             });
 

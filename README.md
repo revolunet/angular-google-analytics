@@ -33,6 +33,9 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // change filename to analytics.js
         AnalyticsProvider.setFilename('analytics.js);
+
+        // change page event name
+        AnalyticsProvider.setPageEvent('$stateChangeSuccess');
     }))
     .controller('SampleController', function(Analytics) {
         // create a new pageview event
@@ -65,6 +68,8 @@ AnalyticsProvider.trackPages(false);
 AnalyticsProvider.setDomainName('XXX');
 //Change default file from ga.js
 AnalyticsProvider.setFilename('analytics.js');
+//Change the default page event name. This is useful for ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess
+AnalyticsProvider.setPageEvent('$stateChangeSuccess');
 
 ```
 
