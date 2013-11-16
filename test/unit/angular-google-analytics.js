@@ -90,6 +90,20 @@ describe('angular-google-analytics', function(){
 
   });
 
+  describe('supports arbitrary page events', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.setPageEvent('$stateChangeSuccess');
+    }));
+
+    it('should inject the Analytics script', function() {
+      inject(function(Analytics, $rootScope) {
+        $rootScope.$broadcast('$stateChangeSuccess');
+        expect(Analytics._logs.length).toBe(1);
+      });
+    });
+
+  });
+
 
 });
 
