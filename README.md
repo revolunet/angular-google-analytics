@@ -32,7 +32,17 @@ var app = angular.module('app', ['angular-google-analytics'])
         AnalyticsProvider.trackPrefix('my-application');
 
         // change filename to analytics.js
-        AnalyticsProvider.setFilename('analytics.js);
+        AnalyticsProvider.useAnalytics(true);
+
+        //Enabled eCommerce module for analytics.js
+        AnalyticsProvider.useECommerce(true);
+
+        //Set custom cookie parameters for analytics.js
+        AnalyticsProvider.setCookieConfig({
+          cookieDomain: 'foo.example.com',
+          cookieName: 'myNewName',
+          cookieExpires: 20000
+        });
 
         // change page event name
         AnalyticsProvider.setPageEvent('$stateChangeSuccess');
@@ -66,8 +76,16 @@ AnalyticsProvider.setAccount('UA-XXXXX-xx');
 AnalyticsProvider.trackPages(false);
 //Optional set domain (Use 'none' for testing on localhost)
 AnalyticsProvider.setDomainName('XXX');
-//Change default file from ga.js
-AnalyticsProvider.setFilename('analytics.js');
+//Use analytics.js instead of ga.js
+AnalyticsProvider.useAnalytics(true);
+//Enable eCommerce module for analytics.js
+AnalyticsProvider.useECommerce(true);
+//Set custom cookie parameters for analytics.js
+AnalyticsProvider.setCookieConfig({
+  cookieDomain: 'foo.example.com',
+  cookieName: 'myNewName',
+  cookieExpires: 20000
+});
 //Change the default page event name. This is useful for ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess
 AnalyticsProvider.setPageEvent('$stateChangeSuccess');
 
