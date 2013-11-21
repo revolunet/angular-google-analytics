@@ -187,6 +187,20 @@ describe('angular-google-analytics', function(){
 
   });
 
+  describe('supports RegExp path scrubbing', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.setRemoveRegExp(new RegExp(/\/\d+?$/));
+    }));
+
+    it('should scrub urls', function() {
+      inject(function(Analytics, $rootScope, $location) {
+        $location.path('/some-crazy/page/with/numbers/123456');
+        expect(Analytics.getUrl()).toBe('/some-crazy/page/with/numbers');
+      });
+
+    });
+
+  });
 
 });
 

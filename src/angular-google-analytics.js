@@ -12,7 +12,8 @@ angular.module('angular-google-analytics', [])
             analyticsJS = false,
             pageEvent = '$routeChangeSuccess',
             cookieConfig = 'auto',
-            ecommerce = false;
+            ecommerce = false,
+            removeRegExp;
 
           this._logs = [];
 
@@ -56,8 +57,24 @@ angular.module('angular-google-analytics', [])
             return true;
           };
 
+          this.setRemoveRegExp = function (regex) {
+            if (regex instanceof RegExp) {
+              removeRegExp = regex;
+              return true;
+            }
+            return false;
+          };
+
         // public service
         this.$get = ['$document', '$rootScope', '$location', '$window', function($document, $rootScope, $location, $window) {
+          var getUrl = function () {
+            var url = $location.path();
+            if (removeRegExp) {
+              return url.replace(removeRegExp, '');
+            }
+            return url;
+          };
+
           // private methods
           function _createScriptTag() //noinspection JSValidateTypes
           {
@@ -65,7 +82,13 @@ angular.module('angular-google-analytics', [])
             if (!accountId) return;
             $window._gaq = [];
             $window._gaq.push(['_setAccount', accountId]);
-            if (trackRoutes) $window._gaq.push(['_trackPageview']);
+            if (trackRoutes) {
+              if (removeRegExp) {
+                $window._gaq.push(['_trackPageview', getUrl()]);
+              } else {
+                $window._gaq.push(['_trackPageview']);
+              }
+            }
             if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             (function() {
               var document = $document[0];
@@ -98,7 +121,13 @@ angular.module('angular-google-analytics', [])
 
 
             $window.ga('create', accountId, cookieConfig);
-            if (trackRoutes) $window.ga('send', 'pageview');
+            if (trackRoutes) {
+              if (removeRegExp) {
+                $window.ga('send', 'pageview', getUrl());
+              } else {
+                $window.ga('send', 'pageview');
+              }
+            }
             if (ecommerce) $window.ga('require', 'ecommerce', 'ecommerce.js');
 
           }
@@ -251,13 +280,14 @@ angular.module('angular-google-analytics', [])
 
             // activates page tracking
             if (trackRoutes) $rootScope.$on(pageEvent, function() {
-              me._trackPage($location.path());
+              me._trackPage(getUrl());
             });
 
             return {
                 _logs: me._logs,
                 cookieConfig: cookieConfig,
                 ecommerce: ecommerce,
+                getUrl: getUrl,
                 trackPage: function(url) {
                     // add a page event
                     me._trackPage(url);
