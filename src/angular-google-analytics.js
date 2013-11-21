@@ -121,7 +121,7 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackEvent', category, action, label, value]);
               this._log('trackEvent', arguments);
             } else if ($window.ga) {
-              $window.ga('event', category, action, label, value);
+              $window.ga('send', 'event', category, action, label, value);
               this._log('event', arguments);
             }
 
@@ -141,7 +141,7 @@ angular.module('angular-google-analytics', [])
            * @param country
            * @private
            */
-          this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country) {
+          this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
             if (!analyticsJS && $window._gaq) {
               $window._gaq.push(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
               this._log('_addTrans', arguments);
@@ -155,9 +155,7 @@ angular.module('angular-google-analytics', [])
                   revenue: total,
                   tax: tax,
                   shipping: shipping,
-                  city: city,
-                  state: state,
-                  country: country
+                  currency: currency || 'USD'
                 });
                 this._log('ecommerce:addTransaction', arguments);
               }
@@ -184,8 +182,8 @@ angular.module('angular-google-analytics', [])
             } else if ($window.ga) {
               $window.ga('ecommerce:addItem', {
                 id: transactionId,
-                sku: sku,
                 name: name,
+                sku: sku,
                 category: category,
                 price: price,
                 quantity: quantity
