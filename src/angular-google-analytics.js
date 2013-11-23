@@ -103,32 +103,20 @@ angular.module('angular-google-analytics', [])
               return console.warn('No account id set for Analytics.js');
             }
 
-            var args = [$window, $document, 'script', '//www.google-analytics.com/analytics.js', 'ga'],
-              scriptElement,
-              firstScript,
-              document = $document[0];
-            // inject the Analytics.js tag
-            $window['GoogleAnalyticsObject'] = 'ga';
-            $window.ga = $window.ga || function () {
-              (window.ga.q = window.ga.q || []).push([args]);
-            };
-            $window.ga.l = 1 * new Date();
-            scriptElement = document.createElement('script');
-            firstScript = document.getElementsByTagName('script')[0];
-            scriptElement.async = 1;
-            scriptElement.src = args[3];
-            firstScript.parentNode.insertBefore(scriptElement, firstScript);
-
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+              (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
             $window.ga('create', accountId, cookieConfig);
+
             if (trackRoutes) {
-              if (removeRegExp) {
-                $window.ga('send', 'pageview', getUrl());
-              } else {
-                $window.ga('send', 'pageview');
-              }
+              $window.ga('send', 'pageview', getUrl());
             }
-            if (ecommerce) $window.ga('require', 'ecommerce', 'ecommerce.js');
+
+            if ($window.ga) {
+              $window.ga('require', 'ecommerce', 'ecommerce.js');
+            }
 
           }
           this._log = function() {
@@ -141,7 +129,7 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             } else if (trackRoutes && analyticsJS && $window.ga) {
-              $window.ga('send', 'pageview');
+              $window.ga('send', 'pageview', trackPrefix + url);
               this._log('pageview', arguments);
             }
           };
