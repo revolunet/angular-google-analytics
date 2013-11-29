@@ -37,6 +37,9 @@ var app = angular.module('app', ['angular-google-analytics'])
         //Enabled eCommerce module for analytics.js
         AnalyticsProvider.useECommerce(true);
 
+        //Enable enhanced link attribution
+        AnalyticsProvider.useEnhancedLinkAttribution(true);
+
         //Set custom cookie parameters for analytics.js
         AnalyticsProvider.setCookieConfig({
           cookieDomain: 'foo.example.com',
@@ -79,6 +82,8 @@ AnalyticsProvider.setDomainName('XXX');
 //Use analytics.js instead of ga.js
 AnalyticsProvider.useAnalytics(true);
 //Enable eCommerce module for analytics.js
+AnalyticsProvider.useECommerce(true);
+//Enable enhanced link attribution module for analytics.js or ga.js
 AnalyticsProvider.useECommerce(true);
 //Set custom cookie parameters for analytics.js
 AnalyticsProvider.setCookieConfig({

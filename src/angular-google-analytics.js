@@ -13,6 +13,7 @@ angular.module('angular-google-analytics', [])
             pageEvent = '$routeChangeSuccess',
             cookieConfig = 'auto',
             ecommerce = false,
+            enhancedLinkAttribution = false,
             removeRegExp;
 
           this._logs = [];
@@ -39,6 +40,11 @@ angular.module('angular-google-analytics', [])
 
           this.useAnalytics = function(val) {
             analyticsJS = !!val;
+            return true;
+          };
+
+          this.useEnhancedLinkAttribution = function (val) {
+            enhancedLinkAttribution = !!val;
             return true;
           };
 
@@ -82,6 +88,9 @@ angular.module('angular-google-analytics', [])
             if (!accountId) return;
             $window._gaq = [];
             $window._gaq.push(['_setAccount', accountId]);
+            if (enhancedLinkAttribution) {
+              $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
+            }
             if (trackRoutes) {
               if (removeRegExp) {
                 $window._gaq.push(['_trackPageview', getUrl()]);
@@ -104,8 +113,8 @@ angular.module('angular-google-analytics', [])
             }
 
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-              (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+              (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
             $window.ga('create', accountId, cookieConfig);
@@ -115,7 +124,13 @@ angular.module('angular-google-analytics', [])
             }
 
             if ($window.ga) {
-              $window.ga('require', 'ecommerce', 'ecommerce.js');
+              if (ecommerce) {
+                $window.ga('require', 'ecommerce', 'ecommerce.js');
+              }
+              if (enhancedLinkAttribution) {
+                $window.ga('require', 'linkid', 'linkid.js');
+              }
+
             }
 
           }
@@ -275,6 +290,7 @@ angular.module('angular-google-analytics', [])
                 _logs: me._logs,
                 cookieConfig: cookieConfig,
                 ecommerce: ecommerce,
+                enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,
                 trackPage: function(url) {
                     // add a page event

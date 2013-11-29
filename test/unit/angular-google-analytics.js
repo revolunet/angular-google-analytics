@@ -88,6 +88,7 @@ describe('angular-google-analytics', function(){
       AnalyticsProvider.useAnalytics(true);
       AnalyticsProvider.setCookieConfig(cookieConfig);
       AnalyticsProvider.useECommerce(true);
+      AnalyticsProvider.useEnhancedLinkAttribution(true);
     }));
 
     it('should inject the Analytics script', function() {
@@ -96,9 +97,15 @@ describe('angular-google-analytics', function(){
       });
     });
 
-    it('should support cookie config', function () {
+    it('should support ecommerce config', function () {
       inject(function(Analytics) {
         expect(Analytics.ecommerce).toBe(true);
+      });
+    });
+
+    it('should support enhancedLinkAttribution config', function () {
+      inject(function(Analytics) {
+        expect(Analytics.enhancedLinkAttribution).toBe(true);
       });
     });
 
