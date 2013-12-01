@@ -14,7 +14,8 @@ angular.module('angular-google-analytics', [])
             cookieConfig = 'auto',
             ecommerce = false,
             enhancedLinkAttribution = false,
-            removeRegExp;
+            removeRegExp,
+            experimentId;
 
           this._logs = [];
 
@@ -69,6 +70,11 @@ angular.module('angular-google-analytics', [])
               return true;
             }
             return false;
+          };
+
+          this.setExperimentId = function (id) {
+            experimentId = id;
+            return true;
           };
 
         // public service
@@ -129,6 +135,12 @@ angular.module('angular-google-analytics', [])
               }
               if (enhancedLinkAttribution) {
                 $window.ga('require', 'linkid', 'linkid.js');
+              }
+              if (experimentId) {
+                var expScript = document.createElement('script'),
+                  s = document.getElementsByTagName('script')[0];
+                expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
+                s.parentNode.insertBefore(expScript, s);
               }
 
             }
@@ -292,6 +304,7 @@ angular.module('angular-google-analytics', [])
                 ecommerce: ecommerce,
                 enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,
+                experimentId: experimentId,
                 trackPage: function(url) {
                     // add a page event
                     me._trackPage(url);

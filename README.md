@@ -40,6 +40,9 @@ var app = angular.module('app', ['angular-google-analytics'])
         //Enable enhanced link attribution
         AnalyticsProvider.useEnhancedLinkAttribution(true);
 
+        //Enable analytics.js experiments
+        AnalyticsProvider.setExperimentId('12345');
+
         //Set custom cookie parameters for analytics.js
         AnalyticsProvider.setCookieConfig({
           cookieDomain: 'foo.example.com',
@@ -85,6 +88,8 @@ AnalyticsProvider.useAnalytics(true);
 AnalyticsProvider.useECommerce(true);
 //Enable enhanced link attribution module for analytics.js or ga.js
 AnalyticsProvider.useECommerce(true);
+//Enable analytics.js experiments
+AnalyticsProvider.setExperimentId('12345');
 //Set custom cookie parameters for analytics.js
 AnalyticsProvider.setCookieConfig({
   cookieDomain: 'foo.example.com',

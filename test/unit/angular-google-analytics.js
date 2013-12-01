@@ -89,6 +89,7 @@ describe('angular-google-analytics', function(){
       AnalyticsProvider.setCookieConfig(cookieConfig);
       AnalyticsProvider.useECommerce(true);
       AnalyticsProvider.useEnhancedLinkAttribution(true);
+      AnalyticsProvider.setExperimentId('12345');
     }));
 
     it('should inject the Analytics script', function() {
@@ -106,6 +107,12 @@ describe('angular-google-analytics', function(){
     it('should support enhancedLinkAttribution config', function () {
       inject(function(Analytics) {
         expect(Analytics.enhancedLinkAttribution).toBe(true);
+      });
+    });
+
+    it('should support experimentId config', function () {
+      inject(function(Analytics) {
+        expect(Analytics.experimentId).toBe('12345');
       });
     });
 
