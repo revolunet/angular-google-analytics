@@ -15,7 +15,8 @@ angular.module('angular-google-analytics', [])
             ecommerce = false,
             enhancedLinkAttribution = false,
             removeRegExp,
-            experimentId;
+            experimentId,
+            ignoreFirstPageLoad = false;
 
           this._logs = [];
 
@@ -77,6 +78,10 @@ angular.module('angular-google-analytics', [])
             return true;
           };
 
+          this.ignoreFirstPageLoad = function (val) {
+            ignoreFirstPageLoad = !!val;
+          };
+
         // public service
         this.$get = ['$document', '$rootScope', '$location', '$window', function($document, $rootScope, $location, $window) {
           var getUrl = function () {
@@ -97,7 +102,7 @@ angular.module('angular-google-analytics', [])
             if (enhancedLinkAttribution) {
               $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
             }
-            if (trackRoutes) {
+            if (trackRoutes && !ignoreFirstPageLoad) {
               if (removeRegExp) {
                 $window._gaq.push(['_trackPageview', getUrl()]);
               } else {
@@ -125,7 +130,7 @@ angular.module('angular-google-analytics', [])
 
             $window.ga('create', accountId, cookieConfig);
 
-            if (trackRoutes) {
+            if (trackRoutes && !ignoreFirstPageLoad) {
               $window.ga('send', 'pageview', getUrl());
             }
 
@@ -305,6 +310,7 @@ angular.module('angular-google-analytics', [])
                 enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,
                 experimentId: experimentId,
+                ignoreFirstPageLoad: ignoreFirstPageLoad,
                 trackPage: function(url) {
                     // add a page event
                     me._trackPage(url);

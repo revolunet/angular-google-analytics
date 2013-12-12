@@ -34,6 +34,9 @@ var app = angular.module('app', ['angular-google-analytics'])
         // change filename to analytics.js
         AnalyticsProvider.useAnalytics(true);
 
+        // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
+        AnalyticsProvider.ignoreFirstPageLoad(true);
+
         //Enabled eCommerce module for analytics.js
         AnalyticsProvider.useECommerce(true);
 
@@ -84,6 +87,8 @@ AnalyticsProvider.trackPages(false);
 AnalyticsProvider.setDomainName('XXX');
 //Use analytics.js instead of ga.js
 AnalyticsProvider.useAnalytics(true);
+// Ignore first page view.
+AnalyticsProvider.ignoreFirstPageLoad(true);
 //Enable eCommerce module for analytics.js
 AnalyticsProvider.useECommerce(true);
 //Enable enhanced link attribution module for analytics.js or ga.js

@@ -77,6 +77,19 @@ describe('angular-google-analytics', function(){
     });
   });
 
+  describe('Supports ignoreFirstPageLoad', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.ignoreFirstPageLoad(true);
+    }));
+
+    it('Supports ignoreFirstPageLoad config', function() {
+      inject(function(Analytics, $rootScope) {
+
+        expect(Analytics.ignoreFirstPageLoad).toBe(true);
+      });
+    });
+  });
+
   describe('supports analytics.js', function() {
     var cookieConfig = {
       cookieDomain: 'foo.example.com',
