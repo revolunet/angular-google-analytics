@@ -92,7 +92,7 @@ AnalyticsProvider.ignoreFirstPageLoad(true);
 //Enable eCommerce module for analytics.js
 AnalyticsProvider.useECommerce(true);
 //Enable enhanced link attribution module for analytics.js or ga.js
-AnalyticsProvider.useECommerce(true);
+AnalyticsProvider.useEnhancedLinkAttribution(true);
 //Enable analytics.js experiments
 AnalyticsProvider.setExperimentId('12345');
 //Set custom cookie parameters for analytics.js
