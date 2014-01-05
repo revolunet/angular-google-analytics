@@ -2,7 +2,7 @@
 
 A simple service that let you integrate google analytics tracker in your AngularJS applications.
 
-Proudly brought to you by the [@revolunet](http://twitter.com/revolunet) team.
+Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@deltaepsilon](https://github.com/deltaepsilon).
 
 ## features
 
