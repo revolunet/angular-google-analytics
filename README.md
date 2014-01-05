@@ -31,7 +31,7 @@ var app = angular.module('app', ['angular-google-analytics'])
         // - for example: when an app doesn't run in the root directory
         AnalyticsProvider.trackPrefix('my-application');
 
-        // change filename to analytics.js
+        // Use analytics.js instead of ga.jsgit diff
         AnalyticsProvider.useAnalytics(true);
 
         // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
