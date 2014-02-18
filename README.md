@@ -13,6 +13,12 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - multiple-domains
  - ga.js and and analytics.js support
 
+## install
+
+`bower install angular-google-analytics`
+
+Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
+
 ## example
 
 ```js

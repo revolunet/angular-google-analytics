@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git://github.com/revolunet/angular-google-analytics.git"
   },
-  "main": "./dist/angular-google-analytics.js",
+  "main": "./dist/angular-google-analytics.min.js",
   "dependencies": {
     "angular": "1.0.6",
     "angular-mocks": "1.0.6",
