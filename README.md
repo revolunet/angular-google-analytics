@@ -62,6 +62,10 @@ var app = angular.module('app', ['angular-google-analytics'])
         // change page event name
         AnalyticsProvider.setPageEvent('$stateChangeSuccess');
     }))
+    .run(function(Analytics) {
+      // In case you are relying on automatic page tracking, you need to inject Analytics
+      // at least once in your application (for example in the main run() block)
+    })
     .controller('SampleController', function(Analytics) {
         // create a new pageview event
         Analytics.trackPage('/video/detail/XXX');
