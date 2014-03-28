@@ -75,7 +75,7 @@ var app = angular.module('app', ['angular-google-analytics'])
         
         // tracking e-commerce
         // - create transaction
-        Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
+        Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands', 'EUR');
         
         // - add items to transaction
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
