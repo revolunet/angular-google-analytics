@@ -319,8 +319,8 @@ angular.module('angular-google-analytics', [])
                     // add an action event
                     me._trackEvent(category, action, label, value);
                 },
-                addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country) {
-                    me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country);
+                addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
+                    me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
                 },
                 addItem: function (transactionId, sku, name, category, price, quantity) {
                     me._addItem(transactionId, sku, name, category, price, quantity);
