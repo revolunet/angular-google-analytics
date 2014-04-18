@@ -23,7 +23,7 @@ Or alternatively, grab the dist/angular-google-analytics.min.js and include it i
 
 ```js
 var app = angular.module('app', ['angular-google-analytics'])
-    .config(function('AnalyticsProvider') {
+    .config(function(AnalyticsProvider) {
         // initial configuration
         AnalyticsProvider.setAccount('UA-XXXXX-xx');
 
