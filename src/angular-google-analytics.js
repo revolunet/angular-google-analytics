@@ -157,7 +157,7 @@ angular.module('angular-google-analytics', [])
             this._logs.push(arguments);
           };
           this._trackPage = function(url, title) {
-            title = title ? title : document.title;
+            title = title ? title : $document[0].title;
             if (trackRoutes && !analyticsJS && $window._gaq) {
               // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
               $window._gaq.push(["_set", "title", title]);

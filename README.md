@@ -70,6 +70,9 @@ var app = angular.module('app', ['angular-google-analytics'])
         // create a new pageview event
         Analytics.trackPage('/video/detail/XXX');
 
+        // or create a new pageview event with optional page title
+        Analytics.trackPage('/video/detail/XXX', 'Video XXX');
+
         // create a new tracking event
         Analytics.trackEvent('video', 'play', 'django.mp4');
         
