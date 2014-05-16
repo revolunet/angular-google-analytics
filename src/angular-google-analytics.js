@@ -156,12 +156,18 @@ angular.module('angular-google-analytics', [])
             //console.info('analytics log:', arguments);
             this._logs.push(arguments);
           };
-          this._trackPage = function(url) {
+          this._trackPage = function(url, title) {
+            title = title ? title : $document[0].title;
             if (trackRoutes && !analyticsJS && $window._gaq) {
+              // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
+              $window._gaq.push(["_set", "title", title]);
               $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             } else if (trackRoutes && analyticsJS && $window.ga) {
-              $window.ga('send', 'pageview', trackPrefix + url);
+              $window.ga('send', 'pageview', {
+                'page': trackPrefix + url,
+                'title': title
+              });
               this._log('pageview', arguments);
             }
           };
@@ -311,9 +317,9 @@ angular.module('angular-google-analytics', [])
                 getUrl: getUrl,
                 experimentId: experimentId,
                 ignoreFirstPageLoad: ignoreFirstPageLoad,
-                trackPage: function(url) {
+                trackPage: function(url, title) {
                     // add a page event
-                    me._trackPage(url);
+                    me._trackPage(url, title);
                 },
                 trackEvent: function(category, action, label, value) {
                     // add an action event
