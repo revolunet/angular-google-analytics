@@ -2,13 +2,13 @@
   "author": "revolunet",
   "name": "angular-google-analytics",
   "description": "Easy Analytics for your AngularJS application",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "homepage": "https://github.com/revolunet/angular-google-analytics",
   "repository": {
     "type": "git",
     "url": "git://github.com/revolunet/angular-google-analytics.git"
   },
-  "main": "./src/angular-google-analytics.js",
+  "main": "./dist/angular-google-analytics.min.js",
   "dependencies": {
     "angular": ">=1"
   },

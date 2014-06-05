@@ -139,10 +139,10 @@ module.exports = function(grunt) {
   grunt.registerTask('test-server', ['karma:server']);
 
   // Build task.
-  grunt.registerTask('build', ['test', 'concat', 'uglify', 'changelog']);
+  grunt.registerTask('build', ['test', 'concat', 'uglify']);
 
   // release task
-  grunt.registerTask('release', ['build', 'changelog']);
+  grunt.registerTask('release', ['build']);
 
 
   // Provides the "karma" task.
