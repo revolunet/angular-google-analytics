@@ -75,17 +75,21 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // create a new tracking event
         Analytics.trackEvent('video', 'play', 'django.mp4');
-        
+
         // tracking e-commerce
         // - create transaction
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands', 'EUR');
-        
+
         // - add items to transaction
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
         Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
-        
+
         // - complete transaction
         Analytics.trackTrans();
+
+        // populate a custom dimension
+        Analytics.set('dimension1', 'Paid');
+
     });
 ```
 
