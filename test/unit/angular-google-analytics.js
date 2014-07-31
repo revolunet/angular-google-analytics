@@ -36,7 +36,7 @@ describe('angular-google-analytics', function(){
   });
 
   describe('e-commerce transactions', function() {
-  
+
       it('should add transcation', function() {
         inject(function(Analytics) {
           expect(Analytics._logs.length).toBe(0);
@@ -44,7 +44,7 @@ describe('angular-google-analytics', function(){
           expect(Analytics._logs.length).toBe(1);
         });
       });
-  
+
       it('should add an item to transaction', function() {
         inject(function(Analytics) {
           expect(Analytics._logs.length).toBe(0);
@@ -54,7 +54,7 @@ describe('angular-google-analytics', function(){
           expect(Analytics._logs.length).toBe(2);
         });
       });
-  
+
       it('should track the transaction', function() {
         inject(function(Analytics) {
           expect(Analytics._logs.length).toBe(0);
@@ -157,6 +157,22 @@ describe('angular-google-analytics', function(){
       });
     });
 
+    it('should allow setting custom dimensions, metrics or experiment', function(){
+      inject(function (Analytics) {
+        var data = {
+          name: "dimension1",
+          value: "value1",
+        }
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.set(data.name, data.value);
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0]).toEqual({
+          '0': 'set',
+          '1': data.name,
+          '2': data.value
+        });
+      });
+    });
   });
 
   describe('e-commerce transactions with analytics.js', function() {

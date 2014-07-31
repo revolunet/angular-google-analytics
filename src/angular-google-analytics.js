@@ -292,6 +292,22 @@ angular.module('angular-google-analytics', [])
             }
           };
 
+          /**
+           * Set custom dimensions, metrics or experiment
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#customs
+           *
+           * @param name
+           * @param value
+           * @private
+           */
+          this._set = function (name, value) {
+            if ($window.ga) {
+              $window.ga('set', name, value);
+              this._log('set', name, value);
+            }
+          };
+
 
 
             // creates the ganalytics tracker
@@ -339,6 +355,9 @@ angular.module('angular-google-analytics', [])
                 },
                 send: function (obj) {
                   me._send(obj);
+                },
+                set: function (name, value) {
+                  me._set(name, value);
                 }
             };
         }];
