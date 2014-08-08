@@ -106,6 +106,7 @@ angular.module('angular-google-analytics', [])
             if (!accountId) return;
             $window._gaq = [];
             $window._gaq.push(['_setAccount', accountId]);
+            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             if (enhancedLinkAttribution) {
               $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
             }
@@ -116,7 +117,6 @@ angular.module('angular-google-analytics', [])
                 $window._gaq.push(['_trackPageview']);
               }
             }
-            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
