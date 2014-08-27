@@ -59,12 +59,8 @@ angular.module('angular-google-analytics', [])
           };
 
           this.setCrossLinkDomains = function(domains) {
-            if(angular.isArray(domains) {
-              crossLinkDomains = domains;
-            } else {
-              crossLinkDomains = [domains];
-            }
-            
+            crossLinkDomains = domains;
+            return true;
           };
 
           this.setPageEvent = function(name) {
