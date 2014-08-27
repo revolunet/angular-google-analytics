@@ -128,7 +128,13 @@ angular.module('angular-google-analytics', [])
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            $window.ga('create', accountId, cookieConfig);
+            if (angular.isArray(accountId)) {
+                accountId.forEach(function (trackerObj) {
+                    $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+                });
+            } else {
+                $window.ga('create', accountId, cookieConfig);
+            }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
               $window.ga('send', 'pageview', getUrl());
