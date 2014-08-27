@@ -162,7 +162,7 @@ describe('angular-google-analytics', function(){
         var data = {
           name: "dimension1",
           value: "value1",
-        }
+        };
         expect(Analytics._logs.length).toBe(0);
         Analytics.set(data.name, data.value);
         expect(Analytics._logs.length).toBe(1);
