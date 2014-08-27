@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.3 - 2014-06-05
+ * @version v0.0.3 - 2014-08-27
  * @link http://revolunet.com.github.com/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -135,7 +135,13 @@ angular.module('angular-google-analytics', [])
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            $window.ga('create', accountId, cookieConfig);
+            if (angular.isArray(accountId)) {
+              accountId.forEach(function (trackerObj) {
+                $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+              });
+            } else {
+              $window.ga('create', accountId, cookieConfig);
+            }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
               $window.ga('send', 'pageview', getUrl());
@@ -171,10 +177,19 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             } else if (trackRoutes && analyticsJS && $window.ga) {
-              $window.ga('send', 'pageview', {
-                'page': trackPrefix + url,
-                'title': title
-              });
+              if (angular.isArray(accountId)) {
+                accountId.forEach(function (trackerObj) {
+                  $window.ga(trackerObj.name + '.send', 'pageview', {
+                    'page': trackPrefix + url,
+                    'title': title
+                  });
+                });
+              } else {
+                $window.ga('send', 'pageview', {
+                  'page': trackPrefix + url,
+                  'title': title
+                });
+              }
               this._log('pageview', arguments);
             }
           };
@@ -299,6 +314,22 @@ angular.module('angular-google-analytics', [])
             }
           };
 
+          /**
+           * Set custom dimensions, metrics or experiment
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#customs
+           *
+           * @param name
+           * @param value
+           * @private
+           */
+          this._set = function (name, value) {
+            if ($window.ga) {
+              $window.ga('set', name, value);
+              this._log('set', name, value);
+            }
+          };
+
 
 
             // creates the ganalytics tracker
@@ -346,6 +377,9 @@ angular.module('angular-google-analytics', [])
                 },
                 send: function (obj) {
                   me._send(obj);
+                },
+                set: function (name, value) {
+                  me._set(name, value);
                 }
             };
         }];
