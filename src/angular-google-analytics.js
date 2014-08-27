@@ -129,11 +129,11 @@ angular.module('angular-google-analytics', [])
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
             if (angular.isArray(accountId)) {
-                accountId.forEach(function (trackerObj) {
-                    $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
-                });
+              accountId.forEach(function (trackerObj) {
+                $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+              });
             } else {
-                $window.ga('create', accountId, cookieConfig);
+              $window.ga('create', accountId, cookieConfig);
             }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
@@ -170,10 +170,19 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             } else if (trackRoutes && analyticsJS && $window.ga) {
-              $window.ga('send', 'pageview', {
-                'page': trackPrefix + url,
-                'title': title
-              });
+              if (angular.isArray(accountId)) {
+                accountId.forEach(function (trackerObj) {
+                  $window.ga(trackerObj.name + '.send', 'pageview', {
+                    'page': trackPrefix + url,
+                    'title': title
+                  });
+                });
+              } else {
+                $window.ga('send', 'pageview', {
+                  'page': trackPrefix + url,
+                  'title': title
+                });
+              }
               this._log('pageview', arguments);
             }
           };

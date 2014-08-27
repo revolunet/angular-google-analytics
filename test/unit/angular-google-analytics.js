@@ -257,13 +257,26 @@ describe('angular-google-analytics', function(){
     }));
 
     it('should call ga create event for each tracker', function () {
-        inject(function($window) {
-            spyOn($window, 'ga');
-            inject(function(Analytics) {
-                expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, 'auto', { name: trackers[0].name });
-                expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, 'auto', { name: trackers[1].name });
-            });
+      inject(function($window) {
+        spyOn($window, 'ga');
+        inject(function(Analytics) {
+            expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, 'auto', { name: trackers[0].name });
+            expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, 'auto', { name: trackers[1].name });
         });
+      });
+    });
+
+    describe('#trackPage', function () {
+      it('should call ga send pageview event for each tracker', function () {
+        inject(function($window) {
+          spyOn($window, 'ga');
+          inject(function(Analytics) {
+              Analytics.trackPage('/mypage', 'My Page');
+              expect($window.ga).toHaveBeenCalledWith(trackers[0].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
+              expect($window.ga).toHaveBeenCalledWith(trackers[1].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
+          });
+        });
+      });
     });
   });
 });
