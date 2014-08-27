@@ -12,6 +12,7 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - e-commerce tracking
  - multiple-domains
  - ga.js and and analytics.js support
+ - cross-domain support
 
 ## install
 
@@ -39,6 +40,10 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // Use analytics.js instead of ga.js
         AnalyticsProvider.useAnalytics(true);
+
+        // Use cross domain linking
+        AnalyticsProvider.useCrossDomainLinker(true);
+        AnalyticsProvider.setCrossLinkDomains(['domain-1.com', 'domain-2.com']);
 
         // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
         AnalyticsProvider.ignoreFirstPageLoad(true);

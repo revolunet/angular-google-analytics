@@ -16,7 +16,10 @@ angular.module('angular-google-analytics', [])
             enhancedLinkAttribution = false,
             removeRegExp,
             experimentId,
-            ignoreFirstPageLoad = false;
+            ignoreFirstPageLoad = false,
+            crossDomainLinker = false,
+            crossLinkDomains,
+            linkerConfig = {'allowLinker': true};
 
           this._logs = [];
 
@@ -47,6 +50,16 @@ angular.module('angular-google-analytics', [])
 
           this.useEnhancedLinkAttribution = function (val) {
             enhancedLinkAttribution = !!val;
+            return true;
+          };
+
+          this.useCrossDomainLinker = function(val) {
+            crossDomainLinker == !!val;
+            return true;
+          };
+
+          this.setCrossLinkDomains = function(domains) {
+            crossLinkDomains = domains;
             return true;
           };
 
@@ -128,7 +141,15 @@ angular.module('angular-google-analytics', [])
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            $window.ga('create', accountId, cookieConfig);
+            if(crossDomainLinker) {
+              $window.ga('create', accountId, cookieConfig, linkerConfig);
+              $window.ga('require', 'linker');
+              if(crossLinkDomains) {
+                ga('linker:autoLink', crossLinkDomains );
+              }
+            } else {
+              $window.ga('create', accountId, cookieConfig);
+            }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
               $window.ga('send', 'pageview', getUrl());
