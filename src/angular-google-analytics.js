@@ -131,6 +131,7 @@ angular.module('angular-google-analytics', [])
             })();
             created = true;
           }
+
           function _createAnalyticsScriptTag() {
             if (!accountId) {
               return console.warn('No account id set for Analytics.js');
@@ -141,7 +142,11 @@ angular.module('angular-google-analytics', [])
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            if(crossDomainLinker) {
+            if (angular.isArray(accountId)) {
+              accountId.forEach(function (trackerObj) {
+                $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+              });
+            } else if(crossDomainLinker) {
               $window.ga('create', accountId, cookieConfig, linkerConfig);
               $window.ga('require', 'linker');
               if(crossLinkDomains) {
@@ -168,15 +173,16 @@ angular.module('angular-google-analytics', [])
                 expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
                 s.parentNode.insertBefore(expScript, s);
               }
-
             }
 
           }
+
           this._log = function() {
             // for testing
             //console.info('analytics log:', arguments);
             this._logs.push(arguments);
           };
+
           this._trackPage = function(url, title) {
             title = title ? title : $document[0].title;
             if (trackRoutes && !analyticsJS && $window._gaq) {
@@ -185,13 +191,23 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             } else if (trackRoutes && analyticsJS && $window.ga) {
-              $window.ga('send', 'pageview', {
-                'page': trackPrefix + url,
-                'title': title
-              });
+              if (angular.isArray(accountId)) {
+                accountId.forEach(function (trackerObj) {
+                  $window.ga(trackerObj.name + '.send', 'pageview', {
+                    'page': trackPrefix + url,
+                    'title': title
+                  });
+                });
+              } else {
+                $window.ga('send', 'pageview', {
+                  'page': trackPrefix + url,
+                  'title': title
+                });
+              }
               this._log('pageview', arguments);
             }
           };
+
           this._trackEvent = function(category, action, label, value) {
             if (!analyticsJS && $window._gaq) {
               $window._gaq.push(['_trackEvent', category, action, label, value]);

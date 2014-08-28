@@ -13,6 +13,7 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - multiple-domains
  - ga.js and and analytics.js support
  - cross-domain support
+ - multiple tracking objects
 
 ## install
 
@@ -27,6 +28,11 @@ var app = angular.module('app', ['angular-google-analytics'])
     .config(function(AnalyticsProvider) {
         // initial configuration
         AnalyticsProvider.setAccount('UA-XXXXX-xx');
+        // using multiple tracking objects (analytics.js only)
+        // AnalyticsProvider.setAccount([
+        //   { tracker: 'UA-12345-12', name: "tracker1" },
+        //   { tracker: 'UA-12345-34', name: "tracker2" }
+        // ]);
 
         // track all routes (or not)
         AnalyticsProvider.trackPages(true);
