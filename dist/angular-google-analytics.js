@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.3 - 2014-06-05
+ * @version v0.0.4 - 2014-08-28
  * @link http://revolunet.com.github.com/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -23,7 +23,10 @@ angular.module('angular-google-analytics', [])
             enhancedLinkAttribution = false,
             removeRegExp,
             experimentId,
-            ignoreFirstPageLoad = false;
+            ignoreFirstPageLoad = false,
+            crossDomainLinker = false,
+            crossLinkDomains,
+            linkerConfig = {'allowLinker': true};
 
           this._logs = [];
 
@@ -54,6 +57,16 @@ angular.module('angular-google-analytics', [])
 
           this.useEnhancedLinkAttribution = function (val) {
             enhancedLinkAttribution = !!val;
+            return true;
+          };
+
+          this.useCrossDomainLinker = function(val) {
+            crossDomainLinker === !!val;
+            return true;
+          };
+
+          this.setCrossLinkDomains = function(domains) {
+            crossLinkDomains = domains;
             return true;
           };
 
@@ -135,7 +148,15 @@ angular.module('angular-google-analytics', [])
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            $window.ga('create', accountId, cookieConfig);
+            if(crossDomainLinker) {
+              $window.ga('create', accountId, cookieConfig, linkerConfig);
+              $window.ga('require', 'linker');
+              if(crossLinkDomains) {
+                $window.ga('linker:autoLink', crossLinkDomains );
+              }
+            } else {
+              $window.ga('create', accountId, cookieConfig);
+            }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
               $window.ga('send', 'pageview', getUrl());
@@ -299,6 +320,22 @@ angular.module('angular-google-analytics', [])
             }
           };
 
+          /**
+           * Set custom dimensions, metrics or experiment
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#customs
+           *
+           * @param name
+           * @param value
+           * @private
+           */
+          this._set = function (name, value) {
+            if ($window.ga) {
+              $window.ga('set', name, value);
+              this._log('set', name, value);
+            }
+          };
+
 
 
             // creates the ganalytics tracker
@@ -346,6 +383,9 @@ angular.module('angular-google-analytics', [])
                 },
                 send: function (obj) {
                   me._send(obj);
+                },
+                set: function (name, value) {
+                  me._set(name, value);
                 }
             };
         }];

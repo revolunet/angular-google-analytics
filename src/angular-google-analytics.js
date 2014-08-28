@@ -54,7 +54,7 @@ angular.module('angular-google-analytics', [])
           };
 
           this.useCrossDomainLinker = function(val) {
-            crossDomainLinker == !!val;
+            crossDomainLinker === !!val;
             return true;
           };
 
@@ -145,7 +145,7 @@ angular.module('angular-google-analytics', [])
               $window.ga('create', accountId, cookieConfig, linkerConfig);
               $window.ga('require', 'linker');
               if(crossLinkDomains) {
-                ga('linker:autoLink', crossLinkDomains );
+                $window.ga('linker:autoLink', crossLinkDomains );
               }
             } else {
               $window.ga('create', accountId, cookieConfig);
