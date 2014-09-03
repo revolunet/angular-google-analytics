@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.4 - 2014-08-28
+ * @version v0.0.4 - 2014-09-03
  * @link http://revolunet.com.github.com/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -61,7 +61,7 @@ angular.module('angular-google-analytics', [])
           };
 
           this.useCrossDomainLinker = function(val) {
-            crossDomainLinker === !!val;
+            crossDomainLinker = !!val;
             return true;
           };
 

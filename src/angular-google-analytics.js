@@ -54,7 +54,7 @@ angular.module('angular-google-analytics', [])
           };
 
           this.useCrossDomainLinker = function(val) {
-            crossDomainLinker === !!val;
+            crossDomainLinker = !!val;
             return true;
           };
 
