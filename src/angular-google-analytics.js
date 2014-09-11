@@ -7,6 +7,7 @@ angular.module('angular-google-analytics', [])
         var created = false,
             trackRoutes = true,
             accountId,
+            displayFeatures,
             trackPrefix = '',
             domainName,
             analyticsJS = false,
@@ -42,6 +43,11 @@ angular.module('angular-google-analytics', [])
             domainName = domain;
             return true;
           };
+
+          this.useDisplayFeatures = function(val) {
+            displayFeatures = !!val;
+            return true;
+          }
 
           this.useAnalytics = function(val) {
             analyticsJS = !!val;
@@ -123,12 +129,18 @@ angular.module('angular-google-analytics', [])
               }
             }
             if(domainName) $window._gaq.push(['_setDomainName', domainName]);
+            var gaSrc;
+            if(displayFeatures) {
+              gaSrc = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+            } else {
+              gaSrc = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            }
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              ga.src = gaSrc;
               var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
+            })(gaSrc);
             created = true;
           }
 
@@ -154,6 +166,10 @@ angular.module('angular-google-analytics', [])
               }
             } else {
               $window.ga('create', accountId, cookieConfig);
+            }
+
+            if(displayFeatures) {
+              $window.ga('require', 'displayfeatures');
             }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
@@ -365,6 +381,7 @@ angular.module('angular-google-analytics', [])
             return {
                 _logs: me._logs,
                 cookieConfig: cookieConfig,
+                displayFeatures: displayFeatures,
                 ecommerce: ecommerce,
                 enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,
