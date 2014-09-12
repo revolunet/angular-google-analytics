@@ -47,7 +47,7 @@ angular.module('angular-google-analytics', [])
           this.useDisplayFeatures = function(val) {
             displayFeatures = !!val;
             return true;
-          }
+          };
 
           this.useAnalytics = function(val) {
             analyticsJS = !!val;
@@ -131,9 +131,9 @@ angular.module('angular-google-analytics', [])
             if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             var gaSrc;
             if(displayFeatures) {
-              gaSrc = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+              gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
             } else {
-              gaSrc = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              gaSrc = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
             }
             (function() {
               var document = $document[0];
