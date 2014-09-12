@@ -40,6 +40,9 @@ var app = angular.module('app', ['angular-google-analytics'])
         //Optional set domain (Use 'none' for testing on localhost)
         //AnalyticsProvider.setDomainName('XXX');
 
+        //Use display features plugin
+        AnalyticsProvider.useDisplayFeatures(true);
+
         // url prefix (default is empty)
         // - for example: when an app doesn't run in the root directory
         AnalyticsProvider.trackPrefix('my-application');
@@ -113,6 +116,8 @@ AnalyticsProvider.setAccount('UA-XXXXX-xx');
 AnalyticsProvider.trackPages(false);
 //Optional set domain (Use 'none' for testing on localhost)
 AnalyticsProvider.setDomainName('XXX');
+//Use display features plugin
+AnalyticsProvider.useDisplayFeatures(true);
 //Use analytics.js instead of ga.js
 AnalyticsProvider.useAnalytics(true);
 // Ignore first page view.
