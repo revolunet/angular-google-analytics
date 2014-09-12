@@ -36,6 +36,10 @@ describe('angular-google-analytics', function(){
   });
 
   describe('supports dc.js', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.useDisplayFeatures(true);
+    }));
+
     it('should inject the DC script', function() {
       inject(function(Analytics) {
         expect(document.querySelectorAll("script[src='http://stats.g.doubleclick.net/dc.js']").length).toBe(1);
