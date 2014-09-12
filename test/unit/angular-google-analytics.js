@@ -9,7 +9,7 @@ describe('angular-google-analytics', function(){
       AnalyticsProvider.setAccount('UA-XXXXXX-xx');
     }));
 
-   describe('automatic trackPages', function() {
+   describe('automatic trackPages with ga.js', function() {
 
       it('should inject the GA script', function() {
         inject(function(Analytics) {
@@ -33,6 +33,18 @@ describe('angular-google-analytics', function(){
           expect(Analytics._logs.length).toBe(1);
         });
       });
+  });
+
+  describe('supports dc.js', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.useDisplayFeatures(true);
+    }));
+
+    it('should inject the DC script', function() {
+      inject(function(Analytics) {
+        expect(document.querySelectorAll("script[src='http://stats.g.doubleclick.net/dc.js']").length).toBe(1);
+      });
+    });
   });
 
   describe('e-commerce transactions', function() {
@@ -100,6 +112,7 @@ describe('angular-google-analytics', function(){
     beforeEach(module(function(AnalyticsProvider) {
       AnalyticsProvider.useAnalytics(true);
       AnalyticsProvider.setCookieConfig(cookieConfig);
+      AnalyticsProvider.useDisplayFeatures(true);
       AnalyticsProvider.useECommerce(true);
       AnalyticsProvider.useEnhancedLinkAttribution(true);
       AnalyticsProvider.setExperimentId('12345');
@@ -108,6 +121,12 @@ describe('angular-google-analytics', function(){
     it('should inject the Analytics script', function() {
       inject(function(Analytics) {
         expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(1);
+      });
+    });
+
+    if('should support displayfeatures config', function() {
+      inject(function(Analytics) {
+        expect(Analytics.displayFeatures).toBe(true);
       });
     });
 
