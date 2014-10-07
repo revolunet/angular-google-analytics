@@ -124,7 +124,7 @@ describe('angular-google-analytics', function(){
       });
     });
 
-    if('should support displayfeatures config', function() {
+    it('should support displayfeatures config', function() {
       inject(function(Analytics) {
         expect(Analytics.displayFeatures).toBe(true);
       });

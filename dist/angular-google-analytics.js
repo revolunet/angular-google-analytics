@@ -1,7 +1,7 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.4 - 2014-09-03
- * @link http://revolunet.com.github.com/angular-google-analytics
+ * @version v0.0.6 - 2014-10-07
+ * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ angular.module('angular-google-analytics', [])
         var created = false,
             trackRoutes = true,
             accountId,
+            displayFeatures,
             trackPrefix = '',
             domainName,
             analyticsJS = false,
@@ -47,6 +48,11 @@ angular.module('angular-google-analytics', [])
 
           this.setDomainName = function(domain) {
             domainName = domain;
+            return true;
+          };
+
+          this.useDisplayFeatures = function(val) {
+            displayFeatures = !!val;
             return true;
           };
 
@@ -130,12 +136,18 @@ angular.module('angular-google-analytics', [])
               }
             }
             if(domainName) $window._gaq.push(['_setDomainName', domainName]);
+            var gaSrc;
+            if(displayFeatures) {
+              gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+            } else {
+              gaSrc = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            }
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              ga.src = gaSrc;
               var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
+            })(gaSrc);
             created = true;
           }
 
@@ -161,6 +173,10 @@ angular.module('angular-google-analytics', [])
               }
             } else {
               $window.ga('create', accountId, cookieConfig);
+            }
+
+            if(displayFeatures) {
+              $window.ga('require', 'displayfeatures');
             }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
@@ -372,6 +388,7 @@ angular.module('angular-google-analytics', [])
             return {
                 _logs: me._logs,
                 cookieConfig: cookieConfig,
+                displayFeatures: displayFeatures,
                 ecommerce: ecommerce,
                 enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,
