@@ -118,6 +118,7 @@ angular.module('angular-google-analytics', [])
             if (!accountId) return;
             $window._gaq = [];
             $window._gaq.push(['_setAccount', accountId]);
+            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             if (enhancedLinkAttribution) {
               $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
             }
@@ -128,7 +129,6 @@ angular.module('angular-google-analytics', [])
                 $window._gaq.push(['_trackPageview']);
               }
             }
-            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             var gaSrc;
             if(displayFeatures) {
               gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';

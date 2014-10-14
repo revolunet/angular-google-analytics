@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.6 - 2014-10-07
+ * @version v0.0.6 - 2014-10-14
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -125,6 +125,7 @@ angular.module('angular-google-analytics', [])
             if (!accountId) return;
             $window._gaq = [];
             $window._gaq.push(['_setAccount', accountId]);
+            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             if (enhancedLinkAttribution) {
               $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
             }
@@ -135,7 +136,6 @@ angular.module('angular-google-analytics', [])
                 $window._gaq.push(['_trackPageview']);
               }
             }
-            if(domainName) $window._gaq.push(['_setDomainName', domainName]);
             var gaSrc;
             if(displayFeatures) {
               gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
