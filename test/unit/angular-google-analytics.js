@@ -9,7 +9,7 @@ describe('angular-google-analytics', function(){
       AnalyticsProvider.setAccount('UA-XXXXXX-xx');
     }));
 
-   describe('automatic trackPages', function() {
+   describe('automatic trackPages with ga.js', function() {
 
       it('should inject the GA script', function() {
         inject(function(Analytics) {
@@ -33,6 +33,18 @@ describe('angular-google-analytics', function(){
           expect(Analytics._logs.length).toBe(1);
         });
       });
+  });
+
+  describe('supports dc.js', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.useDisplayFeatures(true);
+    }));
+
+    it('should inject the DC script', function() {
+      inject(function(Analytics) {
+        expect(document.querySelectorAll("script[src='http://stats.g.doubleclick.net/dc.js']").length).toBe(1);
+      });
+    });
   });
 
   describe('e-commerce transactions', function() {
@@ -100,6 +112,7 @@ describe('angular-google-analytics', function(){
     beforeEach(module(function(AnalyticsProvider) {
       AnalyticsProvider.useAnalytics(true);
       AnalyticsProvider.setCookieConfig(cookieConfig);
+      AnalyticsProvider.useDisplayFeatures(true);
       AnalyticsProvider.useECommerce(true);
       AnalyticsProvider.useEnhancedLinkAttribution(true);
       AnalyticsProvider.setExperimentId('12345');
@@ -108,6 +121,12 @@ describe('angular-google-analytics', function(){
     it('should inject the Analytics script', function() {
       inject(function(Analytics) {
         expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(1);
+      });
+    });
+
+    it('should support displayfeatures config', function() {
+      inject(function(Analytics) {
+        expect(Analytics.displayFeatures).toBe(true);
       });
     });
 
@@ -161,8 +180,8 @@ describe('angular-google-analytics', function(){
       inject(function (Analytics) {
         var data = {
           name: "dimension1",
-          value: "value1",
-        }
+          value: "value1"
+        };
         expect(Analytics._logs.length).toBe(0);
         Analytics.set(data.name, data.value);
         expect(Analytics._logs.length).toBe(1);
@@ -245,5 +264,39 @@ describe('angular-google-analytics', function(){
 
   });
 
+  describe('supports multiple tracking objects', function() {
+    var trackers = [
+      { tracker: 'UA-12345-12', name: "tracker1" },
+      { tracker: 'UA-12345-34', name: "tracker2" }
+    ];
+
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.setAccount(trackers);
+      AnalyticsProvider.useAnalytics(true);
+    }));
+
+    it('should call ga create event for each tracker', function () {
+      inject(function($window) {
+        spyOn($window, 'ga');
+        inject(function(Analytics) {
+            expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, 'auto', { name: trackers[0].name });
+            expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, 'auto', { name: trackers[1].name });
+        });
+      });
+    });
+
+    describe('#trackPage', function () {
+      it('should call ga send pageview event for each tracker', function () {
+        inject(function($window) {
+          spyOn($window, 'ga');
+          inject(function(Analytics) {
+              Analytics.trackPage('/mypage', 'My Page');
+              expect($window.ga).toHaveBeenCalledWith(trackers[0].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
+              expect($window.ga).toHaveBeenCalledWith(trackers[1].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
+          });
+        });
+      });
+    });
+  });
 });
 

@@ -7,6 +7,7 @@ angular.module('angular-google-analytics', [])
         var created = false,
             trackRoutes = true,
             accountId,
+            displayFeatures,
             trackPrefix = '',
             domainName,
             analyticsJS = false,
@@ -16,7 +17,10 @@ angular.module('angular-google-analytics', [])
             enhancedLinkAttribution = false,
             removeRegExp,
             experimentId,
-            ignoreFirstPageLoad = false;
+            ignoreFirstPageLoad = false,
+            crossDomainLinker = false,
+            crossLinkDomains,
+            linkerConfig = {'allowLinker': true};
 
           this._logs = [];
 
@@ -40,6 +44,11 @@ angular.module('angular-google-analytics', [])
             return true;
           };
 
+          this.useDisplayFeatures = function(val) {
+            displayFeatures = !!val;
+            return true;
+          };
+
           this.useAnalytics = function(val) {
             analyticsJS = !!val;
             return true;
@@ -47,6 +56,16 @@ angular.module('angular-google-analytics', [])
 
           this.useEnhancedLinkAttribution = function (val) {
             enhancedLinkAttribution = !!val;
+            return true;
+          };
+
+          this.useCrossDomainLinker = function(val) {
+            crossDomainLinker = !!val;
+            return true;
+          };
+
+          this.setCrossLinkDomains = function(domains) {
+            crossLinkDomains = domains;
             return true;
           };
 
@@ -110,14 +129,21 @@ angular.module('angular-google-analytics', [])
                 $window._gaq.push(['_trackPageview']);
               }
             }
+            var gaSrc;
+            if(displayFeatures) {
+              gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+            } else {
+              gaSrc = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            }
             (function() {
               var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              ga.src = gaSrc;
               var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
+            })(gaSrc);
             created = true;
           }
+
           function _createAnalyticsScriptTag() {
             if (!accountId) {
               return console.warn('No account id set for Analytics.js');
@@ -128,7 +154,23 @@ angular.module('angular-google-analytics', [])
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            $window.ga('create', accountId, cookieConfig);
+            if (angular.isArray(accountId)) {
+              accountId.forEach(function (trackerObj) {
+                $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+              });
+            } else if(crossDomainLinker) {
+              $window.ga('create', accountId, cookieConfig, linkerConfig);
+              $window.ga('require', 'linker');
+              if(crossLinkDomains) {
+                $window.ga('linker:autoLink', crossLinkDomains );
+              }
+            } else {
+              $window.ga('create', accountId, cookieConfig);
+            }
+
+            if(displayFeatures) {
+              $window.ga('require', 'displayfeatures');
+            }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
               $window.ga('send', 'pageview', getUrl());
@@ -147,15 +189,16 @@ angular.module('angular-google-analytics', [])
                 expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
                 s.parentNode.insertBefore(expScript, s);
               }
-
             }
 
           }
+
           this._log = function() {
             // for testing
             //console.info('analytics log:', arguments);
             this._logs.push(arguments);
           };
+
           this._trackPage = function(url, title) {
             title = title ? title : $document[0].title;
             if (trackRoutes && !analyticsJS && $window._gaq) {
@@ -164,13 +207,23 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackPageview', trackPrefix + url]);
               this._log('_trackPageview', arguments);
             } else if (trackRoutes && analyticsJS && $window.ga) {
-              $window.ga('send', 'pageview', {
-                'page': trackPrefix + url,
-                'title': title
-              });
+              if (angular.isArray(accountId)) {
+                accountId.forEach(function (trackerObj) {
+                  $window.ga(trackerObj.name + '.send', 'pageview', {
+                    'page': trackPrefix + url,
+                    'title': title
+                  });
+                });
+              } else {
+                $window.ga('send', 'pageview', {
+                  'page': trackPrefix + url,
+                  'title': title
+                });
+              }
               this._log('pageview', arguments);
             }
           };
+
           this._trackEvent = function(category, action, label, value) {
             if (!analyticsJS && $window._gaq) {
               $window._gaq.push(['_trackEvent', category, action, label, value]);
@@ -328,6 +381,7 @@ angular.module('angular-google-analytics', [])
             return {
                 _logs: me._logs,
                 cookieConfig: cookieConfig,
+                displayFeatures: displayFeatures,
                 ecommerce: ecommerce,
                 enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,

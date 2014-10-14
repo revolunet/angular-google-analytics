@@ -75,6 +75,7 @@ module.exports = function(grunt) {
         eqnull: true,
         expr: true,
         node: true,
+        '-W018': true,
         globals: {
           exports: true,
           angular: false,

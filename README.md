@@ -12,6 +12,8 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - e-commerce tracking
  - multiple-domains
  - ga.js and and analytics.js support
+ - cross-domain support
+ - multiple tracking objects
 
 ## install
 
@@ -26,6 +28,11 @@ var app = angular.module('app', ['angular-google-analytics'])
     .config(function(AnalyticsProvider) {
         // initial configuration
         AnalyticsProvider.setAccount('UA-XXXXX-xx');
+        // using multiple tracking objects (analytics.js only)
+        // AnalyticsProvider.setAccount([
+        //   { tracker: 'UA-12345-12', name: "tracker1" },
+        //   { tracker: 'UA-12345-34', name: "tracker2" }
+        // ]);
 
         // track all routes (or not)
         AnalyticsProvider.trackPages(true);
@@ -33,12 +40,19 @@ var app = angular.module('app', ['angular-google-analytics'])
         //Optional set domain (Use 'none' for testing on localhost)
         //AnalyticsProvider.setDomainName('XXX');
 
+        //Use display features plugin
+        AnalyticsProvider.useDisplayFeatures(true);
+
         // url prefix (default is empty)
         // - for example: when an app doesn't run in the root directory
         AnalyticsProvider.trackPrefix('my-application');
 
         // Use analytics.js instead of ga.js
         AnalyticsProvider.useAnalytics(true);
+
+        // Use cross domain linking
+        AnalyticsProvider.useCrossDomainLinker(true);
+        AnalyticsProvider.setCrossLinkDomains(['domain-1.com', 'domain-2.com']);
 
         // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
         AnalyticsProvider.ignoreFirstPageLoad(true);
@@ -102,6 +116,8 @@ AnalyticsProvider.setAccount('UA-XXXXX-xx');
 AnalyticsProvider.trackPages(false);
 //Optional set domain (Use 'none' for testing on localhost)
 AnalyticsProvider.setDomainName('XXX');
+//Use display features plugin
+AnalyticsProvider.useDisplayFeatures(true);
 //Use analytics.js instead of ga.js
 AnalyticsProvider.useAnalytics(true);
 // Ignore first page view.
