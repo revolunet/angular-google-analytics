@@ -10,6 +10,7 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - automatic page tracking
  - events tracking
  - e-commerce tracking
+ - enhanced e-commerce tracking
  - multiple-domains
  - ga.js and and analytics.js support
  - cross-domain support
@@ -57,8 +58,11 @@ var app = angular.module('app', ['angular-google-analytics'])
         // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
         AnalyticsProvider.ignoreFirstPageLoad(true);
 
-        //Enabled eCommerce module for analytics.js
-        AnalyticsProvider.useECommerce(true);
+        //Enabled eCommerce module for analytics.js(uses legacy ecommerce plugin)
+        AnalyticsProvider.useECommerce(true,false);
+
+        //Enabled eCommerce module for analytics.js(uses ec plugin instead of ecommerce plugin)
+        AnalyticsProvider.useECommerce(true,true);
 
         //Enable enhanced link attribution
         AnalyticsProvider.useEnhancedLinkAttribution(true);
@@ -101,6 +105,81 @@ var app = angular.module('app', ['angular-google-analytics'])
         // - complete transaction
         Analytics.trackTrans();
 
+        // Enhanced Ecommerce Tracking
+
+        // Product Impression Tracking
+        Analytics.addImpression(productId, name, list, brand, category, variant, position, price);
+        Analytics.pageView();
+        // example:
+        Analytics.addImpression('sku-1','Test Product 1','Category List','Brand 1','Category-1','variant-1','1','24990');
+        Analytics.addImpression('sku-2','Test Product 2','Category List','Brand 2','Category-1','variant-3','2','2499');
+        Analytics.pageView();
+
+        // Product Click Tracking
+        Analytics.addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+        Analytics.productClick(listName);
+        // example:
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.productClick('Search Result');
+
+        // Product Detail Tracking
+        Analytics.addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+        Analytics.trackDetail();
+        // example:
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackDetail();
+
+        // Add to cart Tracking
+        Analytics.addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+        Analytics.trackCart('add');
+        // example:
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackCart('add');
+
+        // Remove from cart Tracking
+        Analytics.addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+        Analytics.trackCart('remove');
+        // example:
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackCart('remove');
+
+        // Checkout Tracking
+        Analytics.addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+        Analytics.trackCheckout(checkoutStep,optionValue);
+        // example:
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackCheckout(1,'Visa');
+
+        // Transaction Tracking
+        Analytics.addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+        Analytics.trackTransaction(transactionId,affiliation,revenue,tax,shipping,coupon,list,step,option);
+        // example:
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2222','1','MEN10','1');
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','1111','1','WOMEN10','1');
+        Analytics.trackTransaction('T1234','Online Store - Web','3333','10','200','FLAT10','','','');
+
+        // Promotion Impressions
+        Analytics.addPromo(productId, name, creative, position);
+        Analytics.addPromo(productId, name, creative, position);
+        Analytics.addPromo(productId, name, creative, position);
+        Analytics.pageView();
+        // Note: Before tracking promotion Click, call pageView otherwise promotion impressions will be treated as promotion clicks
+        // example:
+        Analytics.addPromo('PROMO_1234','Summer Sale', 'summer_banner2', 'banner_slot1');
+        Analytics.pageView();
+
+        // Promotion Clicks
+        Analytics.addPromo(promotionId, promotionName, creative, position);
+        Analytics.addPromo(promotionId, promotionName, creative, position);
+        Analytics.addPromo(promotionId, promotionName, creative, position);
+        Analytics.promoClick(promotionName);
+        // example:
+        Analytics.addPromo('PROMO_1234','Summer Sale', 'summer_banner2', 'banner_slot1');
+        Analytics.promoClick('Summer Sale');
+
         // populate a custom dimension
         Analytics.set('dimension1', 'Paid');
 
@@ -123,7 +202,9 @@ AnalyticsProvider.useAnalytics(true);
 // Ignore first page view.
 AnalyticsProvider.ignoreFirstPageLoad(true);
 //Enable eCommerce module for analytics.js
-AnalyticsProvider.useECommerce(true);
+AnalyticsProvider.useECommerce(true,false);
+//Enable enhanced eCommerce module for analytics.js
+AnalyticsProvider.useECommerce(true,true);
 //Enable enhanced link attribution module for analytics.js or ga.js
 AnalyticsProvider.useEnhancedLinkAttribution(true);
 //Enable analytics.js experiments
