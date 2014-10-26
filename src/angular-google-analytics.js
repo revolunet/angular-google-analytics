@@ -14,6 +14,7 @@ angular.module('angular-google-analytics', [])
             pageEvent = '$routeChangeSuccess',
             cookieConfig = 'auto',
             ecommerce = false,
+            enhancedEcommerce = false,
             enhancedLinkAttribution = false,
             removeRegExp,
             experimentId,
@@ -79,10 +80,12 @@ angular.module('angular-google-analytics', [])
             return true;
           };
 
-          this.useECommerce = function (val) {
+          this.useECommerce = function (val,enhanced) {
             ecommerce = !!val;
+            enhancedEcommerce = !!enhanced;
             return true;
           };
+
 
           this.setRemoveRegExp = function (regex) {
             if (regex instanceof RegExp) {
@@ -178,7 +181,10 @@ angular.module('angular-google-analytics', [])
 
             if ($window.ga) {
               if (ecommerce) {
-                $window.ga('require', 'ecommerce', 'ecommerce.js');
+                if (!enhancedEcommerce)
+                  $window.ga('require', 'ecommerce', 'ecommerce.js');
+                else
+                  $window.ga('require', 'ec', 'ec.js');
               }
               if (enhancedLinkAttribution) {
                 $window.ga('require', 'linkid', 'linkid.js');
@@ -255,7 +261,10 @@ angular.module('angular-google-analytics', [])
               this._log('_addTrans', arguments);
             } else if ($window.ga) {
               if (!ecommerce) {
-                console.warn('ecommerce no set. Use AnalyticsProvider.setECommerce(true);');
+                console.warn('ecommerce no set. Use AnalyticsProvider.setECommerce(true,false);');
+              } else if(enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
+                  'Use AnalyticsProvider.setECommerce(true,false);');
               } else {
                 $window.ga('ecommerce:addTransaction', {
                   id: transactionId,
@@ -288,15 +297,22 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_addItem', transactionId, sku, name, category, price, quantity]);
               this._log('_addItem', arguments);
             } else if ($window.ga) {
-              $window.ga('ecommerce:addItem', {
-                id: transactionId,
-                name: name,
-                sku: sku,
-                category: category,
-                price: price,
-                quantity: quantity
-              });
-              this._log('ecommerce:addItem', arguments);
+              if (!ecommerce) {
+                console.warn('ecommerce no set. Use AnalyticsProvider.setECommerce(true,false);');
+              } else if(enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
+                  'Use AnalyticsProvider.setECommerce(true,false);');
+              } else {
+                $window.ga('ecommerce:addItem', {
+                  id: transactionId,
+                  name: name,
+                  sku: sku,
+                  category: category,
+                  price: price,
+                  quantity: quantity
+                });
+                this._log('ecommerce:addItem', arguments);
+              }
             }
           };
 
@@ -311,10 +327,16 @@ angular.module('angular-google-analytics', [])
               $window._gaq.push(['_trackTrans']);
               this._log('_trackTrans', arguments);
             } else if ($window.ga) {
-              $window.ga('ecommerce:send');
-              this._log('ecommerce:send', arguments);
+              if (!ecommerce) {
+                console.warn('ecommerce no set. Use AnalyticsProvider.setECommerce(true,false);');
+              } else if(enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
+                  'Use AnalyticsProvider.setECommerce(true,false);');
+              } else {
+                $window.ga('ecommerce:send');
+                this._log('ecommerce:send', arguments);
+              }
             }
-
           };
 
           /**
@@ -325,9 +347,252 @@ angular.module('angular-google-analytics', [])
            */
           this._clearTrans = function () {
             if ($window.ga) {
-              $window.ga('ecommerce:clear');
-              this._log('ecommerce:clear', arguments);
+              if (!ecommerce) {
+                console.warn('ecommerce no set. Use AnalyticsProvider.setECommerce(true,false);');
+              } else if(enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
+                  'Use AnalyticsProvider.setECommerce(true,false);');
+              } else {
+                $window.ga('ecommerce:clear');
+                this._log('ecommerce:clear', arguments);
+              }
             }
+          };
+
+          /**
+          Enhanced Ecommerce
+           */
+
+          /**
+           * Add product data
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
+           * @param productId
+           * @param name
+           * @param category
+           * @param brand
+           * @param variant
+           * @param price
+           * @param quantity
+           * @param coupon
+           * @param position
+           */
+          this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon,position) {
+            if (!analyticsJS && $window._gaq) {
+              $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon,position]);
+              this._log('_addProduct', arguments);
+            } else if ($window.ga) {
+                if (!ecommerce) {
+                  console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true,true);');
+                } else if(!enhancedEcommerce ){
+                  console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true,true);');
+                } else {
+                  $window.ga('ec:addProduct', {
+                    id: productId,
+                    name: name,
+                    category: category,
+                    brand: brand,
+                    variant: variant,
+                    price: price,
+                    quantity: quantity,
+                    coupon: coupon,
+                    position: position
+                  });
+                  this._log('ec:addProduct', arguments);
+                }
+            }
+          };
+
+          /**
+           * Add Impression data
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#impression-data
+           * @param id
+           * @param name
+           * @param list
+           * @param brand
+           * @param category
+           * @param variant
+           * @param position
+           * @param price
+           */
+          this._addImpression = function(id, name, list, brand, category, variant, position, price){
+            if (!analyticsJS && $window._gaq) {
+              $window._gaq.push(['_addImpression', id, name, list, brand, category, variant, position, price]);
+              this._log('_addImpression', arguments);
+            } else if ($window.ga) {
+              if (!ecommerce) {
+                console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true,true);');
+              } else if(!enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true,true);');
+              } else {
+                $window.ga('ec:addImpression', {
+                  id: id,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  list: list,
+                  position: position,
+                  price: price
+                });
+              }
+              this._log('ec:addImpression', arguments);
+            }
+          };
+
+          /**
+           * Add promo data
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce
+           * @param productId
+           * @param name
+           * @param creative
+           * @param position
+           */
+          this._addPromo = function (productId, name, creative,position) {
+            if (!analyticsJS && $window._gaq) {
+              $window._gaq.push(['_addPromo', productId, name, creative, position]);
+              this._log('_addPromo', arguments);
+            } else if ($window.ga) {
+              if (!ecommerce) {
+                console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true,true);');
+              } else if(!enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true,true);');
+              } else {
+                $window.ga('ec:addPromo', {
+                  id: productId,
+                  name: name,
+                  creative: creative,
+                  position: position
+                });
+                this._log('ec:addPromo', arguments);
+              }
+            }
+          };
+
+          /**
+           * get ActionFieldObject
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
+           * @param id
+           * @param affliation
+           * @param revenue
+           * @param tax
+           * @param shipping
+           * @param coupon
+           * @param list
+           * @param step
+           * @param option
+           */
+          this._getActionFieldObject = function (id,affiliation,revenue,tax,shipping,coupon,list,step,option) {
+            var obj = {};
+            if (id) obj.id = id;
+            if (affiliation) obj.affiliation = affiliation;
+            if (revenue) obj.revenue = revenue;
+            if (tax) obj.tax = tax;
+            if (shipping) obj.shipping = shipping;
+            if (coupon) obj.coupon = coupon;
+            if (list) obj.list = list;
+            if (step) obj.step = step;
+            if (option) obj.option = option;
+            return obj;
+          };
+
+          /**
+           * Set Action being performed
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-actions
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-types
+           * @param action
+           * @param name
+           * @param obj
+           */
+          this._setAction = function(action,obj){
+            if (!analyticsJS && $window._gaq) {
+              $window._gaq.push(['_setAction',action,obj]);
+              this._log('__setAction', arguments);
+            } else if ($window.ga) {
+              if (!ecommerce) {
+                console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true,true);');
+              } else if(!enhancedEcommerce ){
+                console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true,true);');
+              } else {
+                $window.ga('ec:setAction',action,obj);
+                this._log('ec:setAction', arguments);
+              }
+            }
+          };
+
+          /**
+           * Track Transaction
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
+           * @param transactionId
+           * @param affiliation
+           * @param revenue
+           * @param tax
+           * @param shipping
+           * @param coupon
+           * @param list
+           * @param step
+           * @param option
+           */
+          this._trackTransaction = function (transactionId,affiliation,revenue,tax,shipping,coupon,list,step,option) {
+            this._setAction('purchase',this._getActionFieldObject(transactionId,affiliation,revenue,tax,shipping,coupon,list,step,option));
+            this._pageView();
+          };
+
+          /**
+           * Track Refund
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-refunds
+           * @param transactionId
+           *
+           */
+          this._trackRefund = function (transactionId) {
+            this._setAction('refund',this._getActionFieldObject(transactionId));
+            this._pageView();
+          };
+
+          /**
+           * Track Checkout
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-checkout
+           * @param step
+           * @param option
+           *
+           */
+          this._trackCheckOut = function (step,option) {
+            this._setAction('checkout',this._getActionFieldObject(null,null,null,null,null,null,null,step,option));
+            this._pageView();
+          };
+
+          /**
+           * Track add/remove to cart
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#add-remove-cart
+           * @param action
+           *
+           */
+          this._trackCart = function (action){
+            if(['add','remove'].indexOf(action) !== -1){
+              this._setAction(action);
+              this._send('event','UX','click', action + 'to cart');
+            }
+          };
+
+          /**
+           * Track promo click
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-promo-clicks
+           * @param promotionName
+           *
+           */
+          this._promoClick = function (promotionName){
+            this._setAction('promo_click');
+            this._send('event','Internal Promotions','click', promotionName);
+          };
+
+          /**
+           * Track product click
+           * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-promo-clicks
+           * @param promotionName
+           *
+           */
+          this._productClick = function (listName){
+            this._setAction('click',this._getActionFieldObject(null,null,null,null,null,null,listName,null,null));
+            this._send('event','UX','click', listName);
           };
 
           /**
@@ -345,6 +610,9 @@ angular.module('angular-google-analytics', [])
             }
           };
 
+          this._pageView = function() {
+            this._send('pageview');
+          };
           /**
            * Set custom dimensions, metrics or experiment
            * https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
@@ -383,6 +651,7 @@ angular.module('angular-google-analytics', [])
                 cookieConfig: cookieConfig,
                 displayFeatures: displayFeatures,
                 ecommerce: ecommerce,
+                enhancedEcommerce: enhancedEcommerce,
                 enhancedLinkAttribution: enhancedLinkAttribution,
                 getUrl: getUrl,
                 experimentId: experimentId,
@@ -407,8 +676,42 @@ angular.module('angular-google-analytics', [])
                 clearTrans: function () {
                   me._clearTrans();
                 },
+                addProduct: function (productId,name,category,brand,variant,price,quantity,coupon,position){
+                  me._addProduct(productId,name,category,brand,variant,price,quantity,coupon,position);
+                },
+                addPromo: function(productId, name, creative, position){
+                  me._addPromo(productId, name, creative, position);
+                },
+                addImpression: function(productId, name, list, brand, category, variant, position, price){
+                  me._addImpression(productId, name, list, brand, category, variant, position, price);
+                },
+                productClick: function(listName){
+                  me._productClick(listName);
+                },
+                promoClick : function (promotionName){
+                  me._promoClick(promotionName);
+                },
+                trackDetail: function(){
+                  me._setAction('detail');
+                  me._pageView();
+                },
+                trackCart: function(action){
+                  me._trackCart(action);
+                },
+                trackCheckout: function(step,option){
+                  me._trackCheckOut(step,option);
+                },
+                trackTransaction: function(transactionId,affiliation,revenue,tax,shipping,coupon,list,step,option){
+                  me._trackTransaction(transactionId,affiliation,revenue,tax,shipping,coupon,list,step,option);
+                },
+                setAction: function (action,obj) {
+                  me._setAction(action,obj);
+                },
                 send: function (obj) {
                   me._send(obj);
+                },
+                pageView: function () {
+                  me._pageView();
                 },
                 set: function (name, value) {
                   me._set(name, value);

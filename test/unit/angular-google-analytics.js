@@ -228,6 +228,149 @@ describe('angular-google-analytics', function(){
     });
   });
 
+  describe('enhanced e-commerce transactions with analytics.js', function() {
+    beforeEach(module(function(AnalyticsProvider) {
+      AnalyticsProvider.useAnalytics(true);
+      AnalyticsProvider.useECommerce(true,true);
+    }));
+
+    it('should add product Impression', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addImpression('sku-1','Test Product 1','Category List','Brand 1','Category-1','variant-1','1','24990');
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0]['0']).toBe('ec:addImpression');
+      });
+    });
+
+    it('should add product data', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[0]['1'][0]).toBe('sku-2');
+        expect(Analytics._logs[0]['1'][1]).toBe('Test Product 2');
+        expect(Analytics._logs[0]['1'][2]).toBe('Category-1');
+        expect(Analytics._logs[0]['1'][3]).toBe('Brand 2');
+        expect(Analytics._logs[0]['1'][4]).toBe('variant-3');
+        expect(Analytics._logs[0]['1'][5]).toBe('2499');
+        expect(Analytics._logs[0]['1'][6]).toBe('1');
+        expect(Analytics._logs[0]['1'][7]).toBe('FLAT10');
+        expect(Analytics._logs[0]['1'][8]).toBe('1');
+      });
+    });
+
+    it('should add promo data', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addPromo('PROMO_1234','Summer Sale', 'summer_banner2', 'banner_slot1');
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0]['0']).toBe('ec:addPromo');
+      });
+    });
+
+    it('should set Action', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        var dummyAction = 'dummy';
+        Analytics.setAction(dummyAction);
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[0]['1']['0']).toBe(dummyAction);
+      });
+    });
+
+    it('should track product click', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        var dummyList = 'dummy list';
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.productClick(dummyList);
+        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[1]['1']['0']).toBe('click');
+        expect(Analytics._logs[1]['1']['1']['list']).toBe(dummyList);
+        expect(Analytics._logs[2]['0']).toBe('send');
+      });
+    });
+    it('should track product detail', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackDetail();
+        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[1]['1']['0']).toBe('detail');
+        expect(Analytics._logs[2]['0']).toBe('send');
+      });
+    });
+    it('should track add to cart event', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackCart('add');
+        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[1]['1']['0']).toBe('add');
+        expect(Analytics._logs[2]['0']).toBe('send');
+      });
+    });
+    it('should track Remove from cart event', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackCart('remove');
+        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[1]['1']['0']).toBe('remove');
+        expect(Analytics._logs[2]['0']).toBe('send');
+      });
+    });
+    it('should track checkout', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.trackCheckout();
+        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[1]['1']['0']).toBe('checkout');
+        expect(Analytics._logs[2]['0']).toBe('send');
+      });
+    });
+    it('should track transaction', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addProduct('sku-2','Test Product 2','Category-1','Brand 2','variant-3','2499','1','FLAT10','1');
+        Analytics.addProduct('sku-3','Test Product 3','Category-1','Brand 2','variant-5','299','1','FLAT10','1');
+        Analytics.trackTransaction();
+        expect(Analytics._logs.length).toBe(4);
+        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[1]['0']).toBe('ec:addProduct');
+        expect(Analytics._logs[2]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[2]['1']['0']).toBe('purchase');
+        expect(Analytics._logs[3]['0']).toBe('send');
+      });
+    });
+    it('should track promo click', function() {
+      inject(function(Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.addPromo('PROMO_1234','Summer Sale', 'summer_banner2', 'banner_slot1');
+        Analytics.promoClick('Summer Sale');
+        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs[0]['0']).toBe('ec:addPromo');
+        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
+        expect(Analytics._logs[1]['1']['0']).toBe('promo_click');
+        expect(Analytics._logs[2]['0']).toBe('send');
+      });
+    });
+  });
+
   describe('supports arbitrary page events', function() {
     beforeEach(module(function(AnalyticsProvider) {
       AnalyticsProvider.setPageEvent('$stateChangeSuccess');
