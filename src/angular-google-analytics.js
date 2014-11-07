@@ -213,14 +213,38 @@ angular.module('angular-google-analytics', [])
         this._logs.push(arguments);
       };
 
+      this._ecommerceEnabled = function () {
+        if (!ecommerce) {
+          console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
+          return false;
+        } else if (enhancedEcommerce) {
+          console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
+            'Use AnalyticsProvider.setECommerce(true, false);');
+          return false;
+        }
+        return true;
+      };
+
+      this._enhancedEcommerceEnabled = function () {
+        if (!ecommerce) {
+          console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
+          return false;
+        } else if (!enhancedEcommerce) {
+          console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
+          return false;
+        }
+        return true;
+      };
+
       this._trackPage = function (url, title) {
+        url = url ? url : getUrl();
         title = title ? title : $document[0].title;
-        if (trackRoutes && !analyticsJS && $window._gaq) {
+        if (!analyticsJS && $window._gaq) {
           // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
           $window._gaq.push(["_set", "title", title]);
           $window._gaq.push(['_trackPageview', trackPrefix + url]);
-          this._log('_trackPageview', arguments);
-        } else if (trackRoutes && analyticsJS && $window.ga) {
+          this._log('_trackPageview', url, title, arguments);
+        } else if (analyticsJS && $window.ga) {
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
               $window.ga(trackerObj.name + '.send', 'pageview', {
@@ -234,7 +258,7 @@ angular.module('angular-google-analytics', [])
               'title': title
             });
           }
-          this._log('pageview', arguments);
+          this._log('pageview', url, title, arguments);
         }
       };
 
@@ -267,12 +291,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
           this._log('_addTrans', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
-          } else if (enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
-              'Use AnalyticsProvider.setECommerce(true, false);');
-          } else {
+          if (this._ecommerceEnabled()) {
             $window.ga('ecommerce:addTransaction', {
               id: transactionId,
               affiliation: affiliation,
@@ -303,12 +322,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_addItem', transactionId, sku, name, category, price, quantity]);
           this._log('_addItem', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
-          } else if (enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
-              'Use AnalyticsProvider.setECommerce(true, false);');
-          } else {
+          if (this._ecommerceEnabled()) {
             $window.ga('ecommerce:addItem', {
               id: transactionId,
               name: name,
@@ -333,12 +347,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_trackTrans']);
           this._log('_trackTrans', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
-          } else if (enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
-              'Use AnalyticsProvider.setECommerce(true, false);');
-          } else {
+          if (this._ecommerceEnabled()) {
             $window.ga('ecommerce:send');
             this._log('ecommerce:send', arguments);
           }
@@ -353,12 +362,7 @@ angular.module('angular-google-analytics', [])
        */
       this._clearTrans = function () {
         if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
-          } else if (enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
-              'Use AnalyticsProvider.setECommerce(true, false);');
-          } else {
+          if (this._ecommerceEnabled()) {
             $window.ga('ecommerce:clear');
             this._log('ecommerce:clear', arguments);
           }
@@ -387,11 +391,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon,position]);
           this._log('_addProduct', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
-          } else if (!enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
-          } else {
+          if (this._enhancedEcommerceEnabled()) {
             $window.ga('ec:addProduct', {
               id: productId,
               name: name,
@@ -425,11 +425,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_addImpression', id, name, list, brand, category, variant, position, price]);
           this._log('_addImpression', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
-          } else if (!enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
-          } else {
+          if (this._enhancedEcommerceEnabled()) {
             $window.ga('ec:addImpression', {
               id: id,
               name: name,
@@ -458,11 +454,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_addPromo', productId, name, creative, position]);
           this._log('_addPromo', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
-          } else if (!enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
-          } else {
+          if (this._enhancedEcommerceEnabled()) {
             $window.ga('ec:addPromo', {
               id: productId,
               name: name,
@@ -514,11 +506,7 @@ angular.module('angular-google-analytics', [])
           $window._gaq.push(['_setAction', action, obj]);
           this._log('__setAction', arguments);
         } else if ($window.ga) {
-          if (!ecommerce) {
-            console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
-          } else if (!enhancedEcommerce) {
-            console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
-          } else {
+          if (this._enhancedEcommerceEnabled()) {
             $window.ga('ec:setAction', action, obj);
             this._log('ec:setAction', arguments);
           }
@@ -646,12 +634,16 @@ angular.module('angular-google-analytics', [])
       var me = this;
 
       // activates page tracking
-      if (trackRoutes) $rootScope.$on(pageEvent, function() {
-        me._trackPage(getUrl());
-      });
+      if (trackRoutes) {
+        $rootScope.$on(pageEvent, function() {
+          me._trackPage();
+        });
+      }
 
       return {
         _logs: me._logs,
+        _ecommerceEnabled: me._ecommerceEnabled,
+        _enhancedEcommerceEnabled: me._enhancedEcommerceEnabled,
         cookieConfig: cookieConfig,
         displayFeatures: displayFeatures,
         ecommerce: ecommerce,
