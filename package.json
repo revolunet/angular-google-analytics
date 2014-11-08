@@ -20,8 +20,9 @@
   ],  
   "dependencies": {},
   "devDependencies": {
-    "karma": "~ 0.8.0",
-    "grunt": ">= 0.4.0",
+    "bower": "*",
+    "karma": "~0.8.0",
+    "grunt": ">=0.4.0",
     "grunt-contrib-concat": "*",
     "grunt-contrib-jshint": "*",
     "grunt-contrib-uglify": "*",
@@ -29,6 +30,8 @@
     "grunt-conventional-changelog": "0.0.12"
   },
   "scripts": {
+    "postinstall": "node ./node_modules/bower/bin/bower install",
+    "postupdate": "node ./node_modules/bower/bin/bower update",
     "test": "karma start test/karma.conf.js --single-run --browsers Chrome",
     "test-server": "karma start test/karma.conf.js --browsers Chrome"
   }
