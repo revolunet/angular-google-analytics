@@ -1,4 +1,4 @@
-/* global angular, console */
+/* global angular */
 
 'use strict';
 
@@ -108,7 +108,9 @@ angular.module('angular-google-analytics', [])
     /**
      * Public Service
      */
-    this.$get = ['$document', '$rootScope', '$location', '$window', function ($document, $rootScope, $location, $window) {
+    this.$get = ['$document', '$location', '$log', '$rootScope', '$window', function ($document, $location, $log, $rootScope, $window) {
+      var me = this;
+
       var getUrl = function () {
         var url = $location.path();
         if (removeRegExp) {
@@ -123,10 +125,12 @@ angular.module('angular-google-analytics', [])
 
       function _createScriptTag() //noinspection JSValidateTypes
       {
-        // inject the google analytics tag
         if (!accountId) {
+          me._log('warn', 'No account id set to create script tag');
           return;
         }
+
+        // inject the google analytics tag
         $window._gaq = [];
         $window._gaq.push(['_setAccount', accountId]);
         if(domainName) $window._gaq.push(['_setDomainName', domainName]);
@@ -141,12 +145,12 @@ angular.module('angular-google-analytics', [])
           }
         }
         var gaSrc;
-        if(displayFeatures) {
+        if (displayFeatures) {
           gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
         } else {
           gaSrc = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
         }
-        (function() {
+        (function () {
           var document = $document[0];
           var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
           ga.src = gaSrc;
@@ -157,9 +161,11 @@ angular.module('angular-google-analytics', [])
 
       function _createAnalyticsScriptTag() {
         if (!accountId) {
-          return console.warn('No account id set for Analytics.js');
+          me._log('warn', 'No account id set to create analytics script tag');
+          return;
         }
 
+        // inject the google analytics tag
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
           (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
           m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
@@ -179,7 +185,7 @@ angular.module('angular-google-analytics', [])
           $window.ga('create', accountId, cookieConfig);
         }
 
-        if(displayFeatures) {
+        if (displayFeatures) {
           $window.ga('require', 'displayfeatures');
         }
 
@@ -208,17 +214,21 @@ angular.module('angular-google-analytics', [])
       }
 
       this._log = function () {
-        // for testing
-        //console.info('analytics log:', arguments);
+        if (arguments.length === 0) {
+          return;
+        }
+        if (arguments.length > 1 && arguments[0] === 'warn') {
+          $log.warn(Array.prototype.slice.call(arguments, 1));
+        }
         this._logs.push(arguments);
       };
 
       this._ecommerceEnabled = function () {
         if (!ecommerce) {
-          console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
+          this._log('warn', 'ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
           return false;
         } else if (enhancedEcommerce) {
-          console.warn('Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
+          this._log('warn', 'Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
             'Use AnalyticsProvider.setECommerce(true, false);');
           return false;
         }
@@ -227,10 +237,10 @@ angular.module('angular-google-analytics', [])
 
       this._enhancedEcommerceEnabled = function () {
         if (!ecommerce) {
-          console.warn('ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
+          this._log('warn', 'ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
           return false;
         } else if (!enhancedEcommerce) {
-          console.warn('Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
+          this._log('warn', 'Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
           return false;
         }
         return true;
@@ -631,19 +641,15 @@ angular.module('angular-google-analytics', [])
         _createScriptTag();
       }
 
-      var me = this;
-
       // activates page tracking
       if (trackRoutes) {
-        $rootScope.$on(pageEvent, function() {
+        $rootScope.$on(pageEvent, function () {
           me._trackPage();
         });
       }
 
       return {
         _logs: me._logs,
-        _ecommerceEnabled: me._ecommerceEnabled,
-        _enhancedEcommerceEnabled: me._enhancedEcommerceEnabled,
         cookieConfig: cookieConfig,
         displayFeatures: displayFeatures,
         ecommerce: ecommerce,
@@ -652,6 +658,12 @@ angular.module('angular-google-analytics', [])
         getUrl: getUrl,
         experimentId: experimentId,
         ignoreFirstPageLoad: ignoreFirstPageLoad,
+        ecommerceEnabled: function () {
+          return me._ecommerceEnabled();
+        },
+        enhancedEcommerceEnabled: function () {
+          return me._enhancedEcommerceEnabled();
+        },
         trackPage: function (url, title) {
           // add a page event
           me._trackPage(url, title);
@@ -695,13 +707,13 @@ angular.module('angular-google-analytics', [])
           me._trackCart(action);
         },
         trackCheckout: function (step, option) {
-          me._trackCheckOut(step,option);
+          me._trackCheckOut(step, option);
         },
         trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
-          me._trackTransaction(transactionId,affiliation,revenue,tax,shipping,coupon,list,step,option);
+          me._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
         },
         setAction: function (action, obj) {
-          me._setAction(action,obj);
+          me._setAction(action, obj);
         },
         send: function (obj) {
           me._send(obj);
