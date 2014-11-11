@@ -1,4 +1,4 @@
-/* global module, angular, console, describe, expect, it, before, beforeEach, inject, spyOn, AnalyticsProvider */
+/* global angular, before, beforeEach, describe, expect, inject, it, module, spyOn */
 
 'use strict';
 
@@ -7,6 +7,58 @@ describe('angular-google-analytics', function () {
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider.setAccount('UA-XXXXXX-xx');
   }));
+
+  describe('required settings missing', function () {
+    describe('for default ga script injection', function () {
+      beforeEach(module(function (AnalyticsProvider) {
+        AnalyticsProvider.setAccount(false);
+        AnalyticsProvider.useAnalytics(false);
+      }));
+
+      it('should not inject a script tag', function () {
+        inject(function (Analytics) {
+          expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(0);
+        });
+      });
+
+      it('should issue a warning to the log', function () {
+        inject(function ($log) {
+          spyOn($log, 'warn');
+          inject(function (Analytics) {
+            expect(Analytics._logs.length).toBe(1);
+            expect(Analytics._logs[0][0]).toBe('warn');
+            expect(Analytics._logs[0][1]).toBe('No account id set to create script tag');
+            expect($log.warn).toHaveBeenCalledWith(['No account id set to create script tag']);
+          });
+        });
+      });
+    });
+
+    describe('for analytics script injection', function () {
+      beforeEach(module(function (AnalyticsProvider) {
+        AnalyticsProvider.setAccount(false);
+        AnalyticsProvider.useAnalytics(true);
+      }));
+
+      it('should not inject a script tag', function () {
+        inject(function (Analytics) {
+          expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(0);
+        });
+      });
+
+      it('should issue a warning to the log', function () {
+        inject(function ($log) {
+          spyOn($log, 'warn');
+          inject(function (Analytics) {
+            expect(Analytics._logs.length).toBe(1);
+            expect(Analytics._logs[0][0]).toBe('warn');
+            expect(Analytics._logs[0][1]).toBe('No account id set to create analytics script tag');
+            expect($log.warn).toHaveBeenCalledWith(['No account id set to create analytics script tag']);
+          });
+        });
+      });
+    });
+  });
 
   describe('automatic trackPages with ga.js', function () {
     it('should inject the GA script', function () {
@@ -93,12 +145,12 @@ describe('angular-google-analytics', function () {
     });
   });
 
-  describe('Supports ignoreFirstPageLoad', function () {
+  describe('supports ignoreFirstPageLoad', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.ignoreFirstPageLoad(true);
     }));
 
-    it('Supports ignoreFirstPageLoad config', function () {
+    it('supports ignoreFirstPageLoad config', function () {
       inject(function (Analytics, $rootScope) {
         expect(Analytics.ignoreFirstPageLoad).toBe(true);
       });
@@ -127,7 +179,7 @@ describe('angular-google-analytics', function () {
       });
     });
 
-    it('should support displayfeatures config', function () {
+    it('should support displayFeatures config', function () {
       inject(function (Analytics) {
         expect(Analytics.displayFeatures).toBe(true);
       });
@@ -205,13 +257,13 @@ describe('angular-google-analytics', function () {
 
     it('should have ecommerce enabled', function () {
       inject(function (Analytics) {
-        expect(Analytics._ecommerceEnabled()).toBe(true);
+        expect(Analytics.ecommerceEnabled()).toBe(true);
       });
     });
 
     it('should have enhanced ecommerce disabled', function () {
       inject(function (Analytics) {
-        expect(Analytics._enhancedEcommerceEnabled()).toBe(false);
+        expect(Analytics.enhancedEcommerceEnabled()).toBe(false);
       });
     });
 
@@ -251,13 +303,13 @@ describe('angular-google-analytics', function () {
 
     it('should have ecommerce disabled', function () {
       inject(function (Analytics) {
-        expect(Analytics._ecommerceEnabled()).toBe(false);
+        expect(Analytics.ecommerceEnabled()).toBe(false);
       });
     });
 
     it('should have enhanced ecommerce enabled', function () {
       inject(function (Analytics) {
-        expect(Analytics._enhancedEcommerceEnabled()).toBe(true);
+        expect(Analytics.enhancedEcommerceEnabled()).toBe(true);
       });
     });
 
