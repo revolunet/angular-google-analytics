@@ -241,6 +241,14 @@ angular.module('angular-google-analytics', [])
         return true;
       };
 
+      /**
+       * Track page
+       https://developers.google.com/analytics/devguides/collection/gajs/
+       https://developers.google.com/analytics/devguides/collection/analyticsjs/pages
+       * @param url
+       * @param title
+       * @private
+       */
       this._trackPage = function (url, title) {
         url = url ? url : getUrl();
         title = title ? title : $document[0].title;
@@ -267,9 +275,20 @@ angular.module('angular-google-analytics', [])
         }
       };
 
-      this._trackEvent = function (category, action, label, value) {
+      /**
+       * Track event
+       https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide
+       https://developers.google.com/analytics/devguides/collection/analyticsjs/events
+       * @param category
+       * @param action
+       * @param label
+       * @param value
+       * @param noninteraction
+       * @private
+       */
+      this._trackEvent = function (category, action, label, value, noninteraction) {
         if (!analyticsJS && $window._gaq) {
-          $window._gaq.push(['_trackEvent', category, action, label, value]);
+          $window._gaq.push(['_trackEvent', category, action, label, value, !!noninteraction]);
           this._log('trackEvent', arguments);
         } else if ($window.ga) {
           $window.ga('send', 'event', category, action, label, value);
@@ -660,12 +679,10 @@ angular.module('angular-google-analytics', [])
           return me._enhancedEcommerceEnabled();
         },
         trackPage: function (url, title) {
-          // add a page event
           me._trackPage(url, title);
         },
-        trackEvent: function (category, action, label, value) {
-          // add an action event
-          me._trackEvent(category, action, label, value);
+        trackEvent: function (category, action, label, value, noninteraction) {
+          me._trackEvent(category, action, label, value, noninteraction);
         },
         addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
           me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
