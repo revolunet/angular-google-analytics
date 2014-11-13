@@ -1,4 +1,4 @@
-/* global angular, before, beforeEach, describe, expect, inject, it, module, spyOn */
+/* global before, beforeEach, describe, expect, inject, it, module, spyOn */
 
 'use strict';
 

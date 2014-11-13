@@ -1,5 +1,3 @@
-/* global angular */
-
 'use strict';
 
 angular.module('angular-google-analytics', [])
@@ -113,18 +111,14 @@ angular.module('angular-google-analytics', [])
 
       var getUrl = function () {
         var url = $location.path();
-        if (removeRegExp) {
-          return url.replace(removeRegExp, '');
-        }
-        return url;
+        return removeRegExp ? url.replace(removeRegExp, '') : url;
       };
 
       /**
        * Private Methods
        */
 
-      function _createScriptTag() //noinspection JSValidateTypes
-      {
+      function _createScriptTag() {
         if (!accountId) {
           me._log('warn', 'No account id set to create script tag');
           return;
@@ -133,7 +127,9 @@ angular.module('angular-google-analytics', [])
         // inject the google analytics tag
         $window._gaq = [];
         $window._gaq.push(['_setAccount', accountId]);
-        if(domainName) $window._gaq.push(['_setDomainName', domainName]);
+        if(domainName) {
+          $window._gaq.push(['_setDomainName', domainName]);
+        }
         if (enhancedLinkAttribution) {
           $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
         }
@@ -214,13 +210,12 @@ angular.module('angular-google-analytics', [])
       }
 
       this._log = function () {
-        if (arguments.length === 0) {
-          return;
+        if (arguments.length > 0) {
+          if (arguments.length > 1 && arguments[0] === 'warn') {
+            $log.warn(Array.prototype.slice.call(arguments, 1));
+          }
+          this._logs.push(arguments);
         }
-        if (arguments.length > 1 && arguments[0] === 'warn') {
-          $log.warn(Array.prototype.slice.call(arguments, 1));
-        }
-        this._logs.push(arguments);
       };
 
       this._ecommerceEnabled = function () {
@@ -398,7 +393,7 @@ angular.module('angular-google-analytics', [])
        */
       this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
         if (!analyticsJS && $window._gaq) {
-          $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon,position]);
+          $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
           this._log('_addProduct', arguments);
         } else if ($window.ga) {
           if (this._enhancedEcommerceEnabled()) {
@@ -491,15 +486,15 @@ angular.module('angular-google-analytics', [])
        */
       this._getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
         var obj = {};
-        if (id) obj.id = id;
-        if (affiliation) obj.affiliation = affiliation;
-        if (revenue) obj.revenue = revenue;
-        if (tax) obj.tax = tax;
-        if (shipping) obj.shipping = shipping;
-        if (coupon) obj.coupon = coupon;
-        if (list) obj.list = list;
-        if (step) obj.step = step;
-        if (option) obj.option = option;
+        if (id) { obj.id = id; }
+        if (affiliation) { obj.affiliation = affiliation; }
+        if (revenue) { obj.revenue = revenue; }
+        if (tax) { obj.tax = tax; }
+        if (shipping) { obj.shipping = shipping; }
+        if (coupon) { obj.coupon = coupon; }
+        if (list) { obj.list = list; }
+        if (step) { obj.step = step; }
+        if (option) { obj.option = option; }
         return obj;
       };
 
@@ -559,7 +554,7 @@ angular.module('angular-google-analytics', [])
        * @param option
        *
        */
-      this._trackCheckOut = function (step,option) {
+      this._trackCheckOut = function (step, option) {
         this._setAction('checkout', this._getActionFieldObject(null, null, null, null, null, null, null, step, option));
         this._pageView();
       };
@@ -571,9 +566,9 @@ angular.module('angular-google-analytics', [])
        *
        */
       this._trackCart = function (action) {
-        if (['add','remove'].indexOf(action) !== -1) {
+        if (['add', 'remove'].indexOf(action) !== -1) {
           this._setAction(action);
-          this._send('event','UX','click', action + 'to cart');
+          this._send('event', 'UX', 'click', action + 'to cart');
         }
       };
 
@@ -585,7 +580,7 @@ angular.module('angular-google-analytics', [])
        */
       this._promoClick = function (promotionName) {
         this._setAction('promo_click');
-        this._send('event','Internal Promotions','click', promotionName);
+        this._send('event', 'Internal Promotions', 'click', promotionName);
       };
 
       /**
@@ -595,8 +590,8 @@ angular.module('angular-google-analytics', [])
        *
        */
       this._productClick = function (listName) {
-        this._setAction('click',this._getActionFieldObject(null,null,null,null,null,null,listName,null,null));
-        this._send('event','UX','click', listName);
+        this._setAction('click', this._getActionFieldObject(null, null, null, null, null, null, listName, null, null));
+        this._send('event', 'UX', 'click', listName);
       };
 
       /**
