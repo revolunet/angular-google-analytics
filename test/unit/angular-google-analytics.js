@@ -434,7 +434,7 @@ describe('angular-google-analytics', function () {
             position: '1'
           });
         });
-      })
+      });
     });
 
     it('should add promo data', function () {
