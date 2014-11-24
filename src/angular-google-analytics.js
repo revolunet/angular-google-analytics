@@ -1,5 +1,3 @@
-/* global angular */
-
 'use strict';
 
 angular.module('angular-google-analytics', [])
@@ -113,18 +111,26 @@ angular.module('angular-google-analytics', [])
 
       var getUrl = function () {
         var url = $location.path();
-        if (removeRegExp) {
-          return url.replace(removeRegExp, '');
-        }
-        return url;
+        return removeRegExp ? url.replace(removeRegExp, '') : url;
       };
 
       /**
        * Private Methods
        */
 
-      function _createScriptTag() //noinspection JSValidateTypes
-      {
+      function _gaJs(fn) {
+        if (!analyticsJS && $window._gaq && typeof fn === 'function') {
+          fn();
+        }
+      }
+
+      function _analyticsJs(fn) {
+        if (analyticsJS && $window.ga && typeof fn === 'function') {
+          fn();
+        }
+      }
+
+      function _createScriptTag() {
         if (!accountId) {
           me._log('warn', 'No account id set to create script tag');
           return;
@@ -133,7 +139,9 @@ angular.module('angular-google-analytics', [])
         // inject the google analytics tag
         $window._gaq = [];
         $window._gaq.push(['_setAccount', accountId]);
-        if(domainName) $window._gaq.push(['_setDomainName', domainName]);
+        if(domainName) {
+          $window._gaq.push(['_setDomainName', domainName]);
+        }
         if (enhancedLinkAttribution) {
           $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
         }
@@ -214,13 +222,12 @@ angular.module('angular-google-analytics', [])
       }
 
       this._log = function () {
-        if (arguments.length === 0) {
-          return;
+        if (arguments.length > 0) {
+          if (arguments.length > 1 && arguments[0] === 'warn') {
+            $log.warn(Array.prototype.slice.call(arguments, 1));
+          }
+          this._logs.push(arguments);
         }
-        if (arguments.length > 1 && arguments[0] === 'warn') {
-          $log.warn(Array.prototype.slice.call(arguments, 1));
-        }
-        this._logs.push(arguments);
       };
 
       this._ecommerceEnabled = function () {
@@ -246,15 +253,25 @@ angular.module('angular-google-analytics', [])
         return true;
       };
 
+      /**
+       * Track page
+       https://developers.google.com/analytics/devguides/collection/gajs/
+       https://developers.google.com/analytics/devguides/collection/analyticsjs/pages
+       * @param url
+       * @param title
+       * @private
+       */
       this._trackPage = function (url, title) {
+        var that = this, args = arguments;
         url = url ? url : getUrl();
         title = title ? title : $document[0].title;
-        if (!analyticsJS && $window._gaq) {
+        _gaJs(function () {
           // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
           $window._gaq.push(["_set", "title", title]);
           $window._gaq.push(['_trackPageview', trackPrefix + url]);
-          this._log('_trackPageview', url, title, arguments);
-        } else if (analyticsJS && $window.ga) {
+          that._log('_trackPageview', url, title, args);
+        });
+        _analyticsJs(function () {
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
               $window.ga(trackerObj.name + '.send', 'pageview', {
@@ -268,18 +285,31 @@ angular.module('angular-google-analytics', [])
               'title': title
             });
           }
-          this._log('pageview', url, title, arguments);
-        }
+          that._log('pageview', url, title, args);
+        });
       };
 
-      this._trackEvent = function (category, action, label, value) {
-        if (!analyticsJS && $window._gaq) {
-          $window._gaq.push(['_trackEvent', category, action, label, value]);
-          this._log('trackEvent', arguments);
-        } else if ($window.ga) {
+      /**
+       * Track event
+       https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide
+       https://developers.google.com/analytics/devguides/collection/analyticsjs/events
+       * @param category
+       * @param action
+       * @param label
+       * @param value
+       * @param noninteraction
+       * @private
+       */
+      this._trackEvent = function (category, action, label, value, noninteraction) {
+        var that = this, args = arguments;
+        _gaJs(function () {
+          $window._gaq.push(['_trackEvent', category, action, label, value, !!noninteraction]);
+          that._log('trackEvent', args);
+        });
+        _analyticsJs(function () {
           $window.ga('send', 'event', category, action, label, value);
-          this._log('event', arguments);
-        }
+          that._log('event', args);
+        });
       };
 
       /**
@@ -297,11 +327,13 @@ angular.module('angular-google-analytics', [])
        * @private
        */
       this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
-        if (!analyticsJS && $window._gaq) {
+        var that = this, args = arguments;
+        _gaJs(function () {
           $window._gaq.push(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
-          this._log('_addTrans', arguments);
-        } else if ($window.ga) {
-          if (this._ecommerceEnabled()) {
+          that._log('_addTrans', args);
+        });
+        _analyticsJs(function () {
+          if (that._ecommerceEnabled()) {
             $window.ga('ecommerce:addTransaction', {
               id: transactionId,
               affiliation: affiliation,
@@ -310,9 +342,9 @@ angular.module('angular-google-analytics', [])
               shipping: shipping,
               currency: currency || 'USD'
             });
-            this._log('ecommerce:addTransaction', arguments);
+            that._log('ecommerce:addTransaction', args);
           }
-        }
+        });
       };
 
       /**
@@ -328,11 +360,13 @@ angular.module('angular-google-analytics', [])
        * @private
        */
       this._addItem = function (transactionId, sku, name, category, price, quantity) {
-        if (!analyticsJS && $window._gaq) {
+        var that = this, args = arguments;
+        _gaJs(function () {
           $window._gaq.push(['_addItem', transactionId, sku, name, category, price, quantity]);
-          this._log('_addItem', arguments);
-        } else if ($window.ga) {
-          if (this._ecommerceEnabled()) {
+          that._log('_addItem', args);
+        });
+        _analyticsJs(function () {
+          if (that._ecommerceEnabled()) {
             $window.ga('ecommerce:addItem', {
               id: transactionId,
               name: name,
@@ -341,9 +375,9 @@ angular.module('angular-google-analytics', [])
               price: price,
               quantity: quantity
             });
-            this._log('ecommerce:addItem', arguments);
+            that._log('ecommerce:addItem', args);
           }
-        }
+        });
       };
 
       /**
@@ -353,30 +387,32 @@ angular.module('angular-google-analytics', [])
        * @private
        */
       this._trackTrans = function () {
-        if (!analyticsJS && $window._gaq) {
+        var that = this, args = arguments;
+        _gaJs(function () {
           $window._gaq.push(['_trackTrans']);
-          this._log('_trackTrans', arguments);
-        } else if ($window.ga) {
-          if (this._ecommerceEnabled()) {
+          that._log('_trackTrans', args);
+        });
+        _analyticsJs(function () {
+          if (that._ecommerceEnabled()) {
             $window.ga('ecommerce:send');
-            this._log('ecommerce:send', arguments);
+            that._log('ecommerce:send', args);
           }
-        }
+        });
       };
 
       /**
        * Clear transaction
        * https://developers.google.com/analytics/devguides/collection/analyticsjs/ecommerce#clearingData
-       *
        * @private
        */
       this._clearTrans = function () {
-        if ($window.ga) {
-          if (this._ecommerceEnabled()) {
+        var that = this, args = arguments;
+        _analyticsJs(function () {
+          if (that._ecommerceEnabled()) {
             $window.ga('ecommerce:clear');
-            this._log('ecommerce:clear', arguments);
+            that._log('ecommerce:clear', args);
           }
-        }
+        });
       };
 
       /**
@@ -397,11 +433,13 @@ angular.module('angular-google-analytics', [])
        * @param position
        */
       this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
-        if (!analyticsJS && $window._gaq) {
-          $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon,position]);
-          this._log('_addProduct', arguments);
-        } else if ($window.ga) {
-          if (this._enhancedEcommerceEnabled()) {
+        var that = this, args = arguments;
+        _gaJs(function () {
+          $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
+          that._log('_addProduct', args);
+        });
+        _analyticsJs(function () {
+          if (that._enhancedEcommerceEnabled()) {
             $window.ga('ec:addProduct', {
               id: productId,
               name: name,
@@ -413,9 +451,9 @@ angular.module('angular-google-analytics', [])
               coupon: coupon,
               position: position
             });
-            this._log('ec:addProduct', arguments);
+            that._log('ec:addProduct', args);
           }
-        }
+        });
       };
 
       /**
@@ -431,11 +469,13 @@ angular.module('angular-google-analytics', [])
        * @param price
        */
       this._addImpression = function (id, name, list, brand, category, variant, position, price){
-        if (!analyticsJS && $window._gaq) {
+        var that = this, args = arguments;
+        _gaJs(function () {
           $window._gaq.push(['_addImpression', id, name, list, brand, category, variant, position, price]);
-          this._log('_addImpression', arguments);
-        } else if ($window.ga) {
-          if (this._enhancedEcommerceEnabled()) {
+          that._log('_addImpression', args);
+        });
+        _analyticsJs(function () {
+          if (that._enhancedEcommerceEnabled()) {
             $window.ga('ec:addImpression', {
               id: id,
               name: name,
@@ -447,8 +487,8 @@ angular.module('angular-google-analytics', [])
               price: price
             });
           }
-          this._log('ec:addImpression', arguments);
-        }
+          that._log('ec:addImpression', args);
+        });
       };
 
       /**
@@ -460,20 +500,22 @@ angular.module('angular-google-analytics', [])
        * @param position
        */
       this._addPromo = function (productId, name, creative, position) {
-        if (!analyticsJS && $window._gaq) {
+        var that = this, args = arguments;
+        _gaJs(function () {
           $window._gaq.push(['_addPromo', productId, name, creative, position]);
-          this._log('_addPromo', arguments);
-        } else if ($window.ga) {
-          if (this._enhancedEcommerceEnabled()) {
+          that._log('_addPromo', arguments);
+        });
+        _analyticsJs(function () {
+          if (that._enhancedEcommerceEnabled()) {
             $window.ga('ec:addPromo', {
               id: productId,
               name: name,
               creative: creative,
               position: position
             });
-            this._log('ec:addPromo', arguments);
+            that._log('ec:addPromo', args);
           }
-        }
+        });
       };
 
       /**
@@ -491,15 +533,15 @@ angular.module('angular-google-analytics', [])
        */
       this._getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
         var obj = {};
-        if (id) obj.id = id;
-        if (affiliation) obj.affiliation = affiliation;
-        if (revenue) obj.revenue = revenue;
-        if (tax) obj.tax = tax;
-        if (shipping) obj.shipping = shipping;
-        if (coupon) obj.coupon = coupon;
-        if (list) obj.list = list;
-        if (step) obj.step = step;
-        if (option) obj.option = option;
+        if (id) { obj.id = id; }
+        if (affiliation) { obj.affiliation = affiliation; }
+        if (revenue) { obj.revenue = revenue; }
+        if (tax) { obj.tax = tax; }
+        if (shipping) { obj.shipping = shipping; }
+        if (coupon) { obj.coupon = coupon; }
+        if (list) { obj.list = list; }
+        if (step) { obj.step = step; }
+        if (option) { obj.option = option; }
         return obj;
       };
 
@@ -512,15 +554,17 @@ angular.module('angular-google-analytics', [])
        * @param obj
        */
       this._setAction = function (action, obj){
-        if (!analyticsJS && $window._gaq) {
+        var that = this, args = arguments;
+        _gaJs(function () {
           $window._gaq.push(['_setAction', action, obj]);
-          this._log('__setAction', arguments);
-        } else if ($window.ga) {
-          if (this._enhancedEcommerceEnabled()) {
+          that._log('__setAction', args);
+        });
+        _analyticsJs(function () {
+          if (that._enhancedEcommerceEnabled()) {
             $window.ga('ec:setAction', action, obj);
-            this._log('ec:setAction', arguments);
+            that._log('ec:setAction', args);
           }
-        }
+        });
       };
 
       /**
@@ -559,7 +603,7 @@ angular.module('angular-google-analytics', [])
        * @param option
        *
        */
-      this._trackCheckOut = function (step,option) {
+      this._trackCheckOut = function (step, option) {
         this._setAction('checkout', this._getActionFieldObject(null, null, null, null, null, null, null, step, option));
         this._pageView();
       };
@@ -571,9 +615,9 @@ angular.module('angular-google-analytics', [])
        *
        */
       this._trackCart = function (action) {
-        if (['add','remove'].indexOf(action) !== -1) {
+        if (['add', 'remove'].indexOf(action) !== -1) {
           this._setAction(action);
-          this._send('event','UX','click', action + 'to cart');
+          this._send('event', 'UX', 'click', action + 'to cart');
         }
       };
 
@@ -585,7 +629,7 @@ angular.module('angular-google-analytics', [])
        */
       this._promoClick = function (promotionName) {
         this._setAction('promo_click');
-        this._send('event','Internal Promotions','click', promotionName);
+        this._send('event', 'Internal Promotions', 'click', promotionName);
       };
 
       /**
@@ -595,8 +639,8 @@ angular.module('angular-google-analytics', [])
        *
        */
       this._productClick = function (listName) {
-        this._setAction('click',this._getActionFieldObject(null,null,null,null,null,null,listName,null,null));
-        this._send('event','UX','click', listName);
+        this._setAction('click', this._getActionFieldObject(null, null, null, null, null, null, listName, null, null));
+        this._send('event', 'UX', 'click', listName);
       };
 
       /**
@@ -608,10 +652,11 @@ angular.module('angular-google-analytics', [])
        * @private
        */
       this._send = function (obj) {
-        if ($window.ga) {
+        var that = this;
+        _analyticsJs(function () {
           $window.ga('send', obj);
-          this._log('send', obj);
-        }
+          that._log('send', obj);
+        });
       };
 
       this._pageView = function() {
@@ -622,16 +667,16 @@ angular.module('angular-google-analytics', [])
        * Set custom dimensions, metrics or experiment
        * https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
        * https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#customs
-       *
        * @param name
        * @param value
        * @private
        */
       this._set = function (name, value) {
-        if ($window.ga) {
+        var that = this;
+        _analyticsJs(function () {
           $window.ga('set', name, value);
-          this._log('set', name, value);
-        }
+          that._log('set', name, value);
+        });
       };
 
       // creates the ganalytics tracker
@@ -665,12 +710,10 @@ angular.module('angular-google-analytics', [])
           return me._enhancedEcommerceEnabled();
         },
         trackPage: function (url, title) {
-          // add a page event
           me._trackPage(url, title);
         },
-        trackEvent: function (category, action, label, value) {
-          // add an action event
-          me._trackEvent(category, action, label, value);
+        trackEvent: function (category, action, label, value, noninteraction) {
+          me._trackEvent(category, action, label, value, noninteraction);
         },
         addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
           me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);

@@ -1,4 +1,4 @@
-/* global angular, before, beforeEach, describe, expect, inject, it, module, spyOn */
+/* global before, beforeEach, describe, expect, inject, it, module, spyOn */
 
 'use strict';
 
@@ -67,20 +67,93 @@ describe('angular-google-analytics', function () {
       });
     });
 
-    it('should generate pageTracks', function () {
-      inject(function (Analytics) {
+    it('should generate trackPages', function () {
+      inject(function (Analytics, $window) {
         expect(Analytics._logs.length).toBe(0);
         Analytics.trackPage('test');
         expect(Analytics._logs.length).toBe(1);
-        Analytics.trackEvent('test');
-        expect(Analytics._logs.length).toBe(2);
+        expect(Analytics._logs[0][0]).toBe('_trackPageview');
+        expect($window._gaq.length).toBe(4);
+        expect($window._gaq[0][0]).toBe('_setAccount');
+        expect($window._gaq[2][0]).toBe('_set');
+        expect($window._gaq[2][1]).toBe('title');
+        expect($window._gaq[2][2]).toBe('');
+        expect($window._gaq[3][0]).toBe('_trackPageview');
+        expect($window._gaq[3][1]).toBe('test');
       });
     });
 
-    it('should generate a trackpage on routeChangeSuccess', function () {
+    it('should generate a trackPage on routeChangeSuccess', function () {
       inject(function (Analytics, $rootScope) {
         $rootScope.$broadcast('$routeChangeSuccess');
         expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0][0]).toBe('_trackPageview');
+      });
+    });
+  });
+
+  describe('NOT automatic trackPages', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.trackPages(false);
+    }));
+
+    it('should NOT generate a trackpage on routeChangeSuccess', function () {
+      inject(function (Analytics, $rootScope) {
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect(Analytics._logs.length).toBe(0);
+      });
+    });
+
+    it('should generate a trackpage when explicitly called', function () {
+      inject(function (Analytics, $window) {
+        Analytics.trackPage('/page/here');
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0][0]).toBe('_trackPageview');
+        expect($window._gaq.length).toBe(3);
+        expect($window._gaq[0][0]).toBe('_setAccount');
+        expect($window._gaq[1][0]).toBe('_set');
+        expect($window._gaq[1][1]).toBe('title');
+        expect($window._gaq[1][2]).toBe('');
+        expect($window._gaq[2][0]).toBe('_trackPageview');
+        expect($window._gaq[2][1]).toBe('/page/here');
+      });
+    });
+  });
+
+  describe('eventTracks with ga.js', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.trackPages(false);
+    }));
+
+    it('should generate eventTracks', function () {
+      inject(function (Analytics, $window) {
+        Analytics.trackEvent('test');
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0][0]).toBe('trackEvent');
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0][0]).toBe('_setAccount');
+        expect($window._gaq[1][0]).toBe('_trackEvent');
+        expect($window._gaq[1][1]).toBe('test');
+        expect($window._gaq[1][2]).toBe(undefined);
+        expect($window._gaq[1][3]).toBe(undefined);
+        expect($window._gaq[1][4]).toBe(undefined);
+        expect($window._gaq[1][5]).toBe(false);
+      });
+    });
+
+    it('should generate eventTracks with non-interactions', function () {
+      inject(function (Analytics, $window) {
+        Analytics.trackEvent('test', 'action', 'label', 0, true);
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0][0]).toBe('trackEvent');
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0][0]).toBe('_setAccount');
+        expect($window._gaq[1][0]).toBe('_trackEvent');
+        expect($window._gaq[1][1]).toBe('test');
+        expect($window._gaq[1][2]).toBe('action');
+        expect($window._gaq[1][3]).toBe('label');
+        expect($window._gaq[1][4]).toBe(0);
+        expect($window._gaq[1][5]).toBe(true);
       });
     });
   });
@@ -120,26 +193,6 @@ describe('angular-google-analytics', function () {
       inject(function (Analytics) {
         expect(Analytics._logs.length).toBe(0);
         Analytics.trackTrans();
-        expect(Analytics._logs.length).toBe(1);
-      });
-    });
-  });
-
-  describe('NOT automatic trackPages', function () {
-    beforeEach(module(function (AnalyticsProvider) {
-      AnalyticsProvider.trackPages(false);
-    }));
-
-    it('should NOT generate a trackpage on routeChangeSuccess', function () {
-      inject(function (Analytics, $rootScope) {
-        $rootScope.$broadcast('$routeChangeSuccess');
-        expect(Analytics._logs.length).toBe(0);
-      });
-    });
-
-    it('should generate a trackpage when explicitly called', function () {
-      inject(function (Analytics) {
-        Analytics.trackPage('/page/here');
         expect(Analytics._logs.length).toBe(1);
       });
     });
@@ -247,6 +300,36 @@ describe('angular-google-analytics', function () {
         });
       });
     });
+
+    describe('with eventTracks', function () {
+      beforeEach(module(function (AnalyticsProvider) {
+        AnalyticsProvider.trackPages(false);
+      }));
+
+      it('should generate eventTracks', function () {
+        inject(function ($window) {
+          spyOn($window, 'ga');
+          inject(function (Analytics) {
+            Analytics.trackEvent('test');
+            expect(Analytics._logs.length).toBe(1);
+            expect(Analytics._logs[0][0]).toBe('event');
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', undefined, undefined, undefined);
+          });
+        });
+      });
+
+      it('should generate eventTracks and ignore non-interactions', function () {
+        inject(function ($window) {
+          spyOn($window, 'ga');
+          inject(function (Analytics) {
+            Analytics.trackEvent('test', 'action', 'label', 0, true);
+            expect(Analytics._logs.length).toBe(1);
+            expect(Analytics._logs[0][0]).toBe('event');
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0);
+          });
+        });
+      });
+    });
   });
 
   describe('e-commerce transactions with analytics.js', function () {
@@ -272,7 +355,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
         expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ecommerce:addTransaction');
+        expect(Analytics._logs[0][0]).toBe('ecommerce:addTransaction');
       });
     });
 
@@ -281,7 +364,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
         expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ecommerce:addItem');
+        expect(Analytics._logs[0][0]).toBe('ecommerce:addItem');
       });
     });
 
@@ -290,7 +373,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs.length).toBe(0);
         Analytics.trackTrans();
         expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ecommerce:send');
+        expect(Analytics._logs[0][0]).toBe('ecommerce:send');
       });
     });
   });
@@ -318,26 +401,40 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addImpression('sku-1', 'Test Product 1', 'Category List', 'Brand 1', 'Category-1', 'variant-1', '1', '24990');
         expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ec:addImpression');
+        expect(Analytics._logs[0][0]).toBe('ec:addImpression');
       });
     });
 
     it('should add product data', function () {
-      inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[0]['1'][0]).toBe('sku-2');
-        expect(Analytics._logs[0]['1'][1]).toBe('Test Product 2');
-        expect(Analytics._logs[0]['1'][2]).toBe('Category-1');
-        expect(Analytics._logs[0]['1'][3]).toBe('Brand 2');
-        expect(Analytics._logs[0]['1'][4]).toBe('variant-3');
-        expect(Analytics._logs[0]['1'][5]).toBe('2499');
-        expect(Analytics._logs[0]['1'][6]).toBe('1');
-        expect(Analytics._logs[0]['1'][7]).toBe('FLAT10');
-        expect(Analytics._logs[0]['1'][8]).toBe('1');
-      });
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          expect(Analytics._logs.length).toBe(0);
+          Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+          expect(Analytics._logs.length).toBe(1);
+          expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+          expect(Analytics._logs[0][1][0]).toBe('sku-2');
+          expect(Analytics._logs[0][1][1]).toBe('Test Product 2');
+          expect(Analytics._logs[0][1][2]).toBe('Category-1');
+          expect(Analytics._logs[0][1][3]).toBe('Brand 2');
+          expect(Analytics._logs[0][1][4]).toBe('variant-3');
+          expect(Analytics._logs[0][1][5]).toBe('2499');
+          expect(Analytics._logs[0][1][6]).toBe('1');
+          expect(Analytics._logs[0][1][7]).toBe('FLAT10');
+          expect(Analytics._logs[0][1][8]).toBe('1');
+          expect($window.ga).toHaveBeenCalledWith('ec:addProduct', {
+            id: 'sku-2',
+            name: 'Test Product 2',
+            category: 'Category-1',
+            brand: 'Brand 2',
+            variant: 'variant-3',
+            price: '2499',
+            quantity: '1',
+            coupon: 'FLAT10',
+            position: '1'
+          });
+        });
+      })
     });
 
     it('should add promo data', function () {
@@ -345,7 +442,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
         expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ec:addPromo');
+        expect(Analytics._logs[0][0]).toBe('ec:addPromo');
       });
     });
 
@@ -355,8 +452,8 @@ describe('angular-google-analytics', function () {
         var dummyAction = 'dummy';
         Analytics.setAction(dummyAction);
         expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[0]['1']['0']).toBe(dummyAction);
+        expect(Analytics._logs[0][0]).toBe('ec:setAction');
+        expect(Analytics._logs[0][1][0]).toBe(dummyAction);
       });
     });
 
@@ -367,11 +464,11 @@ describe('angular-google-analytics', function () {
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.productClick(dummyList);
         expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[1]['1']['0']).toBe('click');
-        expect(Analytics._logs[1]['1']['1']['list']).toBe(dummyList);
-        expect(Analytics._logs[2]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[1][1][0]).toBe('click');
+        expect(Analytics._logs[1][1][1]['list']).toBe(dummyList);
+        expect(Analytics._logs[2][0]).toBe('send');
       });
     });
 
@@ -381,10 +478,10 @@ describe('angular-google-analytics', function () {
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackDetail();
         expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[1]['1']['0']).toBe('detail');
-        expect(Analytics._logs[2]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[1][1][0]).toBe('detail');
+        expect(Analytics._logs[2][0]).toBe('send');
       });
     });
 
@@ -394,10 +491,10 @@ describe('angular-google-analytics', function () {
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCart('add');
         expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[1]['1']['0']).toBe('add');
-        expect(Analytics._logs[2]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[1][1][0]).toBe('add');
+        expect(Analytics._logs[2][0]).toBe('send');
       });
     });
 
@@ -407,10 +504,10 @@ describe('angular-google-analytics', function () {
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCart('remove');
         expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[1]['1']['0']).toBe('remove');
-        expect(Analytics._logs[2]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[1][1][0]).toBe('remove');
+        expect(Analytics._logs[2][0]).toBe('send');
       });
     });
 
@@ -420,10 +517,10 @@ describe('angular-google-analytics', function () {
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCheckout();
         expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[1]['1']['0']).toBe('checkout');
-        expect(Analytics._logs[2]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[1][1][0]).toBe('checkout');
+        expect(Analytics._logs[2][0]).toBe('send');
       });
     });
 
@@ -434,11 +531,11 @@ describe('angular-google-analytics', function () {
         Analytics.addProduct('sku-3', 'Test Product 3', 'Category-1', 'Brand 2', 'variant-5', '299', '1', 'FLAT10', '1');
         Analytics.trackTransaction();
         expect(Analytics._logs.length).toBe(4);
-        expect(Analytics._logs[0]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[1]['0']).toBe('ec:addProduct');
-        expect(Analytics._logs[2]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[2]['1']['0']).toBe('purchase');
-        expect(Analytics._logs[3]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[1][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[2][0]).toBe('ec:setAction');
+        expect(Analytics._logs[2][1][0]).toBe('purchase');
+        expect(Analytics._logs[3][0]).toBe('send');
       });
     });
 
@@ -448,10 +545,10 @@ describe('angular-google-analytics', function () {
         Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
         Analytics.promoClick('Summer Sale');
         expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0]['0']).toBe('ec:addPromo');
-        expect(Analytics._logs[1]['0']).toBe('ec:setAction');
-        expect(Analytics._logs[1]['1']['0']).toBe('promo_click');
-        expect(Analytics._logs[2]['0']).toBe('send');
+        expect(Analytics._logs[0][0]).toBe('ec:addPromo');
+        expect(Analytics._logs[1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[1][1][0]).toBe('promo_click');
+        expect(Analytics._logs[2][0]).toBe('send');
       });
     });
   });
@@ -465,6 +562,7 @@ describe('angular-google-analytics', function () {
       inject(function (Analytics, $rootScope) {
         $rootScope.$broadcast('$stateChangeSuccess');
         expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0][0]).toBe('_trackPageview');
       });
     });
   });
