@@ -191,6 +191,9 @@ angular.module('angular-google-analytics', [])
           accountId.forEach(function (trackerObj) {
             var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
             var options;
+            if ('crossDomainLinker' in trackerObj && trackerObj.crossDomainLinker) {
+              trackerObj.allowLinker = trackerObj.crossDomainLinker;
+            }
             angular.forEach(['name', 'allowLinker'], function(key) {
               if (key in trackerObj) {
                 if (angular.isUndefined(options)) {
