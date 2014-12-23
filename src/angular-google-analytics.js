@@ -175,6 +175,10 @@ angular.module('angular-google-analytics', [])
         }
       }
 
+      function _checkOption(key, config) {
+        return key in config && config[key];
+      }
+
       function _createAnalyticsScriptTag() {
         if (!accountId) {
           me._log('warn', 'No account id set to create analytics script tag');
@@ -191,7 +195,7 @@ angular.module('angular-google-analytics', [])
           accountId.forEach(function (trackerObj) {
             var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
             var options;
-            if ('crossDomainLinker' in trackerObj && trackerObj.crossDomainLinker) {
+            if (_checkOption('crossDomainLinker', trackerObj)) {
               trackerObj.allowLinker = trackerObj.crossDomainLinker;
             }
             angular.forEach(['name', 'allowLinker'], function(key) {
@@ -209,7 +213,7 @@ angular.module('angular-google-analytics', [])
             }
             if (options && 'allowLinker' in options && options.allowLinker) {
               $window.ga(_generateCommandName('require', trackerObj), 'linker');
-              if ('crossLinkDomains' in trackerObj && trackerObj.crossLinkDomains) {
+              if (_checkOption('crossLinkDomains', trackerObj)) {
                 $window.ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
               }
             }
@@ -340,7 +344,7 @@ angular.module('angular-google-analytics', [])
         _analyticsJs(function () {
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
-              if ('trackEvent' in trackerObj && trackerObj.trackEvent) {
+              if (_checkOption('trackEvent', trackerObj)) {
                 $window.ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value);
               }
             });
