@@ -288,7 +288,8 @@ angular.module('angular-google-analytics', [])
         _analyticsJs(function () {
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
-              $window.ga(trackerObj.name + '.send', 'pageview', {
+              var sendCmd = 'name' in trackerObj ? trackerObj.name + '.send' : 'send';
+              $window.ga(sendCmd, 'pageview', {
                 'page': trackPrefix + url,
                 'title': title
               });
