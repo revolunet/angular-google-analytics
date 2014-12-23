@@ -646,4 +646,74 @@ describe('angular-google-analytics', function () {
       });
     });
   });
+
+  describe('supports advanced options for multiple traking objects', function () {
+    var trackers = [
+      { tracker: 'UA-12345-12', name: "tracker1", crossDomainLinker: true },
+      { tracker: 'UA-12345-34', name: "tracker2", crossDomainLinker: true, crossLinkDomains: ['domain-1.com'] },
+      { tracker: 'UA-12345-45', crossDomainLinker: true, crossLinkDomains: ['domain-2.com'] },
+      { tracker: 'UA-12345-67', cookieConfig: 'yourdomain.org' }
+    ];
+
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.setAccount(trackers);
+      AnalyticsProvider.useAnalytics(true);
+    }));
+
+    it('should call ga require for each tracker', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          expect($window.ga).toHaveBeenCalledWith('tracker1.require', 'linker');
+          expect($window.ga).toHaveBeenCalledWith('tracker2.require', 'linker');
+          expect($window.ga).toHaveBeenCalledWith('require', 'linker');
+        });
+      });
+    });
+
+    it('should call ga linker autoLink for configured tracking objects only', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          expect($window.ga).not.toHaveBeenCalledWith('tracker1.linker:autoLink');
+          expect($window.ga).toHaveBeenCalledWith('tracker2.linker:autoLink', ['domain-1.com']);
+          expect($window.ga).toHaveBeenCalledWith('linker:autoLink', ['domain-2.com']);
+        });
+      });
+    });
+
+    it ('should call ga create with custom cookie config', function() {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          expect($window.ga).toHaveBeenCalledWith('create', 'UA-12345-67', 'yourdomain.org');
+        });
+      });
+    });
+  });
+
+  describe('supports advanced tracking for multiple tracking objects', function () {
+    var trackers = [
+      { tracker: 'UA-12345-12', name: "tracker1", trackEvent: true },
+      { tracker: 'UA-12345-34', name: "tracker2" },
+      { tracker: 'UA-12345-45', trackEvent: true }
+    ];
+
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.setAccount(trackers);
+      AnalyticsProvider.useAnalytics(true);
+    }));
+
+    it('should track events for configured tracking objects only', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.trackEvent('category', 'action', 'label', 'value');
+          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'event', 'category', 'action', 'label', 'value');
+          expect($window.ga).not.toHaveBeenCalledWith('tracker2.send', 'event', 'category', 'action', 'label', 'value');
+          expect($window.ga).toHaveBeenCalledWith('send', 'event', 'category', 'action', 'label', 'value');
+        });
+      });
+    });
+  });
 });
