@@ -181,7 +181,8 @@ angular.module('angular-google-analytics', [])
 
         if (angular.isArray(accountId)) {
           accountId.forEach(function (trackerObj) {
-            $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+            var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
+            $window.ga('create', trackerObj.tracker, _cookieConfig, { name: trackerObj.name });
           });
         } else if (crossDomainLinker) {
           $window.ga('create', accountId, cookieConfig, linkerConfig);
