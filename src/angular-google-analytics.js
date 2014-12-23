@@ -167,6 +167,14 @@ angular.module('angular-google-analytics', [])
         created = true;
       }
 
+      function _generateCommandName(commandName, config) {
+        if (!angular.isUndefined(config) && 'name' in config && config.name) {
+          return config.name+'.'+commandName;
+        } else {
+          return commandName;
+        }
+      }
+
       function _createAnalyticsScriptTag() {
         if (!accountId) {
           me._log('warn', 'No account id set to create analytics script tag');
