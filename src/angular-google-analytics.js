@@ -190,7 +190,7 @@ angular.module('angular-google-analytics', [])
         if (angular.isArray(accountId)) {
           accountId.forEach(function (trackerObj) {
             var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
-            var options = undefined;
+            var options;
             angular.forEach(['name', 'allowLinker'], function(key) {
               if (key in trackerObj) {
                 if (angular.isUndefined(options)) {
