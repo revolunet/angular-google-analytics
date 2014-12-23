@@ -329,7 +329,15 @@ angular.module('angular-google-analytics', [])
           that._log('trackEvent', args);
         });
         _analyticsJs(function () {
-          $window.ga('send', 'event', category, action, label, value);
+          if (angular.isArray(accountId)) {
+            accountId.forEach(function (trackerObj) {
+              if ('trackEvent' in trackerObj && trackerObj.trackEvent) {
+                $window.ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value);
+              }
+            });
+          } else {
+            $window.ga('send', 'event', category, action, label, value);
+          }
           that._log('event', args);
         });
       };
