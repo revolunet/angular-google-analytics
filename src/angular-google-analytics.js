@@ -182,7 +182,20 @@ angular.module('angular-google-analytics', [])
         if (angular.isArray(accountId)) {
           accountId.forEach(function (trackerObj) {
             var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
-            $window.ga('create', trackerObj.tracker, _cookieConfig, { name: trackerObj.name });
+            var options = undefined;
+            angular.forEach(['name', 'allowLinker'], function(key) {
+              if (key in trackerObj) {
+                if (angular.isUndefined(options)) {
+                  options = {};
+                }
+                options[key] = trackerObj[key];
+              }
+            });
+            if (angular.isUndefined(options)) {
+              $window.ga('create', trackerObj.tracker, _cookieConfig);
+            } else {
+              $window.ga('create', trackerObj.tracker, _cookieConfig, options);
+            }
           });
         } else if (crossDomainLinker) {
           $window.ga('create', accountId, cookieConfig, linkerConfig);
