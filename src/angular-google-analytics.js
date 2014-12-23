@@ -204,6 +204,12 @@ angular.module('angular-google-analytics', [])
             } else {
               $window.ga('create', trackerObj.tracker, _cookieConfig, options);
             }
+            if (options && 'allowLinker' in options && options.allowLinker) {
+              $window.ga(_generateCommandName('require', trackerObj), 'linker');
+              if ('crossLinkDomains' in trackerObj) {
+                $window.ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
+              }
+            }
           });
         } else if (crossDomainLinker) {
           $window.ga('create', accountId, cookieConfig, linkerConfig);
