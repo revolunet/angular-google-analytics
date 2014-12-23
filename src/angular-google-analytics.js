@@ -209,7 +209,7 @@ angular.module('angular-google-analytics', [])
             }
             if (options && 'allowLinker' in options && options.allowLinker) {
               $window.ga(_generateCommandName('require', trackerObj), 'linker');
-              if ('crossLinkDomains' in trackerObj) {
+              if ('crossLinkDomains' in trackerObj && trackerObj.crossLinkDomains) {
                 $window.ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
               }
             }
