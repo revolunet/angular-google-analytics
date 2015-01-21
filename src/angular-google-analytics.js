@@ -169,7 +169,7 @@ angular.module('angular-google-analytics', [])
 
       function _generateCommandName(commandName, config) {
         if (!angular.isUndefined(config) && 'name' in config && config.name) {
-          return config.name+'.'+commandName;
+          return config.name + '.' + commandName;
         } else {
           return commandName;
         }
