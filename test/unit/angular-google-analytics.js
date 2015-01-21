@@ -647,7 +647,7 @@ describe('angular-google-analytics', function () {
     });
   });
 
-  describe('supports advanced options for multiple traking objects', function () {
+  describe('supports advanced options for multiple tracking objects', function () {
     var trackers = [
       { tracker: 'UA-12345-12', name: "tracker1", crossDomainLinker: true },
       { tracker: 'UA-12345-34', name: "tracker2", crossDomainLinker: true, crossLinkDomains: ['domain-1.com'] },
