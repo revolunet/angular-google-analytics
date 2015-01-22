@@ -167,6 +167,18 @@ angular.module('angular-google-analytics', [])
         created = true;
       }
 
+      function _generateCommandName(commandName, config) {
+        if (!angular.isUndefined(config) && 'name' in config && config.name) {
+          return config.name + '.' + commandName;
+        } else {
+          return commandName;
+        }
+      }
+
+      function _checkOption(key, config) {
+        return key in config && config[key];
+      }
+
       function _createAnalyticsScriptTag() {
         if (!accountId) {
           me._log('warn', 'No account id set to create analytics script tag');
@@ -181,7 +193,30 @@ angular.module('angular-google-analytics', [])
 
         if (angular.isArray(accountId)) {
           accountId.forEach(function (trackerObj) {
-            $window.ga('create', trackerObj.tracker, cookieConfig, { name: trackerObj.name });
+            var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
+            var options;
+            if (_checkOption('crossDomainLinker', trackerObj)) {
+              trackerObj.allowLinker = trackerObj.crossDomainLinker;
+            }
+            angular.forEach(['name', 'allowLinker'], function(key) {
+              if (key in trackerObj) {
+                if (angular.isUndefined(options)) {
+                  options = {};
+                }
+                options[key] = trackerObj[key];
+              }
+            });
+            if (angular.isUndefined(options)) {
+              $window.ga('create', trackerObj.tracker, _cookieConfig);
+            } else {
+              $window.ga('create', trackerObj.tracker, _cookieConfig, options);
+            }
+            if (options && 'allowLinker' in options && options.allowLinker) {
+              $window.ga(_generateCommandName('require', trackerObj), 'linker');
+              if (_checkOption('crossLinkDomains', trackerObj)) {
+                $window.ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
+              }
+            }
           });
         } else if (crossDomainLinker) {
           $window.ga('create', accountId, cookieConfig, linkerConfig);
@@ -274,7 +309,7 @@ angular.module('angular-google-analytics', [])
         _analyticsJs(function () {
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
-              $window.ga(trackerObj.name + '.send', 'pageview', {
+              $window.ga(_generateCommandName('send', trackerObj), 'pageview', {
                 'page': trackPrefix + url,
                 'title': title
               });
@@ -307,7 +342,15 @@ angular.module('angular-google-analytics', [])
           that._log('trackEvent', args);
         });
         _analyticsJs(function () {
-          $window.ga('send', 'event', category, action, label, value);
+          if (angular.isArray(accountId)) {
+            accountId.forEach(function (trackerObj) {
+              if (_checkOption('trackEvent', trackerObj)) {
+                $window.ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value);
+              }
+            });
+          } else {
+            $window.ga('send', 'event', category, action, label, value);
+          }
           that._log('event', args);
         });
       };
