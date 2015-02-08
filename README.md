@@ -1,6 +1,8 @@
 # angular-google-analytics
 
-A simple service that let you integrate google analytics tracker in your AngularJS applications.
+This service lets you integrate google analytics tracker in your AngularJS applications easily.
+
+You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4');` or more advanced e-commerce features like product tracking, promo codes, transactions...
 
 Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@deltaepsilon](https://github.com/deltaepsilon).
 
