@@ -313,19 +313,19 @@ describe('angular-google-analytics', function () {
             Analytics.trackEvent('test');
             expect(Analytics._logs.length).toBe(1);
             expect(Analytics._logs[0][0]).toBe('event');
-            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', undefined, undefined, undefined);
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', undefined, undefined, undefined, {});
           });
         });
       });
 
-      it('should generate eventTracks and ignore non-interactions', function () {
+      it('should generate eventTracks and honour non-interactions', function () {
         inject(function ($window) {
           spyOn($window, 'ga');
           inject(function (Analytics) {
             Analytics.trackEvent('test', 'action', 'label', 0, true);
             expect(Analytics._logs.length).toBe(1);
             expect(Analytics._logs[0][0]).toBe('event');
-            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0);
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0, {nonInteraction: true});
           });
         });
       });
@@ -709,9 +709,9 @@ describe('angular-google-analytics', function () {
         spyOn($window, 'ga');
         inject(function (Analytics) {
           Analytics.trackEvent('category', 'action', 'label', 'value');
-          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'event', 'category', 'action', 'label', 'value');
-          expect($window.ga).not.toHaveBeenCalledWith('tracker2.send', 'event', 'category', 'action', 'label', 'value');
-          expect($window.ga).toHaveBeenCalledWith('send', 'event', 'category', 'action', 'label', 'value');
+          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'event', 'category', 'action', 'label', 'value', {});
+          expect($window.ga).not.toHaveBeenCalledWith('tracker2.send', 'event', 'category', 'action', 'label', 'value', {});
+          expect($window.ga).toHaveBeenCalledWith('send', 'event', 'category', 'action', 'label', 'value', {});
         });
       });
     });

@@ -93,8 +93,22 @@ var app = angular.module('app', ['angular-google-analytics'])
         // or create a new pageview event with optional page title
         Analytics.trackPage('/video/detail/XXX', 'Video XXX');
 
+        // or create a new pageview event with optional page title, custom dimension and metric
+        // (analytics.js only)
+        Analytics.trackPage('/video/detail/XXX', 'Video XXX', {dimension15: 'My Custom Dimension', metric18: 8000});
+
         // create a new tracking event
         Analytics.trackEvent('video', 'play', 'django.mp4');
+
+        // create a new tracking event with optional value
+        Analytics.trackEvent('video', 'play', 'django.mp4', 4);
+
+        // create a new tracking event with optional value and noninteraction flag
+        Analytics.trackEvent('video', 'play', 'django.mp4', 4, true);
+
+        // create a new tracking event with optional value, noninteraction flag, and custom dimension and metric
+        // (analytics.js only)
+        Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000});
 
         // tracking e-commerce
         // - create transaction

@@ -294,9 +294,10 @@ angular.module('angular-google-analytics', [])
        https://developers.google.com/analytics/devguides/collection/analyticsjs/pages
        * @param url
        * @param title
+       * @param custom
        * @private
        */
-      this._trackPage = function (url, title) {
+      this._trackPage = function (url, title, custom) {
         var that = this, args = arguments;
         url = url ? url : getUrl();
         title = title ? title : $document[0].title;
@@ -307,18 +308,19 @@ angular.module('angular-google-analytics', [])
           that._log('_trackPageview', url, title, args);
         });
         _analyticsJs(function () {
+          var opt_fieldObject = {
+            'page': trackPrefix + url,
+            'title': title
+          };
+          if (angular.isObject(custom)) {
+            angular.extend(opt_fieldObject, custom);
+          }
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
-              $window.ga(_generateCommandName('send', trackerObj), 'pageview', {
-                'page': trackPrefix + url,
-                'title': title
-              });
+              $window.ga(_generateCommandName('send', trackerObj), 'pageview', opt_fieldObject);
             });
           } else {
-            $window.ga('send', 'pageview', {
-              'page': trackPrefix + url,
-              'title': title
-            });
+            $window.ga('send', 'pageview', opt_fieldObject);
           }
           that._log('pageview', url, title, args);
         });
@@ -333,23 +335,31 @@ angular.module('angular-google-analytics', [])
        * @param label
        * @param value
        * @param noninteraction
+       * @param custom
        * @private
        */
-      this._trackEvent = function (category, action, label, value, noninteraction) {
+      this._trackEvent = function (category, action, label, value, noninteraction, custom) {
         var that = this, args = arguments;
         _gaJs(function () {
           $window._gaq.push(['_trackEvent', category, action, label, value, !!noninteraction]);
           that._log('trackEvent', args);
         });
         _analyticsJs(function () {
+          var opt_fieldObject = {};
+          if (angular.isDefined(noninteraction)) {
+            opt_fieldObject['nonInteraction'] = !!noninteraction;
+          }
+          if (angular.isObject(custom)) {
+            angular.extend(opt_fieldObject, custom);
+          }
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
               if (_checkOption('trackEvent', trackerObj)) {
-                $window.ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value);
+                $window.ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value, opt_fieldObject);
               }
             });
           } else {
-            $window.ga('send', 'event', category, action, label, value);
+            $window.ga('send', 'event', category, action, label, value, opt_fieldObject);
           }
           that._log('event', args);
         });
@@ -752,11 +762,11 @@ angular.module('angular-google-analytics', [])
         enhancedEcommerceEnabled: function () {
           return me._enhancedEcommerceEnabled();
         },
-        trackPage: function (url, title) {
-          me._trackPage(url, title);
+        trackPage: function (url, title, custom) {
+          me._trackPage(url, title, custom);
         },
-        trackEvent: function (category, action, label, value, noninteraction) {
-          me._trackEvent(category, action, label, value, noninteraction);
+        trackEvent: function (category, action, label, value, noninteraction, custom) {
+          me._trackEvent(category, action, label, value, noninteraction, custom);
         },
         addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
           me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
