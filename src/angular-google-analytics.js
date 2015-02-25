@@ -110,7 +110,7 @@ angular.module('angular-google-analytics', [])
       var me = this;
 
       var getUrl = function () {
-        var url = $location.path();
+        var url = $location.url();
         return removeRegExp ? url.replace(removeRegExp, '') : url;
       };
 
