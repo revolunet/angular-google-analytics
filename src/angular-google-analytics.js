@@ -19,7 +19,8 @@ angular.module('angular-google-analytics', [])
         ignoreFirstPageLoad = false,
         crossDomainLinker = false,
         crossLinkDomains,
-        linkerConfig = {'allowLinker': true};
+        linkerConfig = {'allowLinker': true},
+        trackUrlParams = false;
 
     this._logs = [];
 
@@ -103,6 +104,11 @@ angular.module('angular-google-analytics', [])
       return true;
     };
 
+    this.trackUrlParams = function (val) {
+      trackUrlParams = !!val;
+      return true;
+    };
+
     /**
      * Public Service
      */
@@ -110,7 +116,7 @@ angular.module('angular-google-analytics', [])
       var me = this;
 
       var getUrl = function () {
-        var url = $location.path();
+        var url = trackUrlParams ? $location.url() : $location.path();
         return removeRegExp ? url.replace(removeRegExp, '') : url;
       };
 

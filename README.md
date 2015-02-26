@@ -39,6 +39,9 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // track all routes (or not)
         AnalyticsProvider.trackPages(true);
+				
+        // track all url query params (default is false)
+        AnalyticsProvider.trackUrlParams(true);
 
         // Optional set domain (Use 'none' for testing on localhost)
         // AnalyticsProvider.setDomainName('XXX');
