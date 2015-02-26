@@ -716,4 +716,17 @@ describe('angular-google-analytics', function () {
       });
     });
   });
+
+  describe('enabled url params tracking', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.trackUrlParams(true);
+    }));
+
+    it('should grab query params in the url', function () {
+      inject(function (Analytics, $location) {
+        $location.url('/some/page?with_params=foo&more_param=123');
+        expect(Analytics.getUrl()).toContain('?with_params=foo&more_param=123');
+      });
+    });
+  });
 });
