@@ -84,6 +84,11 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // change page event name
         AnalyticsProvider.setPageEvent('$stateChangeSuccess');
+
+
+        // Delay script tage creation
+        // must manually call Analytics.createScriptTag(cookieConfig) or Analytics.createAnalyticsScriptTag(cookieConfig)
+        AnalyticsProvider.delayScriptTag(true);
     }))
     .run(function(Analytics) {
       // In case you are relying on automatic page tracking, you need to inject Analytics
@@ -202,6 +207,12 @@ var app = angular.module('app', ['angular-google-analytics'])
         // populate a custom dimension
         Analytics.set('dimension1', 'Paid');
 
+        // Manually create script tag after using delayScriptTag
+        Analytics.createScriptTag({userId: 1234});
+
+        // Manually create Analytics script tag after using delayScriptTag
+        Analytics.createAnalyticsScriptTag({userId: 1234})
+
     });
 ```
 
@@ -236,6 +247,8 @@ AnalyticsProvider.setCookieConfig({
 });
 // Change the default page event name. This is useful for ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess
 AnalyticsProvider.setPageEvent('$stateChangeSuccess');
+// Delay script tage creation...must manually call Analytics.createScriptTag() or Analytics.createAnalyticsScriptTag() to enable analytics
+AnalyticsProvider.delayScriptTag(true);
 
 ```
 
