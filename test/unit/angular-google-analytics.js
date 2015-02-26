@@ -60,6 +60,25 @@ describe('angular-google-analytics', function () {
     });
   });
 
+  describe('enabled delayedScriptTag', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.delayScriptTag(true);
+    }));
+
+    it('should have a truthy value for Analytics.delayScriptTag', function () {
+      inject(function (Analytics, $location) {
+        expect(Analytics.delayScriptTag).toBe(true);
+      });
+    });
+
+    it('should not inject a script tag', function () {
+      inject(function (Analytics) {
+        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(0);
+      });
+    });
+
+  });
+
   describe('automatic trackPages with ga.js', function () {
     it('should inject the GA script', function () {
       inject(function (Analytics) {
@@ -229,6 +248,12 @@ describe('angular-google-analytics', function () {
     it('should inject the Analytics script', function () {
       inject(function (Analytics) {
         expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(1);
+      });
+    });
+
+    it('should respect cookieConfig', function () {
+      inject(function (Analytics) {
+        expect(Analytics.getCookieConfig()).toEqual(cookieConfig);
       });
     });
 
@@ -729,4 +754,39 @@ describe('angular-google-analytics', function () {
       });
     });
   });
+
+  describe('createAnalyticsScriptTag', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.delayScriptTag(true);
+    }));
+
+    it('should inject a script tag', function () {
+      inject(function (Analytics, $location) {
+        var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
+        
+        Analytics.createAnalyticsScriptTag({userId: 1234});
+        expect(Analytics.getCookieConfig().userId).toBe(1234);
+        expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
+      });
+    });
+
+  });
+
+  describe('createAnalyticsScriptTag', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.delayScriptTag(true);
+    }));
+
+    it('should inject a script tag', function () {
+      inject(function (Analytics, $location) {
+        var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
+        
+        Analytics.createScriptTag({userId: 1234});
+        expect(Analytics.getCookieConfig().userId).toBe(1234);
+        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
+      });
+    });
+
+  });
+
 });
