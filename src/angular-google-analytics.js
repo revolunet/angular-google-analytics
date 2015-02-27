@@ -886,5 +886,5 @@ angular.module('angular-google-analytics', [])
           }
         });
       }
-    }
+    };
   }]);
