@@ -871,4 +871,20 @@ angular.module('angular-google-analytics', [])
         }
       };
     }];
-  });
+  })
+
+  .directive('gaTrackEvent', ['Analytics', function (Analytics) {
+    return {
+      restrict: 'A',
+      scope: {
+        options: '=gaTrackEvent'
+      },
+      link: function (scope, element, attrs) {
+        element.on('click', function () {
+          if (scope.options.length > 1) {
+            Analytics.trackEvent.apply(Analytics, scope.options);
+          }
+        });
+      }
+    }
+  }]);
