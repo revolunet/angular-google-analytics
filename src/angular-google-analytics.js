@@ -873,16 +873,14 @@ angular.module('angular-google-analytics', [])
     }];
   })
 
-  .directive('gaTrackEvent', ['Analytics', function (Analytics) {
+  .directive('gaTrackEvent', ['Analytics', '$parse', function (Analytics, $parse) {
     return {
       restrict: 'A',
-      scope: {
-        options: '=gaTrackEvent'
-      },
       link: function (scope, element, attrs) {
+        var options = $parse(attrs.gaTrackEvent)({});
         element.on('click', function () {
-          if (scope.options.length > 1) {
-            Analytics.trackEvent.apply(Analytics, scope.options);
+          if (options.length > 1) {
+            Analytics.trackEvent.apply(Analytics, options);
           }
         });
       }
