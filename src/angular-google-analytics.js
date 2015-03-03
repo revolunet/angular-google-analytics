@@ -696,7 +696,7 @@ angular.module('angular-google-analytics', [])
       this._trackCart = function (action) {
         if (['add', 'remove'].indexOf(action) !== -1) {
           this._setAction(action);
-          this._send('event', 'UX', 'click', action + 'to cart');
+          this._send('event', 'UX', 'click', action + ' to cart');
         }
       };
 
@@ -730,11 +730,13 @@ angular.module('angular-google-analytics', [])
        * @param obj
        * @private
        */
-      this._send = function (obj) {
+      this._send = function () {
         var that = this;
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift('send');
         _analyticsJs(function () {
-          $window.ga('send', obj);
-          that._log('send', obj);
+          $window.ga.apply(this, args);
+          that._log(args);
         });
       };
 
