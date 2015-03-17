@@ -1,6 +1,10 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
+<<<<<<< Updated upstream
  * @version v0.0.11 - 2015-03-02
+=======
+ * @version v0.0.12 - 2015-02-26
+>>>>>>> Stashed changes
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT

@@ -303,8 +303,7 @@ describe('angular-google-analytics', function () {
         Analytics.send(social);
         expect(Analytics._logs.length).toBe(1);
         expect(Analytics._logs[0]).toEqual({
-          '0': 'send',
-          '1': social
+          '0': ['send', social]
         });
       });
     });
@@ -493,7 +492,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('click');
         expect(Analytics._logs[1][1][1]['list']).toBe(dummyList);
-        expect(Analytics._logs[2][0]).toBe('send');
+        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list' ]);
       });
     });
 
@@ -506,7 +505,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('detail');
-        expect(Analytics._logs[2][0]).toBe('send');
+        expect(Analytics._logs[2][0]).toEqual(['send', 'pageview']);
       });
     });
 
@@ -519,7 +518,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('add');
-        expect(Analytics._logs[2][0]).toBe('send');
+        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart' ]);
       });
     });
 
@@ -532,7 +531,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('remove');
-        expect(Analytics._logs[2][0]).toBe('send');
+        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'remove to cart' ]);
       });
     });
 
@@ -545,7 +544,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('checkout');
-        expect(Analytics._logs[2][0]).toBe('send');
+        expect(Analytics._logs[2][0]).toEqual(['send', 'pageview']);
       });
     });
 
@@ -560,7 +559,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[1][0]).toBe('ec:addProduct');
         expect(Analytics._logs[2][0]).toBe('ec:setAction');
         expect(Analytics._logs[2][1][0]).toBe('purchase');
-        expect(Analytics._logs[3][0]).toBe('send');
+        expect(Analytics._logs[3][0]).toEqual(['send', 'pageview']);
       });
     });
 
@@ -573,7 +572,7 @@ describe('angular-google-analytics', function () {
         expect(Analytics._logs[0][0]).toBe('ec:addPromo');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('promo_click');
-        expect(Analytics._logs[2][0]).toBe('send');
+        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'Internal Promotions', 'click', 'Summer Sale' ]);
       });
     });
   });
@@ -795,9 +794,10 @@ describe('angular-google-analytics', function () {
       it('should track an event when clicked', function () {
         inject(function (Analytics, $rootScope, $compile) {
           spyOn(Analytics, 'trackEvent');
-          var element = angular.element('<div ga-track-event="[\'button\', \'click\', \'Some Button\']">test</div>'),
-              compiled = $compile(element)($rootScope);
-          $rootScope.$digest();
+          var scope = $rootScope.$new(),
+              element = '<div ga-track-event="[\'button\', \'click\', \'Some Button\']">test</div>',
+              compiled = $compile(element)(scope);
+          scope.$digest();
           compiled.triggerHandler('click');
           expect(Analytics.trackEvent).toHaveBeenCalledWith('button', 'click', 'Some Button');
         });
