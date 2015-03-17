@@ -789,4 +789,21 @@ describe('angular-google-analytics', function () {
 
   });
 
+  describe('directives', function () {
+    describe('gaTrackEvent', function () {
+
+      it('should track an event when clicked', function () {
+        inject(function (Analytics, $rootScope, $compile) {
+          spyOn(Analytics, 'trackEvent');
+          var element = angular.element('<div ga-track-event="[\'button\', \'click\', \'Some Button\']">test</div>'),
+              compiled = $compile(element)($rootScope);
+          $rootScope.$digest();
+          compiled.triggerHandler('click');
+          expect(Analytics.trackEvent).toHaveBeenCalledWith('button', 'click', 'Some Button');
+        });
+      });
+
+    });
+  });
+
 });

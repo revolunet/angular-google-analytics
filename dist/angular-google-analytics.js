@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.11 - 2015-02-26
+ * @version v0.0.11 - 2015-03-02
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -27,7 +27,8 @@ angular.module('angular-google-analytics', [])
         crossDomainLinker = false,
         crossLinkDomains,
         linkerConfig = {'allowLinker': true},
-        trackUrlParams = false;
+        trackUrlParams = false,
+        delayScriptTag = false;
 
     this._logs = [];
 
@@ -116,6 +117,11 @@ angular.module('angular-google-analytics', [])
       return true;
     };
 
+    this.delayScriptTag = function (val) {
+      delayScriptTag = !!val;
+      return true;
+    };
+
     /**
      * Public Service
      */
@@ -143,9 +149,36 @@ angular.module('angular-google-analytics', [])
         }
       }
 
-      function _createScriptTag() {
+      function _generateCommandName(commandName, config) {
+        if (!angular.isUndefined(config) && 'name' in config && config.name) {
+          return config.name + '.' + commandName;
+        } else {
+          return commandName;
+        }
+      }
+
+      function _checkOption(key, config) {
+        return key in config && config[key];
+      }
+
+      this._log = function () {
+        if (arguments.length > 0) {
+          if (arguments.length > 1 && arguments[0] === 'warn') {
+            $log.warn(Array.prototype.slice.call(arguments, 1));
+          }
+          // console.log('analytics', arguments);
+          this._logs.push(arguments);
+        }
+      };
+
+      this._createScriptTag = function () {
         if (!accountId) {
           me._log('warn', 'No account id set to create script tag');
+          return;
+        }
+
+        if (created) {
+          me._log('warn', 'Script tag already created');
           return;
         }
 
@@ -177,24 +210,18 @@ angular.module('angular-google-analytics', [])
           ga.src = gaSrc;
           var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
         })(gaSrc);
-        created = true;
-      }
+        
+        return created = true;
+      };
 
-      function _generateCommandName(commandName, config) {
-        if (!angular.isUndefined(config) && 'name' in config && config.name) {
-          return config.name + '.' + commandName;
-        } else {
-          return commandName;
-        }
-      }
-
-      function _checkOption(key, config) {
-        return key in config && config[key];
-      }
-
-      function _createAnalyticsScriptTag() {
+      this._createAnalyticsScriptTag = function () {
         if (!accountId) {
           me._log('warn', 'No account id set to create analytics script tag');
+          return;
+        }
+
+        if (created) {
+          me._log('warn', 'Analytics script tag already created');
           return;
         }
 
@@ -267,15 +294,8 @@ angular.module('angular-google-analytics', [])
             s.parentNode.insertBefore(expScript, s);
           }
         }
-      }
 
-      this._log = function () {
-        if (arguments.length > 0) {
-          if (arguments.length > 1 && arguments[0] === 'warn') {
-            $log.warn(Array.prototype.slice.call(arguments, 1));
-          }
-          this._logs.push(arguments);
-        }
+        return created = true;
       };
 
       this._ecommerceEnabled = function () {
@@ -745,12 +765,17 @@ angular.module('angular-google-analytics', [])
         });
       };
 
+
       // creates the ganalytics tracker
-      if (analyticsJS) {
-        _createAnalyticsScriptTag();
-      } else {
-        _createScriptTag();
+      if (!delayScriptTag) {
+        if (analyticsJS) {
+          this._createAnalyticsScriptTag();
+        } else {
+          this._createScriptTag();
+        }
+
       }
+      
 
       // activates page tracking
       if (trackRoutes) {
@@ -761,7 +786,6 @@ angular.module('angular-google-analytics', [])
 
       return {
         _logs: me._logs,
-        cookieConfig: cookieConfig,
         displayFeatures: displayFeatures,
         ecommerce: ecommerce,
         enhancedEcommerce: enhancedEcommerce,
@@ -769,6 +793,25 @@ angular.module('angular-google-analytics', [])
         getUrl: getUrl,
         experimentId: experimentId,
         ignoreFirstPageLoad: ignoreFirstPageLoad,
+        delayScriptTag: delayScriptTag,
+        setCookieConfig: me._setCookieConfig,
+        getCookieConfig: function () {
+          return cookieConfig;
+        },
+        createAnalyticsScriptTag: function (config) {
+          if (config) {
+            cookieConfig = config;  
+          }
+
+          return me._createAnalyticsScriptTag();
+        },
+        createScriptTag: function (config) {
+          if (config) {
+            cookieConfig = config;  
+          }
+
+          return me._createScriptTag(); 
+        },
         ecommerceEnabled: function () {
           return me._ecommerceEnabled();
         },
@@ -835,4 +878,18 @@ angular.module('angular-google-analytics', [])
         }
       };
     }];
-  });
+  })
+
+  .directive('gaTrackEvent', ['Analytics', '$parse', function (Analytics, $parse) {
+    return {
+      restrict: 'A',
+      link: function (scope, element, attrs) {
+        var options = $parse(attrs.gaTrackEvent)({});
+        element.on('click', function () {
+          if (options.length > 1) {
+            Analytics.trackEvent.apply(Analytics, options);
+          }
+        });
+      }
+    };
+  }]);
