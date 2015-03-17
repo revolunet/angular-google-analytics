@@ -1,10 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
-<<<<<<< Updated upstream
- * @version v0.0.11 - 2015-03-02
-=======
- * @version v0.0.12 - 2015-02-26
->>>>>>> Stashed changes
+ * @version v0.0.12 - 2015-03-17
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -707,7 +703,7 @@ angular.module('angular-google-analytics', [])
       this._trackCart = function (action) {
         if (['add', 'remove'].indexOf(action) !== -1) {
           this._setAction(action);
-          this._send('event', 'UX', 'click', action + 'to cart');
+          this._send('event', 'UX', 'click', action + ' to cart');
         }
       };
 
@@ -741,11 +737,13 @@ angular.module('angular-google-analytics', [])
        * @param obj
        * @private
        */
-      this._send = function (obj) {
+      this._send = function () {
         var that = this;
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift('send');
         _analyticsJs(function () {
-          $window.ga('send', obj);
-          that._log('send', obj);
+          $window.ga.apply(this, args);
+          that._log(args);
         });
       };
 
@@ -889,7 +887,7 @@ angular.module('angular-google-analytics', [])
       restrict: 'A',
       link: function (scope, element, attrs) {
         var options = $parse(attrs.gaTrackEvent)({});
-        element.on('click', function () {
+        element.bind('click', function () {
           if (options.length > 1) {
             Analytics.trackEvent.apply(Analytics, options);
           }

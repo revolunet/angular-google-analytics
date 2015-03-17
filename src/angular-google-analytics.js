@@ -880,7 +880,6 @@ angular.module('angular-google-analytics', [])
       restrict: 'A',
       link: function (scope, element, attrs) {
         var options = $parse(attrs.gaTrackEvent)({});
-        console.log('element', element.html());
         element.bind('click', function () {
           if (options.length > 1) {
             Analytics.trackEvent.apply(Analytics, options);
