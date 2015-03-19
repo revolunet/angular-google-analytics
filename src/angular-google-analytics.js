@@ -769,7 +769,7 @@ angular.module('angular-google-analytics', [])
           this._createScriptTag();
         }
 
-      }
+      };
       
 
       // activates page tracking
@@ -777,7 +777,18 @@ angular.module('angular-google-analytics', [])
         $rootScope.$on(pageEvent, function () {
           me._trackPage();
         });
-      }
+      };
+      
+      /** 
+       * Track User Timings
+       * @timingCategory (Required): A string for categorizing all user timing variables into logical groups(e.g jQuery).
+       * @timingVar (Required): A string to identify the variable being recorded(e.g. JavaScript Load).
+       * @timingValue (Required): The number of milliseconds in elapsed time to report to Google Analytics(e.g. 20).
+       * @timingLabel (Not Required): A string that can be used to add flexibility in visualizing user timings in the reports(e.g. Google CDN).
+       */
+      this._trackTimings = function (timingCategory, timingVar, timingValue, timingLabel) {
+        this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
+      };
 
       return {
         _logs: me._logs,
@@ -855,6 +866,9 @@ angular.module('angular-google-analytics', [])
         },
         trackCheckout: function (step, option) {
           me._trackCheckOut(step, option);
+        },
+        trackTimings: function (timingCategory, timingVar, timingValue, timingLabel) {
+          me._trackTimings(timingCategory, timingVar, timingValue, timingLabel);
         },
         trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
           me._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
