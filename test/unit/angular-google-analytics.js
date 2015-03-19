@@ -803,6 +803,19 @@ describe('angular-google-analytics', function () {
         });
       });
 
+      it('should inherit parent scope', function () {
+        inject(function (Analytics, $rootScope, $compile) {
+          spyOn(Analytics, 'trackEvent');
+          var scope = $rootScope.$new(), element, compiled;
+          scope.event = ['button', 'click', 'Some Button'];
+          element = '<div ga-track-event="event">test</div>';
+          compiled = $compile(element)(scope);
+          scope.$digest();
+          compiled.triggerHandler('click');
+          expect(Analytics.trackEvent).toHaveBeenCalledWith('button', 'click', 'Some Button');
+        });
+      });
+
     });
   });
 

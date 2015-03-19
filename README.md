@@ -216,6 +216,22 @@ var app = angular.module('app', ['angular-google-analytics'])
     });
 ```
 
+
+
+### directive
+
+Alternatively you can use a directive to avoid filling controllers with `Analytics.trackEvent()` statements. Note: the directive does not create an isolate scope.
+
+    <button type="button" ga-track-event="['video', 'play', 'django.mp4']"></button>
+
+    <!-- OR -->
+
+    <button type="button" ga-track-event="['video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000}]"></button>
+    
+You can define the properties on your controller too `$scope.event = ['video', 'play', 'django.mp4']` and reference them
+
+    <button type="button" ga-track-event="event"></button>
+
 ## configuration
 
 ```js
