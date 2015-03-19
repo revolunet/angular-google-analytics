@@ -212,6 +212,13 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // Manually create Analytics script tag after using delayScriptTag
         Analytics.createAnalyticsScriptTag({userId: 1234})
+        
+        //Track User Timings
+        Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel)
+        //example:
+        var endTime = new Date().getTime();
+        var timeSpent = endTime - startTime;
+        Analytics.trackTimings('Time to Checkout', 'User Timings', timeSpent);
 
     });
 ```
