@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.12 - 2015-03-17
+ * @version v0.0.12 - 2015-03-19
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -886,7 +886,7 @@ angular.module('angular-google-analytics', [])
     return {
       restrict: 'A',
       link: function (scope, element, attrs) {
-        var options = $parse(attrs.gaTrackEvent)({});
+        var options = $parse(attrs.gaTrackEvent)(scope);
         element.bind('click', function () {
           if (options.length > 1) {
             Analytics.trackEvent.apply(Analytics, options);
