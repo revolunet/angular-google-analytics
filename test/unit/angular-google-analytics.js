@@ -580,7 +580,7 @@ describe('angular-google-analytics', function () {
   describe('supports arbitrary page events', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.setPageEvent('$stateChangeSuccess');
-    }));
+    }));e
 
     it('should inject the Analytics script', function () {
       inject(function (Analytics, $rootScope) {
@@ -785,8 +785,23 @@ describe('angular-google-analytics', function () {
         expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
       });
     });
+  
+  describe('should add user timing', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.useAnalytics(true);
+    }));
 
+    it('should add user timing', function () {
+      inject(function (Analytics) {
+        expect(Analytics._logs.length).toBe(0);
+        Analytics.trackTimings('Time to Checkout', 'User Timings', '32', 'My Timings');
+        expect(Analytics._logs.length).toBe(1);
+        expect(Analytics._logs[0][0]).toEqual([ 'send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings']);
+      });
+    });
   });
+  
+  
 
   describe('directives', function () {
     describe('gaTrackEvent', function () {
