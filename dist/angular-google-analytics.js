@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v0.0.12 - 2015-03-19
+ * @version v0.0.13 - 2015-03-26
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -775,9 +775,7 @@ angular.module('angular-google-analytics', [])
         } else {
           this._createScriptTag();
         }
-
       }
-      
 
       // activates page tracking
       if (trackRoutes) {
@@ -785,6 +783,17 @@ angular.module('angular-google-analytics', [])
           me._trackPage();
         });
       }
+
+      /**
+       * Track User Timings
+       * @timingCategory (Required): A string for categorizing all user timing variables into logical groups(e.g jQuery).
+       * @timingVar (Required): A string to identify the variable being recorded(e.g. JavaScript Load).
+       * @timingValue (Required): The number of milliseconds in elapsed time to report to Google Analytics(e.g. 20).
+       * @timingLabel (Not Required): A string that can be used to add flexibility in visualizing user timings in the reports(e.g. Google CDN).
+       */
+      this._trackTimings = function (timingCategory, timingVar, timingValue, timingLabel) {
+        this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
+      };
 
       return {
         _logs: me._logs,
@@ -802,17 +811,17 @@ angular.module('angular-google-analytics', [])
         },
         createAnalyticsScriptTag: function (config) {
           if (config) {
-            cookieConfig = config;  
+            cookieConfig = config;
           }
 
           return me._createAnalyticsScriptTag();
         },
         createScriptTag: function (config) {
           if (config) {
-            cookieConfig = config;  
+            cookieConfig = config;
           }
 
-          return me._createScriptTag(); 
+          return me._createScriptTag();
         },
         ecommerceEnabled: function () {
           return me._ecommerceEnabled();
@@ -862,6 +871,9 @@ angular.module('angular-google-analytics', [])
         },
         trackCheckout: function (step, option) {
           me._trackCheckOut(step, option);
+        },
+        trackTimings: function (timingCategory, timingVar, timingValue, timingLabel) {
+          me._trackTimings(timingCategory, timingVar, timingValue, timingLabel);
         },
         trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
           me._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);

@@ -2,7 +2,7 @@
   "author": "revolunet",
   "name": "angular-google-analytics",
   "description": "Easy Analytics for your AngularJS application",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "homepage": "https://github.com/revolunet/angular-google-analytics",
   "repository": {
     "type": "git",
