@@ -768,18 +768,16 @@ angular.module('angular-google-analytics', [])
         } else {
           this._createScriptTag();
         }
-
-      };
-      
+      }
 
       // activates page tracking
       if (trackRoutes) {
         $rootScope.$on(pageEvent, function () {
           me._trackPage();
         });
-      };
-      
-      /** 
+      }
+
+      /**
        * Track User Timings
        * @timingCategory (Required): A string for categorizing all user timing variables into logical groups(e.g jQuery).
        * @timingVar (Required): A string to identify the variable being recorded(e.g. JavaScript Load).
@@ -806,17 +804,17 @@ angular.module('angular-google-analytics', [])
         },
         createAnalyticsScriptTag: function (config) {
           if (config) {
-            cookieConfig = config;  
+            cookieConfig = config;
           }
 
           return me._createAnalyticsScriptTag();
         },
         createScriptTag: function (config) {
           if (config) {
-            cookieConfig = config;  
+            cookieConfig = config;
           }
 
-          return me._createScriptTag(); 
+          return me._createScriptTag();
         },
         ecommerceEnabled: function () {
           return me._ecommerceEnabled();

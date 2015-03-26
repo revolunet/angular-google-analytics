@@ -2,7 +2,7 @@
 
 'use strict';
 
-describe('angular-google-analytics', function () {
+describe('angular-google-analytics', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider.setAccount('UA-XXXXXX-xx');
@@ -580,7 +580,7 @@ describe('angular-google-analytics', function () {
   describe('supports arbitrary page events', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.setPageEvent('$stateChangeSuccess');
-    }));e
+    }));
 
     it('should inject the Analytics script', function () {
       inject(function (Analytics, $rootScope) {
@@ -785,6 +785,8 @@ describe('angular-google-analytics', function () {
         expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
       });
     });
+  });
+
   
   describe('should add user timing', function () {
     beforeEach(module(function (AnalyticsProvider) {
@@ -800,8 +802,6 @@ describe('angular-google-analytics', function () {
       });
     });
   });
-  
-  
 
   describe('directives', function () {
     describe('gaTrackEvent', function () {
