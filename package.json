@@ -1,7 +1,7 @@
 {
   "name": "angular-google-analytics",
   "description": "Angular Google Analytics - Easy tracking for your AngularJS application",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "homepage": "http://github.com/revolunet/angular-google-analytics",
   "author": "Julien Bouquillon <julien@revolunet.com>",
   "main": "./src/angular-google-analytics.js",
@@ -30,8 +30,6 @@
     "grunt-conventional-changelog": "0.0.12"
   },
   "scripts": {
-    "postinstall": "node ./node_modules/bower/bin/bower install",
-    "postupdate": "node ./node_modules/bower/bin/bower update",
     "test": "karma start test/karma.conf.js --single-run --browsers Chrome",
     "test-server": "karma start test/karma.conf.js --browsers Chrome"
   }
