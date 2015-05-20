@@ -762,7 +762,7 @@ describe('angular-google-analytics', function() {
     it('should inject a script tag', function () {
       inject(function (Analytics, $location) {
         var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
-        
+
         Analytics.createAnalyticsScriptTag({userId: 1234});
         expect(Analytics.getCookieConfig().userId).toBe(1234);
         expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
@@ -779,7 +779,7 @@ describe('angular-google-analytics', function() {
     it('should inject a script tag', function () {
       inject(function (Analytics, $location) {
         var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
-        
+
         Analytics.createScriptTag({userId: 1234});
         expect(Analytics.getCookieConfig().userId).toBe(1234);
         expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
@@ -787,7 +787,7 @@ describe('angular-google-analytics', function() {
     });
   });
 
-  
+
   describe('should add user timing', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.useAnalytics(true);
@@ -805,6 +805,23 @@ describe('angular-google-analytics', function() {
 
   describe('directives', function () {
     describe('gaTrackEvent', function () {
+
+      it('should evaluate scope params', function () {
+        inject(function (Analytics, $rootScope, $compile) {
+          spyOn(Analytics, 'trackEvent');
+          var scope = $rootScope.$new(),
+              element = '<div ga-track-event="[event, action, label]">test</div>',
+              compiled = $compile(element)(scope);
+
+          scope.event = 'button';
+          scope.action = 'click';
+          scope.label = 'Some Button';
+
+          scope.$digest();
+          compiled.triggerHandler('click');
+          expect(Analytics.trackEvent).toHaveBeenCalledWith('button', 'click', 'Some Button');
+        });
+      });
 
       it('should track an event when clicked', function () {
         inject(function (Analytics, $rootScope, $compile) {
