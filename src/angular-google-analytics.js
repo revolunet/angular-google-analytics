@@ -203,7 +203,7 @@ angular.module('angular-google-analytics', [])
           ga.src = gaSrc;
           var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
         })(gaSrc);
-        
+
         return created = true;
       };
 
@@ -891,10 +891,10 @@ angular.module('angular-google-analytics', [])
     return {
       restrict: 'A',
       link: function (scope, element, attrs) {
-        var options = $parse(attrs.gaTrackEvent)(scope);
+        var options = $parse(attrs.gaTrackEvent);
         element.bind('click', function () {
           if (options.length > 1) {
-            Analytics.trackEvent.apply(Analytics, options);
+            Analytics.trackEvent.apply(Analytics, options(scope));
           }
         });
       }
