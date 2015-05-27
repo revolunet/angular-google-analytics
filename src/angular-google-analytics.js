@@ -126,6 +126,28 @@ angular.module('angular-google-analytics', [])
         return removeRegExp ? url.replace(removeRegExp, '') : url;
       };
 
+      var getUtmParams = function () {
+        var utmToCampaignVar = {
+          utm_source: 'campaignSource',
+          utm_medium: 'campaignMedium',
+          utm_term: 'campaignTerm',
+          utm_content: 'campaignContent',
+          utm_campaign: 'campaignName'
+        };
+        var object = {};
+
+        angular.forEach($location.search(), function (value, key) {
+          var campaignVar = utmToCampaignVar[key];
+
+          if (angular.isDefined(campaignVar)) {
+            object[campaignVar] = value;
+          }
+
+        });
+
+        return object;
+      };
+
       /**
        * Private Methods
        */
@@ -338,6 +360,7 @@ angular.module('angular-google-analytics', [])
             'page': trackPrefix + url,
             'title': title
           };
+          angular.extend(opt_fieldObject, getUtmParams());
           if (angular.isObject(custom)) {
             angular.extend(opt_fieldObject, custom);
           }
