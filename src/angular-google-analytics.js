@@ -137,7 +137,12 @@ angular.module('angular-google-analytics', [])
         var object = {};
 
         angular.forEach($location.search(), function (value, key) {
-          object[utmToCampaignVar[key]] = value;
+          var campaignVar = utmToCampaignVar[key];
+
+          if (angular.isDefined(campaignVar)) {
+            object[campaignVar] = value;
+          }
+
         });
 
         return object;
