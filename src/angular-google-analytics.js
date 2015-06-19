@@ -684,7 +684,6 @@ angular.module('angular-google-analytics', [])
        */
       this._trackTransaction = function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option) {
         this._setAction('purchase', this._getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
-        this._pageView();
       };
 
       /**
@@ -695,7 +694,6 @@ angular.module('angular-google-analytics', [])
        */
       this._trackRefund = function (transactionId) {
         this._setAction('refund', this._getActionFieldObject(transactionId));
-        this._pageView();
       };
 
       /**
@@ -707,7 +705,6 @@ angular.module('angular-google-analytics', [])
        */
       this._trackCheckOut = function (step, option) {
         this._setAction('checkout', this._getActionFieldObject(null, null, null, null, null, null, null, step, option));
-        this._pageView();
       };
 
       /**
