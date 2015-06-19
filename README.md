@@ -1,5 +1,8 @@
 # angular-google-analytics
 
+![Bower Version](https://img.shields.io/bower/v/angular-google-analytics.svg)
+![NPM Version](https://img.shields.io/npm/v/angular-google-analytics.svg)
+
 This service lets you integrate google analytics tracker in your AngularJS applications easily.
 
 You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4');` or more advanced e-commerce features like product tracking, promo codes, transactions...
