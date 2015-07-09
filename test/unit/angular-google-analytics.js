@@ -848,6 +848,24 @@ describe('angular-google-analytics', function() {
         });
       });
 
+      it('should abort if gaTrackEventIf is false', function () {
+        inject(function (Analytics, $rootScope, $compile) {
+          spyOn(Analytics, 'trackEvent');
+          var scope = $rootScope.$new(),
+              element = '<div ga-track-event="[\'button\', \'click\', \'Some Button\']" ga-track-event-if="false">test</div>',
+              compiled = $compile(element)(scope);
+          scope.$digest();
+          compiled.triggerHandler('click');
+          expect(Analytics.trackEvent.calls.length).toBe(0);
+
+          element = '<div ga-track-event="[\'button\', \'click\', \'Some Button\']" ga-track-event-if="true">test</div>',
+          compiled = $compile(element)(scope);
+          scope.$digest();
+          compiled.triggerHandler('click');
+          expect(Analytics.trackEvent.calls.length).toBe(1);
+        });
+      });
+
     });
   });
 
