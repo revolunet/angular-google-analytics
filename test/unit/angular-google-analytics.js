@@ -540,11 +540,10 @@ describe('angular-google-analytics', function() {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCheckout();
-        expect(Analytics._logs.length).toBe(3);
+        expect(Analytics._logs.length).toBe(2);
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('checkout');
-        expect(Analytics._logs[2][0]).toEqual(['send', 'pageview']);
       });
     });
 
@@ -554,12 +553,11 @@ describe('angular-google-analytics', function() {
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.addProduct('sku-3', 'Test Product 3', 'Category-1', 'Brand 2', 'variant-5', '299', '1', 'FLAT10', '1');
         Analytics.trackTransaction();
-        expect(Analytics._logs.length).toBe(4);
+        expect(Analytics._logs.length).toBe(3);
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:addProduct');
         expect(Analytics._logs[2][0]).toBe('ec:setAction');
         expect(Analytics._logs[2][1][0]).toBe('purchase');
-        expect(Analytics._logs[3][0]).toEqual(['send', 'pageview']);
       });
     });
 
