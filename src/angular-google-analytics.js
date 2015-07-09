@@ -13,6 +13,7 @@ angular.module('angular-google-analytics', [])
         cookieConfig = 'auto',
         ecommerce = false,
         enhancedEcommerce = false,
+        currency = 'USD',
         enhancedLinkAttribution = false,
         removeRegExp,
         experimentId,
@@ -85,6 +86,10 @@ angular.module('angular-google-analytics', [])
       ecommerce = !!val;
       enhancedEcommerce = !!enhanced;
       return true;
+    };
+    
+    this.setCurrency = function (currency) {
+      currency = currency;
     };
 
     this.setRemoveRegExp = function (regex) {
@@ -297,6 +302,9 @@ angular.module('angular-google-analytics', [])
               $window.ga('require', 'ecommerce', 'ecommerce.js');
             } else {
               $window.ga('require', 'ec', 'ec.js');
+              if(curency != 'USD'){
+                $window.ga('set', '&cu', currency);
+              }
             }
           }
           if (enhancedLinkAttribution) {
