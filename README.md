@@ -242,7 +242,7 @@ You can define the properties on your controller too `$scope.event = ['video', '
 
     <button type="button" ga-track-event="event"></button>
 
-`ga-track-event-if is a conditional check. If the attribute value evaluates to a falsey, the event will NOT be fired. Useful for user tracking opt-out, etc.
+`ga-track-event-if` is a conditional check. If the attribute value evaluates to a falsey, the event will NOT be fired. Useful for user tracking opt-out, etc.
 
     <button type="button" ga-track-event="['video', 'play', 'django.mp4']" ga-track-event-if="shouldTrack"></button>
 
