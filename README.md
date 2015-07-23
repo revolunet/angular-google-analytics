@@ -9,7 +9,7 @@ You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4'
 
 Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@deltaepsilon](https://github.com/deltaepsilon).
 
-## features
+## Features
 
  - configurable
  - automatic page tracking
@@ -21,13 +21,13 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - cross-domain support
  - multiple tracking objects
 
-## install
+## Installation
 
 `bower install angular-google-analytics`
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
 
-## example
+## Example
 
 ```js
 var app = angular.module('app', ['angular-google-analytics'])
@@ -89,8 +89,7 @@ var app = angular.module('app', ['angular-google-analytics'])
         // change page event name
         AnalyticsProvider.setPageEvent('$stateChangeSuccess');
 
-
-        // Delay script tage creation
+        // Delay script tag creation
         // must manually call Analytics.createScriptTag(cookieConfig) or Analytics.createAnalyticsScriptTag(cookieConfig)
         AnalyticsProvider.delayScriptTag(true);
     }))
@@ -227,9 +226,7 @@ var app = angular.module('app', ['angular-google-analytics'])
     });
 ```
 
-
-
-### directive
+### Directive
 
 Alternatively you can use a directive to avoid filling controllers with `Analytics.trackEvent()` statements. Note: the directive does not create an isolate scope.
 
@@ -239,7 +236,7 @@ Alternatively you can use a directive to avoid filling controllers with `Analyti
 
     <button type="button" ga-track-event="['video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000}]"></button>
 
-You can define the properties on your controller too `$scope.event = ['video', 'play', 'django.mp4']` and reference them
+You can define the properties on your controller too, `$scope.event = ['video', 'play', 'django.mp4']` and reference them
 
     <button type="button" ga-track-event="event"></button>
 
@@ -247,7 +244,7 @@ You can define the properties on your controller too `$scope.event = ['video', '
 
     <button type="button" ga-track-event="['video', 'play', 'django.mp4']" ga-track-event-if="shouldTrack"></button>
 
-## configuration
+## Configuration
 
 ```js
 // setup your account
@@ -290,4 +287,19 @@ AdBlock has a module named [EasyPrivacy](https://easylist-downloads.adblockplus.
 Users who are already concatenating and minifying their scripts should not notice a problem as long as the new script name is not also on the EasyPrivacy blacklist. Alternatively, consider changing the filename manually.
 
 ## Licence
+
 As AngularJS itself, this module is released under the permissive [MIT license](http://revolunet.mit-license.org). Your contributions are always welcome.
+
+## Development
+
+After forking you will need to run the following from a command line to get your environment setup:
+
+1. ```npm install```
+2. ```bower install```
+
+After install you have the following commands available to you from a command line:
+
+1. ```npm test``` or ```grunt``` or ```grunt test```
+2. ```npm test-server``` or ```grunt test-server```
+3. ```grunt build``` or ```grunt release```
+4. ```grunt stage```
