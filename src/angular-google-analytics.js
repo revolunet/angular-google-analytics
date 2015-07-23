@@ -242,10 +242,10 @@
           }
 
           // inject the google analytics tag
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){       // jshint ignore:line
+            (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),  // jshint ignore:line
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m); // jshint ignore:line
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');       // jshint ignore:line
 
           if (angular.isArray(accountId)) {
             accountId.forEach(function (trackerObj) {
@@ -316,26 +316,11 @@
         };
 
         this._ecommerceEnabled = function () {
-          if (!ecommerce) {
-            this._log('warn', 'ecommerce not set. Use AnalyticsProvider.setECommerce(true, false);');
-            return false;
-          } else if (enhancedEcommerce) {
-            this._log('warn', 'Enhanced ecommerce plugin is enabled. Only one plugin(ecommerce/ec) can be used at a time. ' +
-              'Use AnalyticsProvider.setECommerce(true, false);');
-            return false;
-          }
-          return true;
+          return ecommerce && !enhancedEcommerce;
         };
 
         this._enhancedEcommerceEnabled = function () {
-          if (!ecommerce) {
-            this._log('warn', 'ecommerce not set. Use AnalyticsProvider.setECommerce(true, true);');
-            return false;
-          } else if (!enhancedEcommerce) {
-            this._log('warn', 'Enhanced ecommerce plugin is disabled. Use AnalyticsProvider.setECommerce(true, true);');
-            return false;
-          }
-          return true;
+          return ecommerce && enhancedEcommerce;
         };
 
         /**
@@ -398,7 +383,7 @@
           _analyticsJs(function () {
             var opt_fieldObject = {};
             if (angular.isDefined(noninteraction)) {
-              opt_fieldObject['nonInteraction'] = !!noninteraction;
+              opt_fieldObject.nonInteraction = !!noninteraction;
             }
             if (angular.isObject(custom)) {
               angular.extend(opt_fieldObject, custom);
@@ -590,8 +575,8 @@
                 position: position,
                 price: price
               });
+              that._log('ec:addImpression', args);
             }
-            that._log('ec:addImpression', args);
           });
         };
 

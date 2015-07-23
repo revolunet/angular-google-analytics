@@ -1,5 +1,4 @@
-/* global before, beforeEach, describe, expect, inject, it, module, spyOn */
-
+/* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
 
 describe('angular-google-analytics', function() {
@@ -420,7 +419,7 @@ describe('angular-google-analytics', function() {
       });
     });
 
-    it('should add product Impression', function () {
+    it('should add product impression', function () {
       inject(function (Analytics) {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addImpression('sku-1', 'Test Product 1', 'Category List', 'Brand 1', 'Category-1', 'variant-1', '1', '24990');
@@ -491,7 +490,7 @@ describe('angular-google-analytics', function() {
         expect(Analytics._logs[0][0]).toBe('ec:addProduct');
         expect(Analytics._logs[1][0]).toBe('ec:setAction');
         expect(Analytics._logs[1][1][0]).toBe('click');
-        expect(Analytics._logs[1][1][1]['list']).toBe(dummyList);
+        expect(Analytics._logs[1][1][1].list).toBe(dummyList);
         expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list' ]);
       });
     });
@@ -522,7 +521,7 @@ describe('angular-google-analytics', function() {
       });
     });
 
-    it('should track Remove from cart event', function () {
+    it('should track remove from cart event', function () {
       inject(function (Analytics) {
         expect(Analytics._logs.length).toBe(0);
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
@@ -856,7 +855,7 @@ describe('angular-google-analytics', function() {
           compiled.triggerHandler('click');
           expect(Analytics.trackEvent.calls.length).toBe(0);
 
-          element = '<div ga-track-event="[\'button\', \'click\', \'Some Button\']" ga-track-event-if="true">test</div>',
+          element = '<div ga-track-event="[\'button\', \'click\', \'Some Button\']" ga-track-event-if="true">test</div>';
           compiled = $compile(element)(scope);
           scope.$digest();
           compiled.triggerHandler('click');

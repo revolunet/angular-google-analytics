@@ -42,7 +42,7 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // track all routes (or not)
         AnalyticsProvider.trackPages(true);
-				
+
         // track all url query params (default is false)
         AnalyticsProvider.trackUrlParams(true);
 
@@ -66,10 +66,11 @@ var app = angular.module('app', ['angular-google-analytics'])
         // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
         AnalyticsProvider.ignoreFirstPageLoad(true);
 
-        // Enabled eCommerce module for analytics.js(uses legacy ecommerce plugin)
+        // Enabled eCommerce module for analytics.js (uses legacy ecommerce plugin)
         AnalyticsProvider.useECommerce(true, false);
 
-        // Enabled eCommerce module for analytics.js(uses ec plugin instead of ecommerce plugin)
+        // Enabled enhanced eCommerce module for analytics.js (uses ec plugin instead of ecommerce plugin)
+        // When enabled, legacy ecommerce plugin calls are not supported
         AnalyticsProvider.useECommerce(true, true);
 
         // Enable enhanced link attribution
@@ -215,7 +216,7 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // Manually create Analytics script tag after using delayScriptTag
         Analytics.createAnalyticsScriptTag({userId: 1234})
-        
+
         //Track User Timings
         Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel)
         //example:
@@ -237,7 +238,7 @@ Alternatively you can use a directive to avoid filling controllers with `Analyti
     <!-- OR -->
 
     <button type="button" ga-track-event="['video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000}]"></button>
-    
+
 You can define the properties on your controller too `$scope.event = ['video', 'play', 'django.mp4']` and reference them
 
     <button type="button" ga-track-event="event"></button>
