@@ -1,8 +1,6 @@
-/* global require, module, */
-
-'use strict';
-
+/* global require, module */
 module.exports = function(grunt) {
+  'use strict';
 
   // Project configuration.
   grunt.initConfig({
@@ -128,8 +126,6 @@ module.exports = function(grunt) {
     }, grunt.task.current.async());
   });
 
-
-
   grunt.renameTask('release', 'originalRelease');
 
   // Default task.
@@ -145,7 +141,6 @@ module.exports = function(grunt) {
   // release task
   grunt.registerTask('release', ['build']);
 
-
   // Provides the "karma" task.
   grunt.registerMultiTask('karma', 'Starts up a karma server.', function() {
     var done = this.async();
@@ -153,5 +148,4 @@ module.exports = function(grunt) {
       done(code === 0);
     });
   });
-
 };

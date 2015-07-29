@@ -9,7 +9,7 @@ You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4'
 
 Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@deltaepsilon](https://github.com/deltaepsilon).
 
-## features
+## Features
 
  - configurable
  - automatic page tracking
@@ -21,38 +21,39 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@delta
  - cross-domain support
  - multiple tracking objects
 
-## install
+## Installation
 
 `bower install angular-google-analytics`
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
 
-## example
+## Example
 
 ```js
 var app = angular.module('app', ['angular-google-analytics'])
     .config(function(AnalyticsProvider) {
-        // initial configuration
+        // Set analytics account
         AnalyticsProvider.setAccount('UA-XXXXX-xx');
-        // using multiple tracking objects (analytics.js only)
-        // AnalyticsProvider.setAccount([
-        //   { tracker: 'UA-12345-12', name: "tracker1" },
-        //   { tracker: 'UA-12345-34', name: "tracker2" }
-        // ]);
 
-        // track all routes (or not)
+        // Or if using multiple tracking objects (analytics.js only)
+        AnalyticsProvider.setAccount([
+           { tracker: 'UA-12345-12', name: "tracker1" },
+           { tracker: 'UA-12345-34', name: "tracker2" }
+        ]);
+
+        // Track all routes (or not)
         AnalyticsProvider.trackPages(true);
-				
-        // track all url query params (default is false)
+
+        // Track all URL query params (default is false)
         AnalyticsProvider.trackUrlParams(true);
 
         // Optional set domain (Use 'none' for testing on localhost)
-        // AnalyticsProvider.setDomainName('XXX');
+        AnalyticsProvider.setDomainName('XXX');
 
         // Use display features plugin
         AnalyticsProvider.useDisplayFeatures(true);
 
-        // url prefix (default is empty)
+        // URL prefix (default is empty)
         // - for example: when an app doesn't run in the root directory
         AnalyticsProvider.trackPrefix('my-application');
 
@@ -66,10 +67,11 @@ var app = angular.module('app', ['angular-google-analytics'])
         // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
         AnalyticsProvider.ignoreFirstPageLoad(true);
 
-        // Enabled eCommerce module for analytics.js(uses legacy ecommerce plugin)
+        // Enabled eCommerce module for analytics.js (uses legacy ecommerce plugin)
         AnalyticsProvider.useECommerce(true, false);
 
-        // Enabled eCommerce module for analytics.js(uses ec plugin instead of ecommerce plugin)
+        // Enabled enhanced eCommerce module for analytics.js (uses ec plugin instead of ecommerce plugin)
+        // When enabled, legacy ecommerce plugin calls are not supported
         AnalyticsProvider.useECommerce(true, true);
 
         // Enable enhanced link attribution
@@ -85,17 +87,16 @@ var app = angular.module('app', ['angular-google-analytics'])
           cookieExpires: 20000
         });
 
-        // change page event name
+        // Change page event name
         AnalyticsProvider.setPageEvent('$stateChangeSuccess');
 
-
-        // Delay script tage creation
+        // Delay script tag creation
         // must manually call Analytics.createScriptTag(cookieConfig) or Analytics.createAnalyticsScriptTag(cookieConfig)
         AnalyticsProvider.delayScriptTag(true);
     }))
     .run(function(Analytics) {
-      // In case you are relying on automatic page tracking, you need to inject Analytics
-      // at least once in your application (for example in the main run() block)
+        // In case you are relying on automatic page tracking, you need to inject Analytics
+        // at least once in your application (for example in the main run() block)
     })
     .controller('SampleController', function(Analytics) {
         // create a new pageview event
@@ -114,14 +115,14 @@ var app = angular.module('app', ['angular-google-analytics'])
         // create a new tracking event with optional value
         Analytics.trackEvent('video', 'play', 'django.mp4', 4);
 
-        // create a new tracking event with optional value and noninteraction flag
+        // Create a new tracking event with optional value and noninteraction flag
         Analytics.trackEvent('video', 'play', 'django.mp4', 4, true);
 
-        // create a new tracking event with optional value, noninteraction flag, and custom dimension and metric
+        // Create a new tracking event with optional value, noninteraction flag, and custom dimension and metric
         // (analytics.js only)
         Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000});
 
-        // tracking e-commerce
+        // Tracking e-commerce
         // - create transaction
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands', 'EUR');
 
@@ -215,43 +216,46 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // Manually create Analytics script tag after using delayScriptTag
         Analytics.createAnalyticsScriptTag({userId: 1234})
-        
-        //Track User Timings
+
+        // Track User Timings
         Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel)
-        //example:
+        // example:
         var endTime = new Date().getTime();
         var timeSpent = endTime - startTime;
         Analytics.trackTimings('Time to Checkout', 'User Timings', timeSpent);
-
     });
 ```
 
-
-
-### directive
+### Directive
 
 Alternatively you can use a directive to avoid filling controllers with `Analytics.trackEvent()` statements. Note: the directive does not create an isolate scope.
 
+```html
     <button type="button" ga-track-event="['video', 'play', 'django.mp4']"></button>
-
+```
     <!-- OR -->
-
+```html
     <button type="button" ga-track-event="['video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000}]"></button>
-    
-You can define the properties on your controller too `$scope.event = ['video', 'play', 'django.mp4']` and reference them
+```
 
+You can define the properties on your controller too, `$scope.event = ['video', 'play', 'django.mp4']` and reference them
+
+```html
     <button type="button" ga-track-event="event"></button>
+```
 
 `ga-track-event-if` is a conditional check. If the attribute value evaluates to a falsey, the event will NOT be fired. Useful for user tracking opt-out, etc.
 
+```html
     <button type="button" ga-track-event="['video', 'play', 'django.mp4']" ga-track-event-if="shouldTrack"></button>
+```
 
-## configuration
+## Configuration
 
 ```js
-// setup your account
+// Setup your account
 AnalyticsProvider.setAccount('UA-XXXXX-xx');
-// automatic route tracking (default=true)
+// Automatic route tracking (default: true)
 AnalyticsProvider.trackPages(false);
 // Optional set domain (Use 'none' for testing on localhost)
 AnalyticsProvider.setDomainName('XXX');
@@ -261,6 +265,7 @@ AnalyticsProvider.useDisplayFeatures(true);
 AnalyticsProvider.useAnalytics(true);
 // Ignore first page view.
 AnalyticsProvider.ignoreFirstPageLoad(true);
+
 // Enable eCommerce module for analytics.js
 AnalyticsProvider.useECommerce(true, false);
 // Enable enhanced eCommerce module for analytics.js
@@ -277,9 +282,10 @@ AnalyticsProvider.setCookieConfig({
 });
 // Change the default page event name. This is useful for ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess
 AnalyticsProvider.setPageEvent('$stateChangeSuccess');
-// Delay script tage creation...must manually call Analytics.createScriptTag() or Analytics.createAnalyticsScriptTag() to enable analytics
+// Delay script tag creation. Must manually call Analytics.createScriptTag() or Analytics.createAnalyticsScriptTag() to enable analytics
 AnalyticsProvider.delayScriptTag(true);
-
+// RegEx to scrub location before sending to analytics. Internally replaces all matching segments with an empty string
+AnalyticsProvider.setRemoveRegExp(/\/\d+?$/);
 ```
 
 ## AdBlock EasyPrivacy
@@ -289,4 +295,19 @@ AdBlock has a module named [EasyPrivacy](https://easylist-downloads.adblockplus.
 Users who are already concatenating and minifying their scripts should not notice a problem as long as the new script name is not also on the EasyPrivacy blacklist. Alternatively, consider changing the filename manually.
 
 ## Licence
+
 As AngularJS itself, this module is released under the permissive [MIT license](http://revolunet.mit-license.org). Your contributions are always welcome.
+
+## Development
+
+After forking you will need to run the following from a command line to get your environment setup:
+
+1. ```npm install```
+2. ```bower install```
+
+After install you have the following commands available to you from a command line:
+
+1. ```npm test``` or ```grunt``` or ```grunt test```
+2. ```npm test-server``` or ```grunt test-server```
+3. ```grunt build``` or ```grunt release```
+4. ```grunt stage```
