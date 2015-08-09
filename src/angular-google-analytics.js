@@ -14,6 +14,7 @@
           ecommerce = false,
           enhancedEcommerce = false,
           enhancedLinkAttribution = false,
+          currency = 'USD',
           removeRegExp,
           experimentId,
           ignoreFirstPageLoad = false,
@@ -85,6 +86,10 @@
         ecommerce = !!val;
         enhancedEcommerce = !!enhanced;
         return true;
+      };
+
+      this.setCurrency = function (currencyCode) {
+        currency = currencyCode;
       };
 
       this.setRemoveRegExp = function (regex) {
@@ -298,6 +303,7 @@
                 $window.ga('require', 'ecommerce', 'ecommerce.js');
               } else {
                 $window.ga('require', 'ec', 'ec.js');
+                $window.ga('set', '&cu', currency);
               }
             }
             if (enhancedLinkAttribution) {

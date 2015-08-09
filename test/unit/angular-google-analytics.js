@@ -469,7 +469,7 @@ describe('angular-google-analytics', function() {
       });
     });
 
-    it('should set Action', function () {
+    it('should set action', function () {
       inject(function (Analytics) {
         expect(Analytics._logs.length).toBe(0);
         var dummyAction = 'dummy';
