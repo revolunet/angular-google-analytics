@@ -22,7 +22,8 @@
           crossLinkDomains,
           linkerConfig = {'allowLinker': true},
           trackUrlParams = false,
-          delayScriptTag = false;
+          delayScriptTag = false,
+          logAllCalls = false;
 
       this._logs = [];
 
@@ -90,6 +91,7 @@
 
       this.setCurrency = function (currencyCode) {
         currency = currencyCode;
+        return true;
       };
 
       this.setRemoveRegExp = function (regex) {
@@ -120,11 +122,16 @@
         return true;
       };
 
+      this.logAllCalls = function (val) {
+        logAllCalls = !!val;
+        return true;
+      };
+
       /**
        * Public Service
        */
       this.$get = ['$document', '$location', '$log', '$rootScope', '$window', function ($document, $location, $log, $rootScope, $window) {
-        var me = this;
+        var that = this;
 
         var getUrl = function () {
           var url = trackUrlParams ? $location.url() : $location.path();
@@ -157,65 +164,89 @@
          * Private Methods
          */
 
-        function _gaJs(fn) {
+        var _gaJs = function(fn) {
           if (!analyticsJS && $window._gaq && typeof fn === 'function') {
             fn();
           }
-        }
+        };
 
-        function _analyticsJs(fn) {
+        var _gaq = function() {
+          if (!$window._gaq) {
+            $window._gaq = [];
+          }
+          if (logAllCalls === true) {
+            that._log.apply(that, arguments);
+          }
+          $window._gaq.push.apply($window._gaq, arguments);
+        };
+
+        var _analyticsJs = function(fn) {
           if (analyticsJS && $window.ga && typeof fn === 'function') {
             fn();
           }
-        }
+        };
 
-        function _generateCommandName(commandName, config) {
+        var _ga = function() {
+          if (!$window.ga) {
+            that._log('warn', 'ga function not set on window');
+          }
+          if (logAllCalls === true) {
+            that._log.apply(that, arguments);
+          }
+          $window.ga.apply(null, arguments);
+        };
+
+        var _generateCommandName = function(commandName, config) {
           if (!angular.isUndefined(config) && 'name' in config && config.name) {
             return config.name + '.' + commandName;
-          } else {
-            return commandName;
           }
-        }
+          return commandName;
+        };
 
-        function _checkOption(key, config) {
+        var _checkOption = function(key, config) {
           return key in config && config[key];
-        }
+        };
 
         this._log = function () {
           if (arguments.length > 0) {
-            if (arguments.length > 1 && arguments[0] === 'warn') {
-              $log.warn(Array.prototype.slice.call(arguments, 1));
+            if (arguments.length > 1) {
+              switch (arguments[0]) {
+                case 'warn':
+                  $log.warn(Array.prototype.slice.call(arguments, 1));
+                  break;
+                case 'error':
+                  $log.error(Array.prototype.slice.call(arguments, 1));
+                  break;
+              }
             }
-            // console.log('analytics', arguments);
-            this._logs.push(arguments);
+            this._logs.push(Array.prototype.slice.call(arguments));
           }
         };
 
         this._createScriptTag = function () {
           if (!accountId) {
-            me._log('warn', 'No account id set to create script tag');
+            this._log('warn', 'No account id set to create script tag');
             return;
           }
 
           if (created) {
-            me._log('warn', 'Script tag already created');
+            this._log('warn', 'Script tag already created');
             return;
           }
 
           // inject the google analytics tag
-          $window._gaq = [];
-          $window._gaq.push(['_setAccount', accountId]);
+          _gaq(['_setAccount', accountId]);
           if(domainName) {
-            $window._gaq.push(['_setDomainName', domainName]);
+            _gaq(['_setDomainName', domainName]);
           }
           if (enhancedLinkAttribution) {
-            $window._gaq.push(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
+            _gaq(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
           }
           if (trackRoutes && !ignoreFirstPageLoad) {
             if (removeRegExp) {
-              $window._gaq.push(['_trackPageview', getUrl()]);
+              _gaq(['_trackPageview', getUrl()]);
             } else {
-              $window._gaq.push(['_trackPageview']);
+              _gaq(['_trackPageview']);
             }
           }
           var gaSrc;
@@ -237,12 +268,12 @@
 
         this._createAnalyticsScriptTag = function () {
           if (!accountId) {
-            me._log('warn', 'No account id set to create analytics script tag');
+            this._log('warn', 'No account id set to create analytics script tag');
             return;
           }
 
           if (created) {
-            me._log('warn', 'Analytics script tag already created');
+            this._log('warn', 'Analytics script tag already created');
             return;
           }
 
@@ -268,53 +299,51 @@
                 }
               });
               if (angular.isUndefined(options)) {
-                $window.ga('create', trackerObj.tracker, _cookieConfig);
+                _ga('create', trackerObj.tracker, _cookieConfig);
               } else {
-                $window.ga('create', trackerObj.tracker, _cookieConfig, options);
+                _ga('create', trackerObj.tracker, _cookieConfig, options);
               }
               if (options && 'allowLinker' in options && options.allowLinker) {
-                $window.ga(_generateCommandName('require', trackerObj), 'linker');
+                _ga(_generateCommandName('require', trackerObj), 'linker');
                 if (_checkOption('crossLinkDomains', trackerObj)) {
-                  $window.ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
+                  _ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
                 }
               }
             });
           } else if (crossDomainLinker) {
-            $window.ga('create', accountId, cookieConfig, linkerConfig);
-            $window.ga('require', 'linker');
+            _ga('create', accountId, cookieConfig, linkerConfig);
+            _ga('require', 'linker');
             if(crossLinkDomains) {
-              $window.ga('linker:autoLink', crossLinkDomains );
+              _ga('linker:autoLink', crossLinkDomains );
             }
           } else {
-            $window.ga('create', accountId, cookieConfig);
+            _ga('create', accountId, cookieConfig);
           }
 
           if (displayFeatures) {
-            $window.ga('require', 'displayfeatures');
+            _ga('require', 'displayfeatures');
           }
 
           if (trackRoutes && !ignoreFirstPageLoad) {
-            $window.ga('send', 'pageview', getUrl());
+            _ga('send', 'pageview', getUrl());
           }
 
-          if ($window.ga) {
-            if (ecommerce) {
-              if (!enhancedEcommerce) {
-                $window.ga('require', 'ecommerce', 'ecommerce.js');
-              } else {
-                $window.ga('require', 'ec', 'ec.js');
-                $window.ga('set', '&cu', currency);
-              }
+          if (ecommerce) {
+            if (!enhancedEcommerce) {
+              _ga('require', 'ecommerce', 'ecommerce.js');
+            } else {
+              _ga('require', 'ec', 'ec.js');
+              _ga('set', '&cu', currency);
             }
-            if (enhancedLinkAttribution) {
-              $window.ga('require', 'linkid', 'linkid.js');
-            }
-            if (experimentId) {
-              var expScript = document.createElement('script'),
-                s = document.getElementsByTagName('script')[0];
-              expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
-              s.parentNode.insertBefore(expScript, s);
-            }
+          }
+          if (enhancedLinkAttribution) {
+            _ga('require', 'linkid', 'linkid.js');
+          }
+          if (experimentId) {
+            var expScript = document.createElement('script'),
+              s = document.getElementsByTagName('script')[0];
+            expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
+            s.parentNode.insertBefore(expScript, s);
           }
 
           created = true;
@@ -339,14 +368,12 @@
          * @private
          */
         this._trackPage = function (url, title, custom) {
-          var that = this, args = arguments;
           url = url ? url : getUrl();
           title = title ? title : $document[0].title;
           _gaJs(function () {
             // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
-            $window._gaq.push(["_set", "title", title]);
-            $window._gaq.push(['_trackPageview', trackPrefix + url]);
-            that._log('_trackPageview', url, title, args);
+            _gaq(["_set", "title", title]);
+            _gaq(['_trackPageview', trackPrefix + url]);
           });
           _analyticsJs(function () {
             var opt_fieldObject = {
@@ -359,12 +386,11 @@
             }
             if (angular.isArray(accountId)) {
               accountId.forEach(function (trackerObj) {
-                $window.ga(_generateCommandName('send', trackerObj), 'pageview', opt_fieldObject);
+                _ga(_generateCommandName('send', trackerObj), 'pageview', opt_fieldObject);
               });
             } else {
-              $window.ga('send', 'pageview', opt_fieldObject);
+              _ga('send', 'pageview', opt_fieldObject);
             }
-            that._log('pageview', url, title, args);
           });
         };
 
@@ -381,10 +407,8 @@
          * @private
          */
         this._trackEvent = function (category, action, label, value, noninteraction, custom) {
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_trackEvent', category, action, label, value, !!noninteraction]);
-            that._log('trackEvent', args);
+            _gaq(['_trackEvent', category, action, label, value, !!noninteraction]);
           });
           _analyticsJs(function () {
             var opt_fieldObject = {};
@@ -397,13 +421,12 @@
             if (angular.isArray(accountId)) {
               accountId.forEach(function (trackerObj) {
                 if (_checkOption('trackEvent', trackerObj)) {
-                  $window.ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value, opt_fieldObject);
+                  _ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value, opt_fieldObject);
                 }
               });
             } else {
-              $window.ga('send', 'event', category, action, label, value, opt_fieldObject);
+              _ga('send', 'event', category, action, label, value, opt_fieldObject);
             }
-            that._log('event', args);
           });
         };
 
@@ -422,14 +445,12 @@
          * @private
          */
         this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
-            that._log('_addTrans', args);
+            _gaq(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled()) {
-              $window.ga('ecommerce:addTransaction', {
+              _ga('ecommerce:addTransaction', {
                 id: transactionId,
                 affiliation: affiliation,
                 revenue: total,
@@ -437,7 +458,8 @@
                 shipping: shipping,
                 currency: currency || 'USD'
               });
-              that._log('ecommerce:addTransaction', args);
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use addTrans with analytics.js');
             }
           });
         };
@@ -455,14 +477,12 @@
          * @private
          */
         this._addItem = function (transactionId, sku, name, category, price, quantity) {
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_addItem', transactionId, sku, name, category, price, quantity]);
-            that._log('_addItem', args);
+            _gaq(['_addItem', transactionId, sku, name, category, price, quantity]);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled()) {
-              $window.ga('ecommerce:addItem', {
+              _ga('ecommerce:addItem', {
                 id: transactionId,
                 name: name,
                 sku: sku,
@@ -470,7 +490,8 @@
                 price: price,
                 quantity: quantity
               });
-              that._log('ecommerce:addItem', args);
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use addItem with analytics.js');
             }
           });
         };
@@ -482,15 +503,14 @@
          * @private
          */
         this._trackTrans = function () {
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_trackTrans']);
-            that._log('_trackTrans', args);
+            _gaq(['_trackTrans']);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled()) {
-              $window.ga('ecommerce:send');
-              that._log('ecommerce:send', args);
+              _ga('ecommerce:send');
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use trackTrans with analytics.js');
             }
           });
         };
@@ -501,11 +521,11 @@
          * @private
          */
         this._clearTrans = function () {
-          var that = this, args = arguments;
           _analyticsJs(function () {
             if (that._ecommerceEnabled()) {
-              $window.ga('ecommerce:clear');
-              that._log('ecommerce:clear', args);
+              _ga('ecommerce:clear');
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use clearTrans with analytics.js');
             }
           });
         };
@@ -528,14 +548,12 @@
          * @param position
          */
         this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
-            that._log('_addProduct', args);
+            _gaq(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled()) {
-              $window.ga('ec:addProduct', {
+              _ga('ec:addProduct', {
                 id: productId,
                 name: name,
                 category: category,
@@ -546,7 +564,8 @@
                 coupon: coupon,
                 position: position
               });
-              that._log('ec:addProduct', args);
+            } else {
+              that._log('warn', 'Enhanced ecommerce must be enabled to use addProduct with analytics.js');
             }
           });
         };
@@ -564,14 +583,12 @@
          * @param price
          */
         this._addImpression = function (id, name, list, brand, category, variant, position, price){
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_addImpression', id, name, list, brand, category, variant, position, price]);
-            that._log('_addImpression', args);
+            _gaq(['_addImpression', id, name, list, brand, category, variant, position, price]);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled()) {
-              $window.ga('ec:addImpression', {
+              _ga('ec:addImpression', {
                 id: id,
                 name: name,
                 category: category,
@@ -581,7 +598,8 @@
                 position: position,
                 price: price
               });
-              that._log('ec:addImpression', args);
+            } else {
+              that._log('warn', 'Enhanced ecommerce must be enabled to use addImpression with analytics.js');
             }
           });
         };
@@ -595,20 +613,19 @@
          * @param position
          */
         this._addPromo = function (productId, name, creative, position) {
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_addPromo', productId, name, creative, position]);
-            that._log('_addPromo', arguments);
+            _gaq(['_addPromo', productId, name, creative, position]);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled()) {
-              $window.ga('ec:addPromo', {
+              _ga('ec:addPromo', {
                 id: productId,
                 name: name,
                 creative: creative,
                 position: position
               });
-              that._log('ec:addPromo', args);
+            } else {
+              that._log('warn', 'Enhanced ecommerce must be enabled to use addPromo with analytics.js');
             }
           });
         };
@@ -649,15 +666,14 @@
          * @param obj
          */
         this._setAction = function (action, obj){
-          var that = this, args = arguments;
           _gaJs(function () {
-            $window._gaq.push(['_setAction', action, obj]);
-            that._log('__setAction', args);
+            _gaq(['_setAction', action, obj]);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled()) {
-              $window.ga('ec:setAction', action, obj);
-              that._log('ec:setAction', args);
+              _ga('ec:setAction', action, obj);
+            } else {
+              that._log('warn', 'Enhanced ecommerce must be enabled to use setAction with analytics.js');
             }
           });
         };
@@ -744,12 +760,10 @@
          * @private
          */
         this._send = function () {
-          var that = this;
           var args = Array.prototype.slice.call(arguments);
           args.unshift('send');
           _analyticsJs(function () {
-            $window.ga.apply(this, args);
-            that._log(args);
+            _ga.apply(that, args);
           });
         };
 
@@ -766,29 +780,10 @@
          * @private
          */
         this._set = function (name, value) {
-          var that = this;
           _analyticsJs(function () {
-            $window.ga('set', name, value);
-            that._log('set', name, value);
+            _ga('set', name, value);
           });
         };
-
-
-        // creates the ganalytics tracker
-        if (!delayScriptTag) {
-          if (analyticsJS) {
-            this._createAnalyticsScriptTag();
-          } else {
-            this._createScriptTag();
-          }
-        }
-
-        // activates page tracking
-        if (trackRoutes) {
-          $rootScope.$on(pageEvent, function () {
-            me._trackPage();
-          });
-        }
 
         /**
          * Track User Timings
@@ -801,8 +796,24 @@
           this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
         };
 
+        // creates the Google analytics tracker
+        if (!delayScriptTag) {
+          if (analyticsJS) {
+            this._createAnalyticsScriptTag();
+          } else {
+            this._createScriptTag();
+          }
+        }
+
+        // activates page tracking
+        if (trackRoutes) {
+          $rootScope.$on(pageEvent, function () {
+            that._trackPage();
+          });
+        }
+
         return {
-          _logs: me._logs,
+          _logs: that._logs,
           displayFeatures: displayFeatures,
           ecommerce: ecommerce,
           enhancedEcommerce: enhancedEcommerce,
@@ -811,7 +822,7 @@
           experimentId: experimentId,
           ignoreFirstPageLoad: ignoreFirstPageLoad,
           delayScriptTag: delayScriptTag,
-          setCookieConfig: me._setCookieConfig,
+          setCookieConfig: that._setCookieConfig,
           getCookieConfig: function () {
             return cookieConfig;
           },
@@ -820,81 +831,81 @@
               cookieConfig = config;
             }
 
-            return me._createAnalyticsScriptTag();
+            return that._createAnalyticsScriptTag();
           },
           createScriptTag: function (config) {
             if (config) {
               cookieConfig = config;
             }
 
-            return me._createScriptTag();
+            return that._createScriptTag();
           },
           ecommerceEnabled: function () {
-            return me._ecommerceEnabled();
+            return that._ecommerceEnabled();
           },
           enhancedEcommerceEnabled: function () {
-            return me._enhancedEcommerceEnabled();
+            return that._enhancedEcommerceEnabled();
           },
           trackPage: function (url, title, custom) {
-            me._trackPage(url, title, custom);
+            that._trackPage(url, title, custom);
           },
           trackEvent: function (category, action, label, value, noninteraction, custom) {
-            me._trackEvent(category, action, label, value, noninteraction, custom);
+            that._trackEvent(category, action, label, value, noninteraction, custom);
           },
           addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
-            me._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
+            that._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
           },
           addItem: function (transactionId, sku, name, category, price, quantity) {
-            me._addItem(transactionId, sku, name, category, price, quantity);
+            that._addItem(transactionId, sku, name, category, price, quantity);
           },
           trackTrans: function () {
-            me._trackTrans();
+            that._trackTrans();
           },
           clearTrans: function () {
-            me._clearTrans();
+            that._clearTrans();
           },
           addProduct: function (productId, name, category, brand, variant, price, quantity, coupon, position) {
-            me._addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+            that._addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
           },
           addPromo: function (productId, name, creative, position) {
-            me._addPromo(productId, name, creative, position);
+            that._addPromo(productId, name, creative, position);
           },
           addImpression: function (productId, name, list, brand, category, variant, position, price) {
-            me._addImpression(productId, name, list, brand, category, variant, position, price);
+            that._addImpression(productId, name, list, brand, category, variant, position, price);
           },
           productClick: function (listName) {
-            me._productClick(listName);
+            that._productClick(listName);
           },
           promoClick : function (promotionName) {
-            me._promoClick(promotionName);
+            that._promoClick(promotionName);
           },
           trackDetail: function () {
-            me._setAction('detail');
-            me._pageView();
+            that._setAction('detail');
+            that._pageView();
           },
           trackCart: function (action) {
-            me._trackCart(action);
+            that._trackCart(action);
           },
           trackCheckout: function (step, option) {
-            me._trackCheckOut(step, option);
+            that._trackCheckOut(step, option);
           },
           trackTimings: function (timingCategory, timingVar, timingValue, timingLabel) {
-            me._trackTimings(timingCategory, timingVar, timingValue, timingLabel);
+            that._trackTimings(timingCategory, timingVar, timingValue, timingLabel);
           },
           trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
-            me._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
+            that._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
           },
           setAction: function (action, obj) {
-            me._setAction(action, obj);
+            that._setAction(action, obj);
           },
           send: function (obj) {
-            me._send(obj);
+            that._send(obj);
           },
           pageView: function () {
-            me._pageView();
+            that._pageView();
           },
           set: function (name, value) {
-            me._set(name, value);
+            that._set(name, value);
           }
         };
       }];

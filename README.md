@@ -286,6 +286,8 @@ AnalyticsProvider.setPageEvent('$stateChangeSuccess');
 AnalyticsProvider.delayScriptTag(true);
 // RegEx to scrub location before sending to analytics. Internally replaces all matching segments with an empty string
 AnalyticsProvider.setRemoveRegExp(/\/\d+?$/);
+// Log all outbound calls to Google Analytics to an in-memory array accessible via ```Analytics._logs```. Logging is disabled (false) by default
+AnalyticsProvider.logAllCalls(true);
 ```
 
 ## AdBlock EasyPrivacy
