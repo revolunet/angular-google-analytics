@@ -131,6 +131,9 @@ module.exports = function(grunt) {
   // Default task.
   grunt.registerTask('default', ['test']);
 
+  // Static analysis
+  grunt.registerTask('lint', ['jshint']);
+
   // Test tasks.
   grunt.registerTask('test', ['jshint', 'karma:test']);
   grunt.registerTask('test-server', ['karma:server']);

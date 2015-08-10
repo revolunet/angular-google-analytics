@@ -307,7 +307,8 @@ After forking you will need to run the following from a command line to get your
 
 After install you have the following commands available to you from a command line:
 
-1. ```npm test``` or ```grunt``` or ```grunt test```
-2. ```npm test-server``` or ```grunt test-server```
-3. ```grunt build``` or ```grunt release```
-4. ```grunt stage```
+1. ```grunt lint```
+2. ```npm test``` or ```grunt``` or ```grunt test```
+3. ```npm test-server``` or ```grunt test-server```
+4. ```grunt build``` or ```grunt release```
+5. ```grunt stage```
