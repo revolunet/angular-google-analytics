@@ -5,6 +5,7 @@ describe('angular-google-analytics', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider.setAccount('UA-XXXXXX-xx');
+    AnalyticsProvider.logAllCalls(true);
   }));
 
   describe('required settings missing', function () {
@@ -87,25 +88,21 @@ describe('angular-google-analytics', function() {
 
     it('should generate trackPages', function () {
       inject(function (Analytics, $window) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = $window._gaq.length;
         Analytics.trackPage('test');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('_trackPageview');
-        expect($window._gaq.length).toBe(4);
-        expect($window._gaq[0][0]).toBe('_setAccount');
-        expect($window._gaq[2][0]).toBe('_set');
-        expect($window._gaq[2][1]).toBe('title');
-        expect($window._gaq[2][2]).toBe('');
-        expect($window._gaq[3][0]).toBe('_trackPageview');
-        expect($window._gaq[3][1]).toBe('test');
+        expect(length + 2).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[length + 1]).toEqual(['_trackPageview', 'test']);
       });
     });
 
     it('should generate a trackPage on routeChangeSuccess', function () {
-      inject(function (Analytics, $rootScope) {
+      inject(function (Analytics, $rootScope, $window) {
+        var length = $window._gaq.length;
         $rootScope.$broadcast('$routeChangeSuccess');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('_trackPageview');
+        expect(length + 2).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[length + 1]).toEqual(['_trackPageview', '']);
       });
     });
   });
@@ -116,24 +113,20 @@ describe('angular-google-analytics', function() {
     }));
 
     it('should NOT generate a trackpage on routeChangeSuccess', function () {
-      inject(function (Analytics, $rootScope) {
+      inject(function (Analytics, $rootScope, $window) {
+        var length = $window._gaq.length;
         $rootScope.$broadcast('$routeChangeSuccess');
-        expect(Analytics._logs.length).toBe(0);
+        expect(length).toBe($window._gaq.length);
       });
     });
 
     it('should generate a trackpage when explicitly called', function () {
       inject(function (Analytics, $window) {
+        var length = $window._gaq.length;
         Analytics.trackPage('/page/here');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('_trackPageview');
-        expect($window._gaq.length).toBe(3);
-        expect($window._gaq[0][0]).toBe('_setAccount');
-        expect($window._gaq[1][0]).toBe('_set');
-        expect($window._gaq[1][1]).toBe('title');
-        expect($window._gaq[1][2]).toBe('');
-        expect($window._gaq[2][0]).toBe('_trackPageview');
-        expect($window._gaq[2][1]).toBe('/page/here');
+        expect(length + 2).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[length + 1]).toEqual(['_trackPageview', '/page/here']);
       });
     });
   });
@@ -145,33 +138,19 @@ describe('angular-google-analytics', function() {
 
     it('should generate eventTracks', function () {
       inject(function (Analytics, $window) {
+        var length = $window._gaq.length;
         Analytics.trackEvent('test');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('trackEvent');
-        expect($window._gaq.length).toBe(2);
-        expect($window._gaq[0][0]).toBe('_setAccount');
-        expect($window._gaq[1][0]).toBe('_trackEvent');
-        expect($window._gaq[1][1]).toBe('test');
-        expect($window._gaq[1][2]).toBe(undefined);
-        expect($window._gaq[1][3]).toBe(undefined);
-        expect($window._gaq[1][4]).toBe(undefined);
-        expect($window._gaq[1][5]).toBe(false);
+        expect(length + 1).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_trackEvent', 'test', undefined, undefined, undefined, false]);
       });
     });
 
     it('should generate eventTracks with non-interactions', function () {
       inject(function (Analytics, $window) {
+        var length = $window._gaq.length;
         Analytics.trackEvent('test', 'action', 'label', 0, true);
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('trackEvent');
-        expect($window._gaq.length).toBe(2);
-        expect($window._gaq[0][0]).toBe('_setAccount');
-        expect($window._gaq[1][0]).toBe('_trackEvent');
-        expect($window._gaq[1][1]).toBe('test');
-        expect($window._gaq[1][2]).toBe('action');
-        expect($window._gaq[1][3]).toBe('label');
-        expect($window._gaq[1][4]).toBe(0);
-        expect($window._gaq[1][5]).toBe(true);
+        expect(length + 1).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_trackEvent', 'test', 'action', 'label', 0, true]);
       });
     });
   });
@@ -190,28 +169,32 @@ describe('angular-google-analytics', function() {
 
   describe('e-commerce transactions', function () {
     it('should add transcation', function () {
-      inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+      inject(function (Analytics, $window) {
+        var length = $window._gaq.length;
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
-        expect(Analytics._logs.length).toBe(1);
+        expect(length + 1).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_addTrans', '1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands']);
       });
     });
 
     it('should add an item to transaction', function () {
-      inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+      inject(function (Analytics, $window) {
+        var length = $window._gaq.length;
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
-        expect(Analytics._logs.length).toBe(1);
+        expect(length + 1).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_addItem', '1', 'sku-1', 'Test product 1', 'Testing', '1', '1']);
         Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
-        expect(Analytics._logs.length).toBe(2);
+        expect(length + 2).toBe($window._gaq.length);
+        expect($window._gaq[length + 1]).toEqual(['_addItem', '1', 'sku-2', 'Test product 2', 'Testing', '1', '1']);
       });
     });
 
     it('should track the transaction', function () {
-      inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+      inject(function (Analytics, $window) {
+        var length = $window._gaq.length;
         Analytics.trackTrans();
-        expect(Analytics._logs.length).toBe(1);
+        expect(length + 1).toBe($window._gaq.length);
+        expect($window._gaq[length]).toEqual(['_trackTrans']);
       });
     });
   });
@@ -282,9 +265,10 @@ describe('angular-google-analytics', function() {
 
     it('should allow transaction clearing', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.clearTrans();
-        expect(Analytics._logs.length).toBe(1);
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length]).toEqual(['ecommerce:clear']);
       });
     });
 
@@ -297,13 +281,10 @@ describe('angular-google-analytics', function() {
           socialTarget: 'http://mycoolpage.com',
           page: '/my-new-page'
         };
-
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.send(social);
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]).toEqual({
-          '0': ['send', social]
-        });
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length]).toEqual(['send', social]);
       });
     });
 
@@ -313,14 +294,10 @@ describe('angular-google-analytics', function() {
           name: "dimension1",
           value: "value1"
         };
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.set(data.name, data.value);
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0]).toEqual({
-          '0': 'set',
-          '1': data.name,
-          '2': data.value
-        });
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length]).toEqual(['set', data.name, data.value]);
       });
     });
 
@@ -333,9 +310,9 @@ describe('angular-google-analytics', function() {
         inject(function ($window) {
           spyOn($window, 'ga');
           inject(function (Analytics) {
+            var length = Analytics._logs.length;
             Analytics.trackEvent('test');
-            expect(Analytics._logs.length).toBe(1);
-            expect(Analytics._logs[0][0]).toBe('event');
+            expect(length + 1).toBe(Analytics._logs.length);
             expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', undefined, undefined, undefined, {});
           });
         });
@@ -345,10 +322,10 @@ describe('angular-google-analytics', function() {
         inject(function ($window) {
           spyOn($window, 'ga');
           inject(function (Analytics) {
+            var length = Analytics._logs.length;
             Analytics.trackEvent('test', 'action', 'label', 0, true);
-            expect(Analytics._logs.length).toBe(1);
-            expect(Analytics._logs[0][0]).toBe('event');
-            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0, {nonInteraction: true});
+            expect(length + 1).toBe(Analytics._logs.length);
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0, { nonInteraction: true });
           });
         });
       });
@@ -375,28 +352,28 @@ describe('angular-google-analytics', function() {
 
     it('should add transcation', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('ecommerce:addTransaction');
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toEqual('ecommerce:addTransaction');
       });
     });
 
     it('should add an item to transaction', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('ecommerce:addItem');
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toEqual('ecommerce:addItem');
       });
     });
 
     it('should track the transaction', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.trackTrans();
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('ecommerce:send');
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length]).toEqual(['ecommerce:send']);
       });
     });
   });
@@ -421,10 +398,10 @@ describe('angular-google-analytics', function() {
 
     it('should add product impression', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addImpression('sku-1', 'Test Product 1', 'Category List', 'Brand 1', 'Category-1', 'variant-1', '1', '24990');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('ec:addImpression');
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addImpression');
       });
     });
 
@@ -432,19 +409,9 @@ describe('angular-google-analytics', function() {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
-          expect(Analytics._logs.length).toBe(0);
+          var length = Analytics._logs.length;
           Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-          expect(Analytics._logs.length).toBe(1);
-          expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-          expect(Analytics._logs[0][1][0]).toBe('sku-2');
-          expect(Analytics._logs[0][1][1]).toBe('Test Product 2');
-          expect(Analytics._logs[0][1][2]).toBe('Category-1');
-          expect(Analytics._logs[0][1][3]).toBe('Brand 2');
-          expect(Analytics._logs[0][1][4]).toBe('variant-3');
-          expect(Analytics._logs[0][1][5]).toBe('2499');
-          expect(Analytics._logs[0][1][6]).toBe('1');
-          expect(Analytics._logs[0][1][7]).toBe('FLAT10');
-          expect(Analytics._logs[0][1][8]).toBe('1');
+          expect(length + 1).toBe(Analytics._logs.length);
           expect($window.ga).toHaveBeenCalledWith('ec:addProduct', {
             id: 'sku-2',
             name: 'Test Product 2',
@@ -462,114 +429,113 @@ describe('angular-google-analytics', function() {
 
     it('should add promo data', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('ec:addPromo');
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addPromo');
       });
     });
 
     it('should set action', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         var dummyAction = 'dummy';
         Analytics.setAction(dummyAction);
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('ec:setAction');
-        expect(Analytics._logs[0][1][0]).toBe(dummyAction);
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length][1]).toBe(dummyAction);
       });
     });
 
     it('should track product click', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         var dummyList = 'dummy list';
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.productClick(dummyList);
-        expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[1][0]).toBe('ec:setAction');
-        expect(Analytics._logs[1][1][0]).toBe('click');
-        expect(Analytics._logs[1][1][1].list).toBe(dummyList);
-        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list' ]);
+        expect(length + 3).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 1][1]).toBe('click');
+        expect(Analytics._logs[length + 2]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list' ]);
       });
     });
 
     it('should track product detail', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackDetail();
-        expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[1][0]).toBe('ec:setAction');
-        expect(Analytics._logs[1][1][0]).toBe('detail');
-        expect(Analytics._logs[2][0]).toEqual(['send', 'pageview']);
+        expect(length + 3).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 1][1]).toBe('detail');
+        expect(Analytics._logs[length + 2]).toEqual(['send', 'pageview']);
       });
     });
 
     it('should track add to cart event', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCart('add');
-        expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[1][0]).toBe('ec:setAction');
-        expect(Analytics._logs[1][1][0]).toBe('add');
-        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart' ]);
+        expect(length + 3).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 1][1]).toBe('add');
+        expect(Analytics._logs[length + 2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart' ]);
       });
     });
 
     it('should track remove from cart event', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCart('remove');
-        expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[1][0]).toBe('ec:setAction');
-        expect(Analytics._logs[1][1][0]).toBe('remove');
-        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'UX', 'click', 'remove to cart' ]);
+        expect(length + 3).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 1][1]).toBe('remove');
+        expect(Analytics._logs[length + 2]).toEqual([ 'send', 'event', 'UX', 'click', 'remove to cart' ]);
       });
     });
 
     it('should track checkout', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.trackCheckout();
-        expect(Analytics._logs.length).toBe(2);
-        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[1][0]).toBe('ec:setAction');
-        expect(Analytics._logs[1][1][0]).toBe('checkout');
+        expect(length + 2).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 1][1]).toBe('checkout');
       });
     });
 
     it('should track transaction', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
         Analytics.addProduct('sku-3', 'Test Product 3', 'Category-1', 'Brand 2', 'variant-5', '299', '1', 'FLAT10', '1');
         Analytics.trackTransaction();
-        expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[1][0]).toBe('ec:addProduct');
-        expect(Analytics._logs[2][0]).toBe('ec:setAction');
-        expect(Analytics._logs[2][1][0]).toBe('purchase');
+        expect(length + 3).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:addProduct');
+        expect(Analytics._logs[length + 2][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 2][1]).toBe('purchase');
       });
     });
 
     it('should track promo click', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
         Analytics.promoClick('Summer Sale');
-        expect(Analytics._logs.length).toBe(3);
-        expect(Analytics._logs[0][0]).toBe('ec:addPromo');
-        expect(Analytics._logs[1][0]).toBe('ec:setAction');
-        expect(Analytics._logs[1][1][0]).toBe('promo_click');
-        expect(Analytics._logs[2][0]).toEqual([ 'send', 'event', 'Internal Promotions', 'click', 'Summer Sale' ]);
+        expect(length + 3).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toBe('ec:addPromo');
+        expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
+        expect(Analytics._logs[length + 1][1]).toBe('promo_click');
+        expect(Analytics._logs[length + 2]).toEqual([ 'send', 'event', 'Internal Promotions', 'click', 'Summer Sale' ]);
       });
     });
   });
@@ -581,9 +547,11 @@ describe('angular-google-analytics', function() {
 
     it('should inject the Analytics script', function () {
       inject(function (Analytics, $rootScope) {
+        var length = Analytics._logs.length;
         $rootScope.$broadcast('$stateChangeSuccess');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('_trackPageview');
+        expect(length + 2).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toEqual(['_set', 'title', '']);
+        expect(Analytics._logs[length + 1][0]).toEqual(['_trackPageview', '']);
       });
     });
   });
@@ -610,22 +578,22 @@ describe('angular-google-analytics', function() {
       inject(function (Analytics, $document, $location) {
         $location.path('/page/here');
         $document[0] = { title: 'title here' };
+        var length = Analytics._logs.length;
         Analytics.trackPage();
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('_trackPageview');
-        expect(Analytics._logs[0][1]).toBe('/page/here');
-        expect(Analytics._logs[0][2]).toBe('title here');
+        expect(length + 2).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toEqual(['_set', 'title', 'title here']);
+        expect(Analytics._logs[length + 1][0]).toEqual(['_trackPageview', '/page/here']);
       });
     });
 
     it('should set title when no title provided', function () {
       inject(function (Analytics, $document) {
         $document[0] = { title: 'title here' };
+        var length = Analytics._logs.length;
         Analytics.trackPage('/page/here');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toBe('_trackPageview');
-        expect(Analytics._logs[0][1]).toBe('/page/here');
-        expect(Analytics._logs[0][2]).toBe('title here');
+        expect(length + 2).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length][0]).toEqual(['_set', 'title', 'title here']);
+        expect(Analytics._logs[length + 1][0]).toEqual(['_trackPageview', '/page/here']);
       });
     });
   });
@@ -776,7 +744,6 @@ describe('angular-google-analytics', function() {
     it('should inject a script tag', function () {
       inject(function (Analytics, $location) {
         var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
-
         Analytics.createScriptTag({userId: 1234});
         expect(Analytics.getCookieConfig().userId).toBe(1234);
         expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
@@ -792,10 +759,10 @@ describe('angular-google-analytics', function() {
 
     it('should add user timing', function () {
       inject(function (Analytics) {
-        expect(Analytics._logs.length).toBe(0);
+        var length = Analytics._logs.length;
         Analytics.trackTimings('Time to Checkout', 'User Timings', '32', 'My Timings');
-        expect(Analytics._logs.length).toBe(1);
-        expect(Analytics._logs[0][0]).toEqual([ 'send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings']);
+        expect(length + 1).toBe(Analytics._logs.length);
+        expect(Analytics._logs[length]).toEqual(['send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings']);
       });
     });
   });
