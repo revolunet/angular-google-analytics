@@ -23,7 +23,12 @@
           linkerConfig = {'allowLinker': true},
           trackUrlParams = false,
           delayScriptTag = false,
-          logAllCalls = false;
+          logAllCalls = false,
+          trackingSupportingMultipleTrackers = [
+            'ec',
+            'ecommerce',
+            'send'
+          ];;
 
       this._logs = [];
 
@@ -187,13 +192,29 @@
         };
 
         var _ga = function() {
+          var tmpCommand, tmpArguments;
           if (!$window.ga) {
             that._log('warn', 'ga function not set on window');
           }
           if (logAllCalls === true) {
             that._log.apply(that, arguments);
           }
-          $window.ga.apply(null, arguments);
+          // If multiple trackers && arguments valid && command supports multiple trackers
+          // Temporary check if command contains '.' until all functions are switched
+          if (angular.isArray(accountId) && arguments && arguments.length > 1 && arguments[0].indexOf('.') < 0 &&
+              trackingSupportingMultipleTrackers.indexOf(arguments[0]) >= 0) {
+            // Create command for each tracker an apply
+            tmpArguments = arguments
+            accountId.forEach(function (trackerObj) {
+              tmpCommand = tmpArguments[0];
+              tmpCommand = trackerObj.name + '.' +tmpCommand;
+              tmpArguments[0] = tmpCommand;
+              $window.ga.apply(null, tmpArguments);
+
+            });
+          } else {
+            $window.ga.apply(null, arguments);
+          }
         };
 
         var _generateCommandName = function(commandName, config) {
