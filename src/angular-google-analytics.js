@@ -28,7 +28,7 @@
             'ec',
             'ecommerce',
             'send'
-          ];;
+          ];
 
       this._logs = [];
 
@@ -192,7 +192,7 @@
         };
 
         var _ga = function() {
-          var tmpCommand, tmpArguments;
+
           if (!$window.ga) {
             that._log('warn', 'ga function not set on window');
           }
@@ -203,13 +203,12 @@
           // Temporary check if command contains '.' until all functions are switched
           if (angular.isArray(accountId) && arguments && arguments.length > 1 && arguments[0].indexOf('.') < 0 &&
               trackingSupportingMultipleTrackers.indexOf(arguments[0]) >= 0) {
+            var args = Array.prototype.slice.call(arguments);
             // Create command for each tracker an apply
-            tmpArguments = arguments
             accountId.forEach(function (trackerObj) {
-              tmpCommand = tmpArguments[0];
-              tmpCommand = trackerObj.name + '.' +tmpCommand;
-              tmpArguments[0] = tmpCommand;
-              $window.ga.apply(null, tmpArguments);
+              var command = trackerObj.name + '.' + args[0];
+              args[0] = command;
+              $window.ga.apply(null, args);
 
             });
           } else {
