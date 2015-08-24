@@ -4,7 +4,7 @@
     .provider('Analytics', function () {
       var created = false,
           trackRoutes = true,
-          accountId,
+          accounts,
           displayFeatures,
           trackPrefix = '',
           domainName,
@@ -20,21 +20,28 @@
           ignoreFirstPageLoad = false,
           crossDomainLinker = false,
           crossLinkDomains,
-          linkerConfig = {'allowLinker': true},
           trackUrlParams = false,
           delayScriptTag = false,
-          logAllCalls = false,
-          trackingSupportingMultipleTrackers = [
-            'ec',
-            'ecommerce',
-            'send'
-          ];
+          logAllCalls = false;
 
       this._logs = [];
 
-      // config methods
-      this.setAccount = function (id) {
-        accountId = id;
+      /**
+       * Configuration Methods
+       **/
+
+      this.setAccount = function (tracker) {
+        if (angular.isUndefined(tracker) || tracker === false) {
+          accounts = undefined;
+        } else if (angular.isArray(tracker)) {
+          accounts = tracker;
+        } else if (angular.isObject(tracker)) {
+          accounts = [tracker];
+        } else {
+          // In order to preserve an existing behavior with how the _trackEvent function works,
+          // the trackEvent property must be set to true when there is only a single tracker.
+          accounts = [{ tracker: tracker, trackEvent: true }];
+        }
         return true;
       };
 
@@ -138,6 +145,18 @@
       this.$get = ['$document', '$location', '$log', '$rootScope', '$window', function ($document, $location, $log, $rootScope, $window) {
         var that = this;
 
+        /**
+         * Side-effect Free Helper Methods
+         **/
+
+        var generateCommandName = function (commandName, config) {
+          return isPropertyDefined('name', config) ? (config.name + '.' + commandName) : commandName;
+        };
+
+        var isPropertyDefined = function (key, config) {
+          return angular.isObject(config) && angular.isDefined(config[key]);
+        };
+
         var getUrl = function () {
           var url = trackUrlParams ? $location.url() : $location.path();
           return removeRegExp ? url.replace(removeRegExp, '') : url;
@@ -159,7 +178,6 @@
             if (angular.isDefined(campaignVar)) {
               object[campaignVar] = value;
             }
-
           });
 
           return object;
@@ -169,13 +187,13 @@
          * Private Methods
          */
 
-        var _gaJs = function(fn) {
+        var _gaJs = function (fn) {
           if (!analyticsJS && $window._gaq && typeof fn === 'function') {
             fn();
           }
         };
 
-        var _gaq = function() {
+        var _gaq = function () {
           if (!$window._gaq) {
             $window._gaq = [];
           }
@@ -185,46 +203,43 @@
           $window._gaq.push.apply($window._gaq, arguments);
         };
 
-        var _analyticsJs = function(fn) {
+        var _analyticsJs = function (fn) {
           if (analyticsJS && $window.ga && typeof fn === 'function') {
             fn();
           }
         };
 
-        var _ga = function() {
-
-          if (!$window.ga) {
+        var _ga = function () {
+          if (typeof $window.ga !== 'function') {
             that._log('warn', 'ga function not set on window');
+            return;
           }
           if (logAllCalls === true) {
             that._log.apply(that, arguments);
           }
-          // If multiple trackers && arguments valid && command supports multiple trackers
-          // Temporary check if command contains '.' until all functions are switched
-          if (angular.isArray(accountId) && arguments && arguments.length > 1 && arguments[0].indexOf('.') < 0 &&
-              trackingSupportingMultipleTrackers.indexOf(arguments[0]) >= 0) {
-            var args = Array.prototype.slice.call(arguments);
-            // Create command for each tracker an apply
-            accountId.forEach(function (trackerObj) {
-              var command = trackerObj.name + '.' + args[0];
-              args[0] = command;
-              $window.ga.apply(null, args);
-
-            });
-          } else {
-            $window.ga.apply(null, arguments);
-          }
+          $window.ga.apply(null, arguments);
         };
 
-        var _generateCommandName = function(commandName, config) {
-          if (!angular.isUndefined(config) && 'name' in config && config.name) {
-            return config.name + '.' + commandName;
+        var _gaMultipleTrackers = function (includeFn) {
+          if (typeof $window.ga !== 'function') {
+            that._log('warn', 'ga function not set on window');
+            return;
           }
-          return commandName;
-        };
 
-        var _checkOption = function(key, config) {
-          return key in config && config[key];
+          // Drop the includeFn from the arguments and preserve the original command name
+          var args = Array.prototype.slice.call(arguments, 1),
+              commandName = args[0];
+
+          accounts.forEach(function (trackerObj) {
+            if (typeof includeFn === 'function' && !includeFn(trackerObj)) {
+              return;
+            }
+            args[0] = generateCommandName(commandName, trackerObj);
+            if (logAllCalls === true) {
+              that._log.apply(that, args);
+            }
+            $window.ga.apply(null, args);                
+          });
         };
 
         this._log = function () {
@@ -244,18 +259,22 @@
         };
 
         this._createScriptTag = function () {
-          if (!accountId) {
+          if (!accounts || accounts.length < 1) {
             this._log('warn', 'No account id set to create script tag');
             return;
           }
+          if (accounts.length > 1) {
+            this._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
+            accounts = accounts.slice(0, 1);
+          }
 
-          if (created) {
-            this._log('warn', 'Script tag already created');
+          if (created === true) {
+            this._log('warn', 'ga.js or analytics.js script tag already created');
             return;
           }
 
-          // inject the google analytics tag
-          _gaq(['_setAccount', accountId]);
+          // inject the Google Analytics tag
+          _gaq(['_setAccount', accounts[0].tracker]);
           if(domainName) {
             _gaq(['_setDomainName', domainName]);
           }
@@ -287,58 +306,43 @@
         };
 
         this._createAnalyticsScriptTag = function () {
-          if (!accountId) {
+          if (!accounts) {
             this._log('warn', 'No account id set to create analytics script tag');
             return;
           }
 
-          if (created) {
-            this._log('warn', 'Analytics script tag already created');
+          if (created === true) {
+            this._log('warn', 'ga.js or analytics.js script tag already created');
             return;
           }
 
-          // inject the google analytics tag
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          // inject the Google Analytics tag
+          (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
             (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
             m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
           })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-          if (angular.isArray(accountId)) {
-            accountId.forEach(function (trackerObj) {
-              var _cookieConfig = 'cookieConfig' in trackerObj ? trackerObj.cookieConfig : cookieConfig;
-              var options;
-              if (_checkOption('crossDomainLinker', trackerObj)) {
-                trackerObj.allowLinker = trackerObj.crossDomainLinker;
-              }
-              angular.forEach(['name', 'allowLinker'], function(key) {
-                if (key in trackerObj) {
-                  if (angular.isUndefined(options)) {
-                    options = {};
-                  }
-                  options[key] = trackerObj[key];
-                }
-              });
-              if (angular.isUndefined(options)) {
-                _ga('create', trackerObj.tracker, _cookieConfig);
-              } else {
-                _ga('create', trackerObj.tracker, _cookieConfig, options);
-              }
-              if (options && 'allowLinker' in options && options.allowLinker) {
-                _ga(_generateCommandName('require', trackerObj), 'linker');
-                if (_checkOption('crossLinkDomains', trackerObj)) {
-                  _ga(_generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
-                }
-              }
-            });
-          } else if (crossDomainLinker) {
-            _ga('create', accountId, cookieConfig, linkerConfig);
-            _ga('require', 'linker');
-            if(crossLinkDomains) {
-              _ga('linker:autoLink', crossLinkDomains );
+          accounts.forEach(function (trackerObj) {
+            var options = {};
+            trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
+            trackerObj.cookieConfig = isPropertyDefined('cookieConfig', trackerObj) ? trackerObj.cookieConfig : cookieConfig;
+            trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
+            trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
+
+            options.allowLinker = trackerObj.crossDomainLinker;
+            if (isPropertyDefined('name', trackerObj)) {
+              options.name = trackerObj.name;
             }
-          } else {
-            _ga('create', accountId, cookieConfig);
-          }
+
+            _ga('create', trackerObj.tracker, trackerObj.cookieConfig, options);
+
+            if (trackerObj.crossDomainLinker === true) {
+              _ga(generateCommandName('require', trackerObj), 'linker');
+              if (angular.isDefined(trackerObj.crossLinkDomains)) {
+                _ga(generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
+              }
+            }
+          });
 
           if (displayFeatures) {
             _ga('require', 'displayfeatures');
@@ -356,9 +360,11 @@
               _ga('set', '&cu', currency);
             }
           }
+
           if (enhancedLinkAttribution) {
             _ga('require', 'linkid', 'linkid.js');
           }
+
           if (experimentId) {
             var expScript = document.createElement('script'),
               s = document.getElementsByTagName('script')[0];
@@ -404,13 +410,7 @@
             if (angular.isObject(custom)) {
               angular.extend(opt_fieldObject, custom);
             }
-            if (angular.isArray(accountId)) {
-              accountId.forEach(function (trackerObj) {
-                _ga(_generateCommandName('send', trackerObj), 'pageview', opt_fieldObject);
-              });
-            } else {
-              _ga('send', 'pageview', opt_fieldObject);
-            }
+            _gaMultipleTrackers(undefined, 'send', 'pageview', opt_fieldObject);
           });
         };
 
@@ -432,21 +432,17 @@
           });
           _analyticsJs(function () {
             var opt_fieldObject = {};
+            var includeFn = function (trackerObj) {
+              return isPropertyDefined('trackEvent', trackerObj) && trackerObj.trackEvent === true;
+            };
+
             if (angular.isDefined(noninteraction)) {
               opt_fieldObject.nonInteraction = !!noninteraction;
             }
             if (angular.isObject(custom)) {
               angular.extend(opt_fieldObject, custom);
             }
-            if (angular.isArray(accountId)) {
-              accountId.forEach(function (trackerObj) {
-                if (_checkOption('trackEvent', trackerObj)) {
-                  _ga(_generateCommandName('send', trackerObj), 'event', category, action, label, value, opt_fieldObject);
-                }
-              });
-            } else {
-              _ga('send', 'event', category, action, label, value, opt_fieldObject);
-            }
+            _gaMultipleTrackers(includeFn, 'send', 'event', category, action, label, value, opt_fieldObject);
           });
         };
 
@@ -787,7 +783,7 @@
           });
         };
 
-        this._pageView = function() {
+        this._pageView = function () {
           this._send('pageview');
         };
 
@@ -816,7 +812,7 @@
           this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
         };
 
-        // creates the Google analytics tracker
+        // creates the Google Analytics tracker
         if (!delayScriptTag) {
           if (analyticsJS) {
             this._createAnalyticsScriptTag();

@@ -11,7 +11,7 @@ describe('angular-google-analytics', function() {
   describe('required settings missing', function () {
     describe('for default ga script injection', function () {
       beforeEach(module(function (AnalyticsProvider) {
-        AnalyticsProvider.setAccount(false);
+        AnalyticsProvider.setAccount(undefined);
         AnalyticsProvider.useAnalytics(false);
       }));
 
@@ -36,7 +36,7 @@ describe('angular-google-analytics', function() {
 
     describe('for analytics script injection', function () {
       beforeEach(module(function (AnalyticsProvider) {
-        AnalyticsProvider.setAccount(false);
+        AnalyticsProvider.setAccount(undefined);
         AnalyticsProvider.useAnalytics(true);
       }));
 
@@ -614,9 +614,9 @@ describe('angular-google-analytics', function() {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, 'auto', { name: trackers[0].name });
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, 'auto', { name: trackers[1].name });
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[2].tracker, 'auto');
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, 'auto', { allowLinker: false, name: trackers[0].name });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, 'auto', { allowLinker: false, name: trackers[1].name });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[2].tracker, 'auto', { allowLinker: false });
         });
       });
     });
@@ -675,7 +675,7 @@ describe('angular-google-analytics', function() {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
-          expect($window.ga).toHaveBeenCalledWith('create', 'UA-12345-67', 'yourdomain.org');
+          expect($window.ga).toHaveBeenCalledWith('create', 'UA-12345-67', 'yourdomain.org', { allowLinker: false });
         });
       });
     });
