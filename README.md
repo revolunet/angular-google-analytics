@@ -7,7 +7,7 @@ This service lets you integrate google analytics tracker in your AngularJS appli
 
 You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4');` or more advanced e-commerce features like product tracking, promo codes, transactions...
 
-Proudly brought to you by [@revolunet](http://twitter.com/revolunet) and [@deltaepsilon](https://github.com/deltaepsilon).
+Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaepsilon](https://github.com/deltaepsilon), [@justinsa](https://github.com/justinsa) and [contributors](https://github.com/revolunet/angular-google-analytics/graphs/contributors)
 
 ## Features
 
@@ -55,7 +55,7 @@ var app = angular.module('app', ['angular-google-analytics'])
                 crossLinkDomains: ['domain-1.com', 'domain-2.com'],
                 trackEvent: true
             }
-        ]);        
+        ]);
 
         // Track all routes (or not)
         AnalyticsProvider.trackPages(true);
