@@ -41,6 +41,22 @@ var app = angular.module('app', ['angular-google-analytics'])
            { tracker: 'UA-12345-34', name: "tracker2" }
         ]);
 
+        // Or if needing to override properties for specific tracking objects (analytics.js only)
+        AnalyticsProvider.setAccount([
+            {
+                tracker: 'UA-12345-12',
+                name: "tracker1",
+                cookieConfig: {
+                    cookieDomain: 'foo.example.com',
+                    cookieName: 'myNewName',
+                    cookieExpires: 20000
+                },
+                crossDomainLinker: true,
+                crossLinkDomains: ['domain-1.com', 'domain-2.com'],
+                trackEvent: true
+            }
+        ]);        
+
         // Track all routes (or not)
         AnalyticsProvider.trackPages(true);
 
@@ -82,9 +98,9 @@ var app = angular.module('app', ['angular-google-analytics'])
 
         // Set custom cookie parameters for analytics.js
         AnalyticsProvider.setCookieConfig({
-          cookieDomain: 'foo.example.com',
-          cookieName: 'myNewName',
-          cookieExpires: 20000
+            cookieDomain: 'foo.example.com',
+            cookieName: 'myNewName',
+            cookieExpires: 20000
         });
 
         // Change page event name
