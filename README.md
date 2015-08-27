@@ -210,7 +210,7 @@ var app = angular.module('app', ['angular-google-analytics'])
         Analytics.addPromo(productId, name, creative, position);
         Analytics.addPromo(productId, name, creative, position);
         Analytics.pageView();
-        // Note: Before tracking promotion Click, call pageView otherwise promotion impressions will be treated as promotion clicks
+        // Note: Before tracking promotion click, call pageView, otherwise promotion impressions will be treated as promotion clicks
         // example:
         Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
         Analytics.pageView();
@@ -224,17 +224,19 @@ var app = angular.module('app', ['angular-google-analytics'])
         Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
         Analytics.promoClick('Summer Sale');
 
-        // populate a custom dimension
+        // Populate a custom dimension
         Analytics.set('dimension1', 'Paid');
+        // or set the User Id
+        Analytics.set('&uid', 1234);
 
         // Manually create script tag after using delayScriptTag
-        Analytics.createScriptTag({userId: 1234});
+        Analytics.createScriptTag({ userId: 1234 });
 
         // Manually create Analytics script tag after using delayScriptTag
-        Analytics.createAnalyticsScriptTag({userId: 1234})
+        Analytics.createAnalyticsScriptTag({ userId: 1234 });
 
         // Track User Timings
-        Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel)
+        Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel);
         // example:
         var endTime = new Date().getTime();
         var timeSpent = endTime - startTime;
