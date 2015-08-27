@@ -376,12 +376,24 @@
           return true;
         };
 
-        this._ecommerceEnabled = function () {
-          return ecommerce && !enhancedEcommerce;
+        this._ecommerceEnabled = function (warn, command) {
+          var result = ecommerce && !enhancedEcommerce;
+          if (warn === true && result === false) {
+            if (ecommerce && enhancedEcommerce) {
+              that._log('warn', command + ' is not available when Enhanced Ecommerce is enabled with analytics.js');
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use ' + command + ' with analytics.js');
+            }
+          }
+          return result;
         };
 
-        this._enhancedEcommerceEnabled = function () {
-          return ecommerce && enhancedEcommerce;
+        this._enhancedEcommerceEnabled = function (warn, command) {
+          var result = ecommerce && enhancedEcommerce;
+          if (warn === true && result === false) {
+            that._log('warn', 'Enhanced Ecommerce must be enabled to use ' + command + ' with analytics.js');
+          }
+          return result;
         };
 
         /**
@@ -465,7 +477,7 @@
             _gaq(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
+            if (that._ecommerceEnabled(true, 'addTrans')) {
               _ga('ecommerce:addTransaction', {
                 id: transactionId,
                 affiliation: affiliation,
@@ -474,8 +486,6 @@
                 shipping: shipping,
                 currency: currency || 'USD'
               });
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use addTrans with analytics.js');
             }
           });
         };
@@ -497,7 +507,7 @@
             _gaq(['_addItem', transactionId, sku, name, category, price, quantity]);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
+            if (that._ecommerceEnabled(true, 'addItem')) {
               _ga('ecommerce:addItem', {
                 id: transactionId,
                 name: name,
@@ -506,8 +516,6 @@
                 price: price,
                 quantity: quantity
               });
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use addItem with analytics.js');
             }
           });
         };
@@ -523,10 +531,8 @@
             _gaq(['_trackTrans']);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
+            if (that._ecommerceEnabled(true, 'trackTrans')) {
               _ga('ecommerce:send');
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use trackTrans with analytics.js');
             }
           });
         };
@@ -538,10 +544,8 @@
          */
         this._clearTrans = function () {
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
+            if (that._ecommerceEnabled(true, 'clearTrans')) {
               _ga('ecommerce:clear');
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use clearTrans with analytics.js');
             }
           });
         };
@@ -568,7 +572,7 @@
             _gaq(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
+            if (that._enhancedEcommerceEnabled(true, 'addProduct')) {
               _ga('ec:addProduct', {
                 id: productId,
                 name: name,
@@ -580,8 +584,6 @@
                 coupon: coupon,
                 position: position
               });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addProduct with analytics.js');
             }
           });
         };
@@ -603,7 +605,7 @@
             _gaq(['_addImpression', id, name, list, brand, category, variant, position, price]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
+            if (that._enhancedEcommerceEnabled(true, 'addImpression')) {
               _ga('ec:addImpression', {
                 id: id,
                 name: name,
@@ -614,8 +616,6 @@
                 position: position,
                 price: price
               });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addImpression with analytics.js');
             }
           });
         };
@@ -633,15 +633,13 @@
             _gaq(['_addPromo', productId, name, creative, position]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
+            if (that._enhancedEcommerceEnabled(true, 'addPromo')) {
               _ga('ec:addPromo', {
                 id: productId,
                 name: name,
                 creative: creative,
                 position: position
               });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addPromo with analytics.js');
             }
           });
         };
@@ -686,10 +684,8 @@
             _gaq(['_setAction', action, obj]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
+            if (that._enhancedEcommerceEnabled(true, 'setAction')) {
               _ga('ec:setAction', action, obj);
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use setAction with analytics.js');
             }
           });
         };

@@ -35,7 +35,7 @@ describe('angular-google-analytics universal (analytics.js)', function() {
     });
   });
 
-  describe('enabled delayed script tag', function () {
+  describe('delay script tag', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.delayScriptTag(true);
     }));
@@ -47,8 +47,9 @@ describe('angular-google-analytics universal (analytics.js)', function() {
     });
 
     it('should not inject a script tag', function () {
+      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/analytics.js']").length).toBe(0);
+        expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount);
       });
     });
   });
@@ -59,8 +60,8 @@ describe('angular-google-analytics universal (analytics.js)', function() {
     }));
 
     it('should inject a script tag', function () {
+      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
       inject(function (Analytics, $location) {
-        var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
         Analytics.createAnalyticsScriptTag({ userId: 1234 });
         expect(Analytics.getCookieConfig().userId).toBe(1234);
         expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
@@ -68,10 +69,10 @@ describe('angular-google-analytics universal (analytics.js)', function() {
     });
 
     it('should warn and prevent a second attempt to inject a script tag', function () {
+      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
       inject(function ($log) {
         spyOn($log, 'warn');
         inject(function (Analytics) {
-          var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
           Analytics.createAnalyticsScriptTag({ userId: 1234 });
           expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
           Analytics.createAnalyticsScriptTag({ userId: 1234 });
@@ -270,6 +271,25 @@ describe('angular-google-analytics universal (analytics.js)', function() {
         expect(Analytics._logs[length]).toEqual(['ecommerce:send']);
       });
     });
+
+    it('should not support enhanced ecommerce commands', function () {
+      var commands = [
+        'addImpression',
+        'addProduct',
+        'addPromo',
+        'setAction'
+      ];
+
+      inject(function ($log) {
+        spyOn($log, 'warn');
+        inject(function (Analytics) {
+          commands.forEach(function (command) {
+            Analytics[command]();
+            expect($log.warn).toHaveBeenCalledWith(['Enhanced Ecommerce must be enabled to use ' + command + ' with analytics.js']);
+          });
+        });
+      });
+    });
   });
 
   describe('enhanced e-commerce transactions with analytics.js', function () {
@@ -429,6 +449,25 @@ describe('angular-google-analytics universal (analytics.js)', function() {
         expect(Analytics._logs[length + 1][0]).toBe('ec:setAction');
         expect(Analytics._logs[length + 1][1]).toBe('promo_click');
         expect(Analytics._logs[length + 2]).toEqual([ 'send', 'event', 'Internal Promotions', 'click', 'Summer Sale' ]);
+      });
+    });
+
+    it('should not support ecommerce commands', function () {
+      var commands = [
+        'addItem',
+        'addTrans',
+        'clearTrans',
+        'trackTrans'
+      ];
+
+      inject(function ($log) {
+        spyOn($log, 'warn');
+        inject(function (Analytics) {
+          commands.forEach(function (command) {
+            Analytics[command]();
+            expect($log.warn).toHaveBeenCalledWith([command + ' is not available when Enhanced Ecommerce is enabled with analytics.js']);
+          });
+        });
       });
     });
   });
