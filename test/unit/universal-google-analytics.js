@@ -290,6 +290,31 @@ describe('angular-google-analytics universal (analytics.js)', function() {
         });
       });
     });
+
+    describe('supports multiple tracking objects', function () {
+      var trackers = [
+        { tracker: 'UA-12345-12', name: "tracker1", trackEcommerce: true },
+        { tracker: 'UA-12345-34', name: "tracker2" },
+        { tracker: 'UA-12345-45', trackEcommerce: true }
+      ];
+
+      beforeEach(module(function (AnalyticsProvider) {
+        AnalyticsProvider.setAccount(trackers);
+      }));
+
+      it('should track transactions for configured tracking objects only', function () {
+        inject(function ($window) {
+          spyOn($window, 'ga');
+          inject(function (Analytics) {
+            var length = Analytics._logs.length;
+            Analytics.trackTrans();
+            expect(length + 2).toBe(Analytics._logs.length);
+            expect($window.ga).toHaveBeenCalledWith('tracker1.ecommerce:send');
+            expect($window.ga).toHaveBeenCalledWith('ecommerce:send');
+          });
+        });
+      });
+    });
   });
 
   describe('enhanced e-commerce transactions with analytics.js', function () {
@@ -325,17 +350,19 @@ describe('angular-google-analytics universal (analytics.js)', function() {
           var length = Analytics._logs.length;
           Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
           expect(length + 1).toBe(Analytics._logs.length);
-          expect($window.ga).toHaveBeenCalledWith('ec:addProduct', {
-            id: 'sku-2',
-            name: 'Test Product 2',
-            category: 'Category-1',
-            brand: 'Brand 2',
-            variant: 'variant-3',
-            price: '2499',
-            quantity: '1',
-            coupon: 'FLAT10',
-            position: '1'
-          });
+          expect($window.ga).toHaveBeenCalledWith(
+            'ec:addProduct',
+            {
+              id: 'sku-2',
+              name: 'Test Product 2',
+              category: 'Category-1',
+              brand: 'Brand 2',
+              variant: 'variant-3',
+              price: '2499',
+              quantity: '1',
+              coupon: 'FLAT10',
+              position: '1'
+            });
         });
       });
     });
@@ -470,6 +497,55 @@ describe('angular-google-analytics universal (analytics.js)', function() {
         });
       });
     });
+
+    describe('supports multiple tracking objects', function () {
+      var trackers = [
+        { tracker: 'UA-12345-12', name: "tracker1" },
+        { tracker: 'UA-12345-34', name: "tracker2", trackEcommerce: true },
+        { tracker: 'UA-12345-45', trackEcommerce: true }
+      ];
+
+      beforeEach(module(function (AnalyticsProvider) {
+        AnalyticsProvider.setAccount(trackers);
+      }));
+
+      it('should add product for configured tracking objects only', function () {
+        inject(function ($window) {
+          spyOn($window, 'ga');
+          inject(function (Analytics) {
+            var length = Analytics._logs.length;
+            Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+            expect(length + 2).toBe(Analytics._logs.length);
+            expect($window.ga).toHaveBeenCalledWith(
+              'ec:addProduct',
+              {
+                id: 'sku-2',
+                name: 'Test Product 2',
+                category: 'Category-1',
+                brand: 'Brand 2',
+                variant: 'variant-3',
+                price: '2499',
+                quantity: '1',
+                coupon: 'FLAT10',
+                position: '1'
+              });
+            expect($window.ga).toHaveBeenCalledWith(
+              'tracker2.ec:addProduct',
+              {
+                id: 'sku-2',
+                name: 'Test Product 2',
+                category: 'Category-1',
+                brand: 'Brand 2',
+                variant: 'variant-3',
+                price: '2499',
+                quantity: '1',
+                coupon: 'FLAT10',
+                position: '1'
+              });
+          });
+        });
+      });
+    });
   });
 
   describe('supports arbitrary page events', function () {
@@ -538,7 +614,7 @@ describe('angular-google-analytics universal (analytics.js)', function() {
       AnalyticsProvider.setAccount(trackers);
     }));
 
-    it('should call ga create event for each tracker', function () {
+    it('should call create event for each tracker', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
@@ -550,7 +626,7 @@ describe('angular-google-analytics universal (analytics.js)', function() {
     });
 
     describe('#trackPage', function () {
-      it('should call ga send pageview event for each tracker', function () {
+      it('should call send pageview event for each tracker', function () {
         inject(function ($window) {
           spyOn($window, 'ga');
           inject(function (Analytics) {
@@ -576,7 +652,7 @@ describe('angular-google-analytics universal (analytics.js)', function() {
       AnalyticsProvider.setAccount(trackers);
     }));
 
-    it('should call ga require for each tracker', function () {
+    it('should call require for each tracker', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
@@ -587,7 +663,7 @@ describe('angular-google-analytics universal (analytics.js)', function() {
       });
     });
 
-    it('should call ga linker autoLink for configured tracking objects only', function () {
+    it('should call linker autoLink for configured tracking objects only', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
@@ -598,7 +674,7 @@ describe('angular-google-analytics universal (analytics.js)', function() {
       });
     });
 
-    it ('should call ga create with custom cookie config', function() {
+    it ('should call create with custom cookie config', function() {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {

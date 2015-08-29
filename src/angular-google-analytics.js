@@ -184,6 +184,34 @@
         };
 
         /**
+         * get ActionFieldObject
+         * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
+         * @param id
+         * @param affliation
+         * @param revenue
+         * @param tax
+         * @param shipping
+         * @param coupon
+         * @param list
+         * @param step
+         * @param option
+         */
+        var getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
+          var obj = {};
+          if (id) { obj.id = id; }
+          if (affiliation) { obj.affiliation = affiliation; }
+          if (revenue) { obj.revenue = revenue; }
+          if (tax) { obj.tax = tax; }
+          if (shipping) { obj.shipping = shipping; }
+          if (coupon) { obj.coupon = coupon; }
+          if (list) { obj.list = list; }
+          if (step) { obj.step = step; }
+          if (option) { obj.option = option; }
+          return obj;
+        };
+
+
+        /**
          * Private Methods
          */
 
@@ -228,17 +256,33 @@
 
           // Drop the includeFn from the arguments and preserve the original command name
           var args = Array.prototype.slice.call(arguments, 1),
-              commandName = args[0];
+              commandName = args[0],
+              trackers = [];
+          if (typeof includeFn === 'function') {
+            accounts.forEach(function (account) {
+              if (includeFn(account)) {
+                trackers.push(account);
+              }
+            });
+          } else {
+            // No include function indicates that all accounts are to be used
+            trackers = accounts;
+          }
 
-          accounts.forEach(function (trackerObj) {
-            if (typeof includeFn === 'function' && !includeFn(trackerObj)) {
-              return;
-            }
-            args[0] = generateCommandName(commandName, trackerObj);
+          // To preserve backwards compatibility fallback to _ga method if no account
+          // matches the specified includeFn. This preserves existing behaviors by
+          // performing the single tracker operation.
+          if (trackers.length === 0) {
+            _ga.apply(that, args);
+            return;
+          }
+
+          trackers.forEach(function (tracker) {
+            args[0] = generateCommandName(commandName, tracker);
             if (logAllCalls === true) {
               that._log.apply(that, args);
             }
-            $window.ga.apply(null, args);                
+            $window.ga.apply(null, args);
           });
         };
 
@@ -478,14 +522,21 @@
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'addTrans')) {
-              _ga('ecommerce:addTransaction', {
-                id: transactionId,
-                affiliation: affiliation,
-                revenue: total,
-                tax: tax,
-                shipping: shipping,
-                currency: currency || 'USD'
-              });
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ecommerce:addTransaction',
+                {
+                  id: transactionId,
+                  affiliation: affiliation,
+                  revenue: total,
+                  tax: tax,
+                  shipping: shipping,
+                  currency: currency || 'USD'
+                });
             }
           });
         };
@@ -508,14 +559,21 @@
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'addItem')) {
-              _ga('ecommerce:addItem', {
-                id: transactionId,
-                name: name,
-                sku: sku,
-                category: category,
-                price: price,
-                quantity: quantity
-              });
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ecommerce:addItem',
+                {
+                  id: transactionId,
+                  name: name,
+                  sku: sku,
+                  category: category,
+                  price: price,
+                  quantity: quantity
+                });
             }
           });
         };
@@ -532,7 +590,11 @@
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'trackTrans')) {
-              _ga('ecommerce:send');
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(includeFn, 'ecommerce:send');
             }
           });
         };
@@ -545,7 +607,11 @@
         this._clearTrans = function () {
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'clearTrans')) {
-              _ga('ecommerce:clear');
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(includeFn, 'ecommerce:clear');
             }
           });
         };
@@ -573,17 +639,24 @@
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addProduct')) {
-              _ga('ec:addProduct', {
-                id: productId,
-                name: name,
-                category: category,
-                brand: brand,
-                variant: variant,
-                price: price,
-                quantity: quantity,
-                coupon: coupon,
-                position: position
-              });
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addProduct',
+                {
+                  id: productId,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  price: price,
+                  quantity: quantity,
+                  coupon: coupon,
+                  position: position
+                });
             }
           });
         };
@@ -606,16 +679,23 @@
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addImpression')) {
-              _ga('ec:addImpression', {
-                id: id,
-                name: name,
-                category: category,
-                brand: brand,
-                variant: variant,
-                list: list,
-                position: position,
-                price: price
-              });
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addImpression',
+                {
+                  id: id,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  list: list,
+                  position: position,
+                  price: price
+                });
             }
           });
         };
@@ -634,41 +714,21 @@
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addPromo')) {
-              _ga('ec:addPromo', {
-                id: productId,
-                name: name,
-                creative: creative,
-                position: position
-              });
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addPromo',
+                {
+                  id: productId,
+                  name: name,
+                  creative: creative,
+                  position: position
+                });
             }
           });
-        };
-
-        /**
-         * get ActionFieldObject
-         * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
-         * @param id
-         * @param affliation
-         * @param revenue
-         * @param tax
-         * @param shipping
-         * @param coupon
-         * @param list
-         * @param step
-         * @param option
-         */
-        this._getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
-          var obj = {};
-          if (id) { obj.id = id; }
-          if (affiliation) { obj.affiliation = affiliation; }
-          if (revenue) { obj.revenue = revenue; }
-          if (tax) { obj.tax = tax; }
-          if (shipping) { obj.shipping = shipping; }
-          if (coupon) { obj.coupon = coupon; }
-          if (list) { obj.list = list; }
-          if (step) { obj.step = step; }
-          if (option) { obj.option = option; }
-          return obj;
         };
 
         /**
@@ -685,7 +745,11 @@
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'setAction')) {
-              _ga('ec:setAction', action, obj);
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(includeFn, 'ec:setAction', action, obj);
             }
           });
         };
@@ -704,7 +768,7 @@
          * @param option
          */
         this._trackTransaction = function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option) {
-          this._setAction('purchase', this._getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
+          this._setAction('purchase', getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
         };
 
         /**
@@ -714,7 +778,7 @@
          *
          */
         this._trackRefund = function (transactionId) {
-          this._setAction('refund', this._getActionFieldObject(transactionId));
+          this._setAction('refund', getActionFieldObject(transactionId));
         };
 
         /**
@@ -725,7 +789,7 @@
          *
          */
         this._trackCheckOut = function (step, option) {
-          this._setAction('checkout', this._getActionFieldObject(null, null, null, null, null, null, null, step, option));
+          this._setAction('checkout', getActionFieldObject(null, null, null, null, null, null, null, step, option));
         };
 
         /**
@@ -759,7 +823,7 @@
          *
          */
         this._productClick = function (listName) {
-          this._setAction('click', this._getActionFieldObject(null, null, null, null, null, null, listName, null, null));
+          this._setAction('click', getActionFieldObject(null, null, null, null, null, null, listName, null, null));
           this._send('event', 'UX', 'click', listName);
         };
 

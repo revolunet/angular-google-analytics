@@ -53,7 +53,8 @@ var app = angular.module('app', ['angular-google-analytics'])
                 },
                 crossDomainLinker: true,
                 crossLinkDomains: ['domain-1.com', 'domain-2.com'],
-                trackEvent: true
+                trackEvent: true,
+                trackEcommerce: true
             }
         ]);
 
