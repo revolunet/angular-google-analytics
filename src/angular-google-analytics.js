@@ -184,6 +184,34 @@
         };
 
         /**
+         * get ActionFieldObject
+         * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
+         * @param id
+         * @param affliation
+         * @param revenue
+         * @param tax
+         * @param shipping
+         * @param coupon
+         * @param list
+         * @param step
+         * @param option
+         */
+        var getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
+          var obj = {};
+          if (id) { obj.id = id; }
+          if (affiliation) { obj.affiliation = affiliation; }
+          if (revenue) { obj.revenue = revenue; }
+          if (tax) { obj.tax = tax; }
+          if (shipping) { obj.shipping = shipping; }
+          if (coupon) { obj.coupon = coupon; }
+          if (list) { obj.list = list; }
+          if (step) { obj.step = step; }
+          if (option) { obj.option = option; }
+          return obj;
+        };
+
+
+        /**
          * Private Methods
          */
 
@@ -228,17 +256,33 @@
 
           // Drop the includeFn from the arguments and preserve the original command name
           var args = Array.prototype.slice.call(arguments, 1),
-              commandName = args[0];
+              commandName = args[0],
+              trackers = [];
+          if (typeof includeFn === 'function') {
+            accounts.forEach(function (account) {
+              if (includeFn(account)) {
+                trackers.push(account);
+              }
+            });
+          } else {
+            // No include function indicates that all accounts are to be used
+            trackers = accounts;
+          }
 
-          accounts.forEach(function (trackerObj) {
-            if (typeof includeFn === 'function' && !includeFn(trackerObj)) {
-              return;
-            }
-            args[0] = generateCommandName(commandName, trackerObj);
+          // To preserve backwards compatibility fallback to _ga method if no account
+          // matches the specified includeFn. This preserves existing behaviors by
+          // performing the single tracker operation.
+          if (trackers.length === 0) {
+            _ga.apply(that, args);
+            return;
+          }
+
+          trackers.forEach(function (tracker) {
+            args[0] = generateCommandName(commandName, tracker);
             if (logAllCalls === true) {
               that._log.apply(that, args);
             }
-            $window.ga.apply(null, args);                
+            $window.ga.apply(null, args);
           });
         };
 
@@ -376,12 +420,24 @@
           return true;
         };
 
-        this._ecommerceEnabled = function () {
-          return ecommerce && !enhancedEcommerce;
+        this._ecommerceEnabled = function (warn, command) {
+          var result = ecommerce && !enhancedEcommerce;
+          if (warn === true && result === false) {
+            if (ecommerce && enhancedEcommerce) {
+              that._log('warn', command + ' is not available when Enhanced Ecommerce is enabled with analytics.js');
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use ' + command + ' with analytics.js');
+            }
+          }
+          return result;
         };
 
-        this._enhancedEcommerceEnabled = function () {
-          return ecommerce && enhancedEcommerce;
+        this._enhancedEcommerceEnabled = function (warn, command) {
+          var result = ecommerce && enhancedEcommerce;
+          if (warn === true && result === false) {
+            that._log('warn', 'Enhanced Ecommerce must be enabled to use ' + command + ' with analytics.js');
+          }
+          return result;
         };
 
         /**
@@ -465,17 +521,22 @@
             _gaq(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:addTransaction', {
-                id: transactionId,
-                affiliation: affiliation,
-                revenue: total,
-                tax: tax,
-                shipping: shipping,
-                currency: currency || 'USD'
-              });
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use addTrans with analytics.js');
+            if (that._ecommerceEnabled(true, 'addTrans')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ecommerce:addTransaction',
+                {
+                  id: transactionId,
+                  affiliation: affiliation,
+                  revenue: total,
+                  tax: tax,
+                  shipping: shipping,
+                  currency: currency || 'USD'
+                });
             }
           });
         };
@@ -497,17 +558,22 @@
             _gaq(['_addItem', transactionId, sku, name, category, price, quantity]);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:addItem', {
-                id: transactionId,
-                name: name,
-                sku: sku,
-                category: category,
-                price: price,
-                quantity: quantity
-              });
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use addItem with analytics.js');
+            if (that._ecommerceEnabled(true, 'addItem')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ecommerce:addItem',
+                {
+                  id: transactionId,
+                  name: name,
+                  sku: sku,
+                  category: category,
+                  price: price,
+                  quantity: quantity
+                });
             }
           });
         };
@@ -523,10 +589,12 @@
             _gaq(['_trackTrans']);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:send');
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use trackTrans with analytics.js');
+            if (that._ecommerceEnabled(true, 'trackTrans')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(includeFn, 'ecommerce:send');
             }
           });
         };
@@ -538,10 +606,12 @@
          */
         this._clearTrans = function () {
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:clear');
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use clearTrans with analytics.js');
+            if (that._ecommerceEnabled(true, 'clearTrans')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(includeFn, 'ecommerce:clear');
             }
           });
         };
@@ -568,20 +638,25 @@
             _gaq(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:addProduct', {
-                id: productId,
-                name: name,
-                category: category,
-                brand: brand,
-                variant: variant,
-                price: price,
-                quantity: quantity,
-                coupon: coupon,
-                position: position
-              });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addProduct with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'addProduct')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addProduct',
+                {
+                  id: productId,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  price: price,
+                  quantity: quantity,
+                  coupon: coupon,
+                  position: position
+                });
             }
           });
         };
@@ -603,19 +678,24 @@
             _gaq(['_addImpression', id, name, list, brand, category, variant, position, price]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:addImpression', {
-                id: id,
-                name: name,
-                category: category,
-                brand: brand,
-                variant: variant,
-                list: list,
-                position: position,
-                price: price
-              });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addImpression with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'addImpression')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addImpression',
+                {
+                  id: id,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  list: list,
+                  position: position,
+                  price: price
+                });
             }
           });
         };
@@ -633,44 +713,22 @@
             _gaq(['_addPromo', productId, name, creative, position]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:addPromo', {
-                id: productId,
-                name: name,
-                creative: creative,
-                position: position
-              });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addPromo with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'addPromo')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addPromo',
+                {
+                  id: productId,
+                  name: name,
+                  creative: creative,
+                  position: position
+                });
             }
           });
-        };
-
-        /**
-         * get ActionFieldObject
-         * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
-         * @param id
-         * @param affliation
-         * @param revenue
-         * @param tax
-         * @param shipping
-         * @param coupon
-         * @param list
-         * @param step
-         * @param option
-         */
-        this._getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
-          var obj = {};
-          if (id) { obj.id = id; }
-          if (affiliation) { obj.affiliation = affiliation; }
-          if (revenue) { obj.revenue = revenue; }
-          if (tax) { obj.tax = tax; }
-          if (shipping) { obj.shipping = shipping; }
-          if (coupon) { obj.coupon = coupon; }
-          if (list) { obj.list = list; }
-          if (step) { obj.step = step; }
-          if (option) { obj.option = option; }
-          return obj;
         };
 
         /**
@@ -686,10 +744,12 @@
             _gaq(['_setAction', action, obj]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:setAction', action, obj);
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use setAction with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'setAction')) {
+              var includeFn = function (trackerObj) {
+                return isPropertyDefined('trackEcommerce', trackerObj) && trackerObj.trackEcommerce === true;
+              };
+
+              _gaMultipleTrackers(includeFn, 'ec:setAction', action, obj);
             }
           });
         };
@@ -708,7 +768,7 @@
          * @param option
          */
         this._trackTransaction = function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option) {
-          this._setAction('purchase', this._getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
+          this._setAction('purchase', getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
         };
 
         /**
@@ -718,7 +778,7 @@
          *
          */
         this._trackRefund = function (transactionId) {
-          this._setAction('refund', this._getActionFieldObject(transactionId));
+          this._setAction('refund', getActionFieldObject(transactionId));
         };
 
         /**
@@ -729,7 +789,7 @@
          *
          */
         this._trackCheckOut = function (step, option) {
-          this._setAction('checkout', this._getActionFieldObject(null, null, null, null, null, null, null, step, option));
+          this._setAction('checkout', getActionFieldObject(null, null, null, null, null, null, null, step, option));
         };
 
         /**
@@ -763,7 +823,7 @@
          *
          */
         this._productClick = function (listName) {
-          this._setAction('click', this._getActionFieldObject(null, null, null, null, null, null, listName, null, null));
+          this._setAction('click', getActionFieldObject(null, null, null, null, null, null, listName, null, null));
           this._send('event', 'UX', 'click', listName);
         };
 
