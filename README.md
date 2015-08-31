@@ -110,6 +110,10 @@ var app = angular.module('app', ['angular-google-analytics'])
         // Delay script tag creation
         // must manually call Analytics.createScriptTag(cookieConfig) or Analytics.createAnalyticsScriptTag(cookieConfig)
         AnalyticsProvider.delayScriptTag(true);
+
+        // Start in offline mode if set to true. This also calls delayScriptTag(true) since the script cannot be
+        // fetched if offline and must be manually called when the application goes online.
+        AnalyticsProvider.startOffline(true);
     }))
     .run(function(Analytics) {
         // In case you are relying on automatic page tracking, you need to inject Analytics
@@ -242,6 +246,12 @@ var app = angular.module('app', ['angular-google-analytics'])
         var endTime = new Date().getTime();
         var timeSpent = endTime - startTime;
         Analytics.trackTimings('Time to Checkout', 'User Timings', timeSpent);
+
+        // While in offline mode, no calls to the ga function or pushes to the gaq array are made.
+        // This will queue all calls for later sending once offline mode is reset to false
+        Analytics.offline(true);
+        // Reset offline mode to false
+        Analytics.offline(false);
     });
 ```
 
