@@ -4,9 +4,10 @@
 describe('angular-google-analytics classic (ga.js)', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
-    AnalyticsProvider.setAccount('UA-XXXXXX-xx');
-    AnalyticsProvider.useAnalytics(false);
-    AnalyticsProvider.logAllCalls(true);
+    AnalyticsProvider
+      .setAccount('UA-XXXXXX-xx')
+      .useAnalytics(false)
+      .logAllCalls(true);
   }));
 
   describe('required settings missing', function () {

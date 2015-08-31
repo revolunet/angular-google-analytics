@@ -4,9 +4,10 @@
 describe('angular-google-analytics universal (analytics.js)', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
-    AnalyticsProvider.setAccount('UA-XXXXXX-xx');
-    AnalyticsProvider.useAnalytics(true);
-    AnalyticsProvider.logAllCalls(true);
+    AnalyticsProvider
+      .setAccount('UA-XXXXXX-xx')
+      .useAnalytics(true)
+      .logAllCalls(true);
   }));
 
   describe('required settings missing', function () {
@@ -115,11 +116,12 @@ describe('angular-google-analytics universal (analytics.js)', function() {
     };
 
     beforeEach(module(function (AnalyticsProvider) {
-      AnalyticsProvider.setCookieConfig(cookieConfig);
-      AnalyticsProvider.useDisplayFeatures(true);
-      AnalyticsProvider.useECommerce(true);
-      AnalyticsProvider.useEnhancedLinkAttribution(true);
-      AnalyticsProvider.setExperimentId('12345');
+      AnalyticsProvider
+        .setCookieConfig(cookieConfig)
+        .useDisplayFeatures(true)
+        .useECommerce(true)
+        .useEnhancedLinkAttribution(true)
+        .setExperimentId('12345');
     }));
 
     it('should inject the Analytics script', function () {
