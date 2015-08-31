@@ -20,17 +20,13 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - ga.js and and analytics.js support
  - cross-domain support
  - multiple tracking objects
+ - offline mode
 
 ## Installation
 
 `bower install angular-google-analytics`
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
-
-## Reference Service
-```js
-var app = angular.module('app', ['angular-google-analytics']);
-```
 
 ## Configure Service
 ```js
@@ -86,8 +82,8 @@ AnalyticsProvider.setAccount({
 
 ### Use Display Features
 ```js
-// Use display features module
-AnalyticsProvider.useDisplayFeatures(true);
+  // Use display features module
+  AnalyticsProvider.useDisplayFeatures(true);
 ```
 
 If set to a truthy value then the display features module is loaded with Google Analytics.
@@ -96,8 +92,8 @@ In the case of universal analytics, this value will be used as the default for a
 
 ### Use Enhanced Link Attribution
 ```js
-// Enable enhanced link attribution module
-AnalyticsProvider.useEnhancedLinkAttribution(true);
+  // Enable enhanced link attribution module
+  AnalyticsProvider.useEnhancedLinkAttribution(true);
 ```
 
 If set to a truthy value then the enhanced link attribution module is loaded with Google Analytics.
@@ -106,9 +102,9 @@ In the case of universal analytics, this value will be used as the default for a
 
 ### Use Cross Domain Linking
 ```js
-// Use cross domain linking and set cross-linked domains
-AnalyticsProvider.useCrossDomainLinker(true);
-AnalyticsProvider.setCrossLinkDomains(['domain-1.com', 'domain-2.com']);
+  // Use cross domain linking and set cross-linked domains
+  AnalyticsProvider.useCrossDomainLinker(true);
+  AnalyticsProvider.setCrossLinkDomains(['domain-1.com', 'domain-2.com']);
 ```
 
 If set to a truthy value then the cross-linked domains are registered with Google Analytics.
@@ -117,12 +113,12 @@ In the case of universal analytics, these values will be used as the default for
 
 ### Set Cookie Configuration
 ```js
-// Set custom cookie parameters
-AnalyticsProvider.setCookieConfig({
-  cookieDomain: 'foo.example.com',
-  cookieName: 'myNewName',
-  cookieExpires: 20000
-});
+  // Set custom cookie parameters
+  AnalyticsProvider.setCookieConfig({
+    cookieDomain: 'foo.example.com',
+    cookieName: 'myNewName',
+    cookieExpires: 20000
+  });
 ```
 In the case of universal analytics, this cookie configuration will be used as the default for any tracker that does not have the `cookieConfig` property defined.
 
@@ -142,84 +138,90 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
 
 ### Enable E-Commerce
 ```js
-// Enable e-commerce module (ecommerce.js)
-AnalyticsProvider.useECommerce(true, false);
+  // Enable e-commerce module (ecommerce.js)
+  AnalyticsProvider.useECommerce(true, false);
 
-// Enabled enhanced e-commerce module (ec.js)
-// Universal Analytics only
-AnalyticsProvider.useECommerce(true, true);
+  // Enabled enhanced e-commerce module (ec.js)
+  // Universal Analytics only
+  AnalyticsProvider.useECommerce(true, true);
 ```
 **Note:** When enhanced e-commerce is enabled, the legacy e-commerce module is disabled and unsupported. This is a requirement of Google Analytics.
 
 ### Set Route Tracking Behaviors
 ```js
-// Track all routes (default is true).
-AnalyticsProvider.trackPages(true);
+  // Track all routes (default is true).
+  AnalyticsProvider.trackPages(true);
 
-// Track all URL query params (default is false).
-AnalyticsProvider.trackUrlParams(true);
+  // Track all URL query params (default is false).
+  AnalyticsProvider.trackUrlParams(true);
 
-// Ignore first page view (default is false).
-// Helpful when using hashes and whenever your bounce rate looks obscenely low.
-AnalyticsProvider.ignoreFirstPageLoad(true);
+  // Ignore first page view (default is false).
+  // Helpful when using hashes and whenever your bounce rate looks obscenely low.
+  AnalyticsProvider.ignoreFirstPageLoad(true);
 
-// URL prefix (default is empty).
-// Helpful when the app doesn't run in the root directory.
-AnalyticsProvider.trackPrefix('my-application');
+  // URL prefix (default is empty).
+  // Helpful when the app doesn't run in the root directory.
+  AnalyticsProvider.trackPrefix('my-application');
 
-// Change the default page event name.
-// Helpful when using ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess.
-AnalyticsProvider.setPageEvent('$stateChangeSuccess');
+  // Change the default page event name.
+  // Helpful when using ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess.
+  AnalyticsProvider.setPageEvent('$stateChangeSuccess');
 
-// RegEx to scrub location before sending to analytics.
-// Internally replaces all matching segments with an empty string.
-AnalyticsProvider.setRemoveRegExp(/\/\d+?$/);
+  // RegEx to scrub location before sending to analytics.
+  // Internally replaces all matching segments with an empty string.
+  AnalyticsProvider.setRemoveRegExp(/\/\d+?$/);
 ```
 
 ### Set Domain Name
 ```js
-// Set the domain name
-AnalyticsProvider.setDomainName('XXX');
+  // Set the domain name
+  AnalyticsProvider.setDomainName('XXX');
 ```
 **Note:** Use the string `'none'` for testing on localhost.
 
 ### Enable Experiment (universal analytics only)
 ```js
-// Enable analytics.js experiments
-AnalyticsProvider.setExperimentId('12345');
+  // Enable analytics.js experiments
+  AnalyticsProvider.setExperimentId('12345');
 ```
-
 **Note:** only a single experiment can be defined.
 
 ### Delay Script Tag Insertion
 ```js
-// Must manually call create script tag method in order to insert and configure Google Analytics:
-//   Classic analytics:   Analytics.createScriptTag();
-//   Universal analytics: Analytics.createAnalyticsScriptTag();
-// Helpful when needing to do advanced configuration or user opt-out and wanting explicit control over when the Google Analytics script gets injected.
-AnalyticsProvider.delayScriptTag(true);
+  // Must manually call create script tag method in order to insert and configure Google Analytics:
+  //   Classic analytics:   Analytics.createScriptTag();
+  //   Universal analytics: Analytics.createAnalyticsScriptTag();
+  // Helpful when needing to do advanced configuration or user opt-out and wanting explicit control over when the Google Analytics script gets injected.
+  AnalyticsProvider.delayScriptTag(true);
+```
+
+### Offline Mode
+```js
+  // Start in offline mode if set to true. This also calls delayScriptTag(true) since the script cannot be
+  // fetched if offline and must be manually called when the application goes online.
+  AnalyticsProvider.startOffline(true);
 ```
 
 ### Service Logging
 ```js
-// Log all outbound calls to an in-memory array accessible via ```Analytics.log``` (default is false).
-// This is useful for troubleshooting and seeing the order of calls with parameters.
-AnalyticsProvider.logAllCalls(true);
+  // Log all outbound calls to an in-memory array accessible via ```Analytics.log``` (default is false).
+  // This is useful for troubleshooting and seeing the order of calls with parameters.
+  AnalyticsProvider.logAllCalls(true);
 ```
 
 ## Automatic Tracking
 If you are relying on automatic page tracking, you need to inject Analytics at least once in your application.
 ```js
-// As an example, add the service to the run call:
-app.run(function(Analytics) {});
+  // As an example, add the service to the run call:
+  app.run(function(Analytics) {});
 ```
 
 ## Making Calls
 ```js
-// As an example, a simple controller to make calls from:
-app.controller('SampleController', function (Analytics) {
-  // Add calls as desired - see below
-});
+  // As an example, a simple controller to make calls from:
+  app.controller('SampleController', function (Analytics) {
+    // Add calls as desired - see below
+  });
 ```
 
 ### Manual Script Tag Injection
@@ -235,8 +237,8 @@ If `delayScriptTag(true)` was set during configuration then manual script tag in
 ### Advanced Settings / Custom Dimensions
 The `set` call allows for advanced configuration and definitions in univeral analytics only. This is a no-op when using classic analytics.
 ```js
-    // As an example, set the User Id for the default, unnamed account object:
-    Analytics.set('&uid', 1234);
+  // As an example, set the User Id for the default, unnamed account object:
+  Analytics.set('&uid', 1234);
 
   // Register a custom dimension
   Analytics.set('dimension1', 'Paid');
@@ -275,6 +277,7 @@ The `set` call allows for advanced configuration and definitions in univeral ana
 The `trackTimings` call is available for univeral analytics only. This is a no-op when using classic analytics.
 ```js
   Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel);
+
   // example:
   var endTime = new Date().getTime(),
       timeSpent = endTime - startTime;
@@ -395,6 +398,16 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
   // example:
   Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
   Analytics.promoClick('Summer Sale');
+```
+
+### Online / Offline Mode
+```js
+  // While in offline mode, no calls to the ga function or pushes to the gaq array are made.
+  // This will queue all calls for later sending once offline mode is reset to false.
+  Analytics.offline(true);
+
+  // Reset offline mode to false
+  Analytics.offline(false);
 ```
 
 ## Directive

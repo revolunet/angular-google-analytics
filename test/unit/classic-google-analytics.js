@@ -114,7 +114,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate trackPages', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.trackPage('test');
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', '']);
@@ -124,7 +124,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate a trackPage on routeChangeSuccess', function () {
       inject(function (Analytics, $rootScope, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         $rootScope.$broadcast('$routeChangeSuccess');
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', '']);
@@ -140,7 +140,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should NOT generate a trackpage on routeChangeSuccess', function () {
       inject(function (Analytics, $rootScope, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         $rootScope.$broadcast('$routeChangeSuccess');
         expect($window._gaq.length).toBe(0);
       });
@@ -148,7 +148,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate a trackpage when explicitly called', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.trackPage('/page/here');
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', '']);
@@ -164,7 +164,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate eventTracks', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.trackEvent('test');
         expect($window._gaq.length).toBe(1);
         expect($window._gaq[0]).toEqual(['_trackEvent', 'test', undefined, undefined, undefined, false]);
@@ -173,7 +173,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate eventTracks with non-interactions', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.trackEvent('test', 'action', 'label', 0, true);
         expect($window._gaq.length).toBe(1);
         expect($window._gaq[0]).toEqual(['_trackEvent', 'test', 'action', 'label', 0, true]);
@@ -196,7 +196,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
   describe('e-commerce transactions', function () {
     it('should add transcation', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
         expect($window._gaq.length).toBe(1);
         expect($window._gaq[0]).toEqual(['_addTrans', '1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands']);
@@ -205,7 +205,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should add an item to transaction', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
         expect($window._gaq.length).toBe(1);
         expect($window._gaq[0]).toEqual(['_addItem', '1', 'sku-1', 'Test product 1', 'Testing', '1', '1']);
@@ -217,7 +217,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should track the transaction', function () {
       inject(function (Analytics, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         Analytics.trackTrans();
         expect($window._gaq.length).toBe(1);
         expect($window._gaq[0]).toEqual(['_trackTrans']);
@@ -244,7 +244,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should inject the Analytics script', function () {
       inject(function (Analytics, $rootScope, $window) {
-        $window._gaq.length = 0;
+        $window._gaq.length = 0; // clear queue
         $rootScope.$broadcast('$stateChangeSuccess');
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', '']);
@@ -273,9 +273,9 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should set url and title when no parameters provided', function () {
       inject(function (Analytics, $document, $location, $window) {
+        $window._gaq.length = 0; // clear queue
         $location.path('/page/here');
         $document[0] = { title: 'title here' };
-        $window._gaq.length = 0;
         Analytics.trackPage();
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', 'title here']);
@@ -285,8 +285,8 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should set title when no title provided', function () {
       inject(function (Analytics, $document, $window) {
+        $window._gaq.length = 0; // clear queue
         $document[0] = { title: 'title here' };
-        $window._gaq.length = 0;
         Analytics.trackPage('/page/here');
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', 'title here']);

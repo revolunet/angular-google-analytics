@@ -2,29 +2,31 @@
   'use strict';
   angular.module('angular-google-analytics', [])
     .provider('Analytics', function () {
-      var created = false,
-          trackRoutes = true,
-          accounts,
-          displayFeatures,
-          trackPrefix = '',
-          domainName,
+      var accounts,
           analyticsJS = false,
-          pageEvent = '$routeChangeSuccess',
           cookieConfig = 'auto',
+          created = false,
+          crossDomainLinker = false,
+          crossLinkDomains,
+          currency = 'USD',
+          delayScriptTag = false,
+          displayFeatures,
+          domainName,
           ecommerce = false,
           enhancedEcommerce = false,
           enhancedLinkAttribution = false,
-          currency = 'USD',
-          removeRegExp,
           experimentId,
           ignoreFirstPageLoad = false,
-          crossDomainLinker = false,
-          crossLinkDomains,
-          trackUrlParams = false,
-          delayScriptTag = false,
-          logAllCalls = false;
+          logAllCalls = false,
+          offlineMode = false,
+          pageEvent = '$routeChangeSuccess',
+          removeRegExp,
+          trackPrefix = '',
+          trackRoutes = true,
+          trackUrlParams = false;
 
       this.log = [];
+      this._offlineQueue = [];
 
       /**
        * Configuration Methods
@@ -128,6 +130,14 @@
         return this;
       };
 
+      this.startOffline = function (val) {
+        offlineMode = !!val;
+        if (offlineMode === true) {
+          this.delayScriptTag(true);
+        }
+        return this;
+      };
+
       this.delayScriptTag = function (val) {
         delayScriptTag = !!val;
         return this;
@@ -228,6 +238,10 @@
         };
 
         var _gaq = function () {
+          if (offlineMode === true) {
+            that._offlineQueue.push([_gaq, arguments]);
+            return;
+          }
           if (!$window._gaq) {
             $window._gaq = [];
           }
@@ -244,6 +258,10 @@
         };
 
         var _ga = function () {
+          if (offlineMode === true) {
+            that._offlineQueue.push([_ga, arguments]);
+            return;
+          }
           if (typeof $window.ga !== 'function') {
             that._log('warn', 'ga function not set on window');
             return;
@@ -255,11 +273,6 @@
         };
 
         var _gaMultipleTrackers = function (includeFn) {
-          if (typeof $window.ga !== 'function') {
-            that._log('warn', 'ga function not set on window');
-            return;
-          }
-
           // Drop the includeFn from the arguments and preserve the original command name
           var args = Array.prototype.slice.call(arguments, 1),
               commandName = args[0],
@@ -285,10 +298,7 @@
 
           trackers.forEach(function (tracker) {
             args[0] = generateCommandName(commandName, tracker);
-            if (logAllCalls === true) {
-              that._log.apply(that, args);
-            }
-            $window.ga.apply(null, args);
+            _ga.apply(that, args);
           });
         };
 
@@ -936,6 +946,21 @@
             }
 
             return that._createScriptTag();
+          },
+          offline: function (mode) {
+            if (mode === true && offlineMode === false) {
+              // Go to offline mode
+              offlineMode = true;
+            }
+            if (mode === false && offlineMode === true) {
+              // Go to online mode and process the offline queue
+              offlineMode = false;
+              while (that._offlineQueue.length > 0) {
+                var obj = that._offlineQueue.shift();
+                obj[0].apply(that, obj[1]);
+              }
+            }
+            return offlineMode;
           },
           ecommerceEnabled: function () {
             return that._ecommerceEnabled();
