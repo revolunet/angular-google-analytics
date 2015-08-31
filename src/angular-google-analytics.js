@@ -42,101 +42,100 @@
           // the trackEvent property must be set to true when there is only a single tracker.
           accounts = [{ tracker: tracker, trackEvent: true }];
         }
-        return true;
+        return this;
       };
 
       this.trackPages = function (doTrack) {
         trackRoutes = doTrack;
-        return true;
+        return this;
       };
 
       this.trackPrefix = function (prefix) {
         trackPrefix = prefix;
-        return true;
+        return this;
       };
 
       this.setDomainName = function (domain) {
         domainName = domain;
-        return true;
+        return this;
       };
 
       this.useDisplayFeatures = function (val) {
         displayFeatures = !!val;
-        return true;
+        return this;
       };
 
       this.useAnalytics = function (val) {
         analyticsJS = !!val;
-        return true;
+        return this;
       };
 
       this.useEnhancedLinkAttribution = function (val) {
         enhancedLinkAttribution = !!val;
-        return true;
+        return this;
       };
 
       this.useCrossDomainLinker = function (val) {
         crossDomainLinker = !!val;
-        return true;
+        return this;
       };
 
       this.setCrossLinkDomains = function (domains) {
         crossLinkDomains = domains;
-        return true;
+        return this;
       };
 
       this.setPageEvent = function (name) {
         pageEvent = name;
-        return true;
+        return this;
       };
 
       this.setCookieConfig = function (config) {
         cookieConfig = config;
-        return true;
+        return this;
       };
 
       this.useECommerce = function (val, enhanced) {
         ecommerce = !!val;
         enhancedEcommerce = !!enhanced;
-        return true;
+        return this;
       };
 
       this.setCurrency = function (currencyCode) {
         currency = currencyCode;
-        return true;
+        return this;
       };
 
       this.setRemoveRegExp = function (regex) {
         if (regex instanceof RegExp) {
           removeRegExp = regex;
-          return true;
         }
-        return false;
+        return this;
       };
 
       this.setExperimentId = function (id) {
         experimentId = id;
-        return true;
+        return this;
       };
 
       this.ignoreFirstPageLoad = function (val) {
         ignoreFirstPageLoad = !!val;
-        return true;
+        return this;
       };
 
       this.trackUrlParams = function (val) {
         trackUrlParams = !!val;
-        return true;
+        return this;
       };
 
       this.delayScriptTag = function (val) {
         delayScriptTag = !!val;
-        return true;
+        return this;
       };
 
       this.logAllCalls = function (val) {
         logAllCalls = !!val;
-        return true;
+        return this;
       };
 
       /**
