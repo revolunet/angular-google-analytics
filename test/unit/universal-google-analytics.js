@@ -1,7 +1,7 @@
 /* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
 
-describe('angular-google-analytics universal (analytics.js)', function() {
+describe('angular-google-analytics universal (analytics.js)', function () {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider
@@ -17,8 +17,9 @@ describe('angular-google-analytics universal (analytics.js)', function() {
       }));
 
       it('should not inject a script tag', function () {
+        var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
         inject(function (Analytics) {
-          expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(0);
+          expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount);
         });
       });
 
