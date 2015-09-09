@@ -26,9 +26,8 @@ describe('angular-google-analytics classic (ga.js)', function() {
         inject(function ($log) {
           spyOn($log, 'warn');
           inject(function (Analytics) {
-            expect(Analytics._logs.length).toBe(1);
-            expect(Analytics._logs[0][0]).toBe('warn');
-            expect(Analytics._logs[0][1]).toBe('No account id set to create script tag');
+            expect(Analytics.log.length).toBe(1);
+            expect(Analytics.log[0]).toEqual(['warn', 'No account id set to create script tag']);
             expect($log.warn).toHaveBeenCalledWith(['No account id set to create script tag']);
           });
         });
@@ -68,9 +67,8 @@ describe('angular-google-analytics classic (ga.js)', function() {
       inject(function ($log) {
         spyOn($log, 'warn');
         inject(function (Analytics) {
-          expect(Analytics._logs.length).toBe(3);
-          expect(Analytics._logs[0][0]).toBe('warn');
-          expect(Analytics._logs[0][1]).toBe('Multiple trackers are not supported with ga.js. Using first tracker only');
+          expect(Analytics.log.length).toBe(3);
+          expect(Analytics.log[0]).toEqual(['warn', 'Multiple trackers are not supported with ga.js. Using first tracker only']);
           expect($log.warn).toHaveBeenCalledWith(['Multiple trackers are not supported with ga.js. Using first tracker only']);
         });
       });
@@ -116,21 +114,21 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate trackPages', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.trackPage('test');
-        expect(length + 2).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_set', 'title', '']);
-        expect($window._gaq[length + 1]).toEqual(['_trackPageview', 'test']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', 'test']);
       });
     });
 
     it('should generate a trackPage on routeChangeSuccess', function () {
       inject(function (Analytics, $rootScope, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         $rootScope.$broadcast('$routeChangeSuccess');
-        expect(length + 2).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_set', 'title', '']);
-        expect($window._gaq[length + 1]).toEqual(['_trackPageview', '']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', '']);
       });
     });
   });
@@ -142,19 +140,19 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should NOT generate a trackpage on routeChangeSuccess', function () {
       inject(function (Analytics, $rootScope, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         $rootScope.$broadcast('$routeChangeSuccess');
-        expect(length).toBe($window._gaq.length);
+        expect($window._gaq.length).toBe(0);
       });
     });
 
     it('should generate a trackpage when explicitly called', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.trackPage('/page/here');
-        expect(length + 2).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_set', 'title', '']);
-        expect($window._gaq[length + 1]).toEqual(['_trackPageview', '/page/here']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', '/page/here']);
       });
     });
   });
@@ -166,19 +164,19 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should generate eventTracks', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.trackEvent('test');
-        expect(length + 1).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_trackEvent', 'test', undefined, undefined, undefined, false]);
+        expect($window._gaq.length).toBe(1);
+        expect($window._gaq[0]).toEqual(['_trackEvent', 'test', undefined, undefined, undefined, false]);
       });
     });
 
     it('should generate eventTracks with non-interactions', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.trackEvent('test', 'action', 'label', 0, true);
-        expect(length + 1).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_trackEvent', 'test', 'action', 'label', 0, true]);
+        expect($window._gaq.length).toBe(1);
+        expect($window._gaq[0]).toEqual(['_trackEvent', 'test', 'action', 'label', 0, true]);
       });
     });
   });
@@ -198,31 +196,31 @@ describe('angular-google-analytics classic (ga.js)', function() {
   describe('e-commerce transactions', function () {
     it('should add transcation', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands');
-        expect(length + 1).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_addTrans', '1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands']);
+        expect($window._gaq.length).toBe(1);
+        expect($window._gaq[0]).toEqual(['_addTrans', '1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands']);
       });
     });
 
     it('should add an item to transaction', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
-        expect(length + 1).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_addItem', '1', 'sku-1', 'Test product 1', 'Testing', '1', '1']);
+        expect($window._gaq.length).toBe(1);
+        expect($window._gaq[0]).toEqual(['_addItem', '1', 'sku-1', 'Test product 1', 'Testing', '1', '1']);
         Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
-        expect(length + 2).toBe($window._gaq.length);
-        expect($window._gaq[length + 1]).toEqual(['_addItem', '1', 'sku-2', 'Test product 2', 'Testing', '1', '1']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[1]).toEqual(['_addItem', '1', 'sku-2', 'Test product 2', 'Testing', '1', '1']);
       });
     });
 
     it('should track the transaction', function () {
       inject(function (Analytics, $window) {
-        var length = $window._gaq.length;
+        $window._gaq.length = 0;
         Analytics.trackTrans();
-        expect(length + 1).toBe($window._gaq.length);
-        expect($window._gaq[length]).toEqual(['_trackTrans']);
+        expect($window._gaq.length).toBe(1);
+        expect($window._gaq[0]).toEqual(['_trackTrans']);
       });
     });
   });
@@ -245,12 +243,12 @@ describe('angular-google-analytics classic (ga.js)', function() {
     }));
 
     it('should inject the Analytics script', function () {
-      inject(function (Analytics, $rootScope) {
-        var length = Analytics._logs.length;
+      inject(function (Analytics, $rootScope, $window) {
+        $window._gaq.length = 0;
         $rootScope.$broadcast('$stateChangeSuccess');
-        expect(length + 2).toBe(Analytics._logs.length);
-        expect(Analytics._logs[length][0]).toEqual(['_set', 'title', '']);
-        expect(Analytics._logs[length + 1][0]).toEqual(['_trackPageview', '']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', '']);
       });
     });
   });
@@ -274,25 +272,25 @@ describe('angular-google-analytics classic (ga.js)', function() {
     }));
 
     it('should set url and title when no parameters provided', function () {
-      inject(function (Analytics, $document, $location) {
+      inject(function (Analytics, $document, $location, $window) {
         $location.path('/page/here');
         $document[0] = { title: 'title here' };
-        var length = Analytics._logs.length;
+        $window._gaq.length = 0;
         Analytics.trackPage();
-        expect(length + 2).toBe(Analytics._logs.length);
-        expect(Analytics._logs[length][0]).toEqual(['_set', 'title', 'title here']);
-        expect(Analytics._logs[length + 1][0]).toEqual(['_trackPageview', '/page/here']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', 'title here']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', '/page/here']);
       });
     });
 
     it('should set title when no title provided', function () {
-      inject(function (Analytics, $document) {
+      inject(function (Analytics, $document, $window) {
         $document[0] = { title: 'title here' };
-        var length = Analytics._logs.length;
+        $window._gaq.length = 0;
         Analytics.trackPage('/page/here');
-        expect(length + 2).toBe(Analytics._logs.length);
-        expect(Analytics._logs[length][0]).toEqual(['_set', 'title', 'title here']);
-        expect(Analytics._logs[length + 1][0]).toEqual(['_trackPageview', '/page/here']);
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', 'title here']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', '/page/here']);
       });
     });
   });

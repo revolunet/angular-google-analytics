@@ -27,297 +27,412 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
 
-## Example
-
+## Reference Service
 ```js
-var app = angular.module('app', ['angular-google-analytics'])
-    .config(function(AnalyticsProvider) {
-        // Set analytics account
-        AnalyticsProvider.setAccount('UA-XXXXX-xx');
-
-        // Or if using multiple tracking objects (analytics.js only)
-        AnalyticsProvider.setAccount([
-           { tracker: 'UA-12345-12', name: "tracker1" },
-           { tracker: 'UA-12345-34', name: "tracker2" }
-        ]);
-
-        // Or if needing to override properties for specific tracking objects (analytics.js only)
-        AnalyticsProvider.setAccount([
-            {
-                tracker: 'UA-12345-12',
-                name: "tracker1",
-                cookieConfig: {
-                    cookieDomain: 'foo.example.com',
-                    cookieName: 'myNewName',
-                    cookieExpires: 20000
-                },
-                crossDomainLinker: true,
-                crossLinkDomains: ['domain-1.com', 'domain-2.com'],
-                trackEvent: true,
-                trackEcommerce: true
-            }
-        ]);
-
-        // Track all routes (or not)
-        AnalyticsProvider.trackPages(true);
-
-        // Track all URL query params (default is false)
-        AnalyticsProvider.trackUrlParams(true);
-
-        // Optional set domain (Use 'none' for testing on localhost)
-        AnalyticsProvider.setDomainName('XXX');
-
-        // Use display features plugin
-        AnalyticsProvider.useDisplayFeatures(true);
-
-        // URL prefix (default is empty)
-        // - for example: when an app doesn't run in the root directory
-        AnalyticsProvider.trackPrefix('my-application');
-
-        // Use analytics.js instead of ga.js
-        AnalyticsProvider.useAnalytics(true);
-
-        // Use cross domain linking
-        AnalyticsProvider.useCrossDomainLinker(true);
-        AnalyticsProvider.setCrossLinkDomains(['domain-1.com', 'domain-2.com']);
-
-        // Ignore first page view... helpful when using hashes and whenever your bounce rate looks obscenely low.
-        AnalyticsProvider.ignoreFirstPageLoad(true);
-
-        // Enabled eCommerce module for analytics.js (uses legacy ecommerce plugin)
-        AnalyticsProvider.useECommerce(true, false);
-
-        // Enabled enhanced eCommerce module for analytics.js (uses ec plugin instead of ecommerce plugin)
-        // When enabled, legacy ecommerce plugin calls are not supported
-        AnalyticsProvider.useECommerce(true, true);
-
-        // Enable enhanced link attribution
-        AnalyticsProvider.useEnhancedLinkAttribution(true);
-
-        // Enable analytics.js experiments
-        AnalyticsProvider.setExperimentId('12345');
-
-        // Set custom cookie parameters for analytics.js
-        AnalyticsProvider.setCookieConfig({
-            cookieDomain: 'foo.example.com',
-            cookieName: 'myNewName',
-            cookieExpires: 20000
-        });
-
-        // Change page event name
-        AnalyticsProvider.setPageEvent('$stateChangeSuccess');
-
-        // Delay script tag creation
-        // must manually call Analytics.createScriptTag(cookieConfig) or Analytics.createAnalyticsScriptTag(cookieConfig)
-        AnalyticsProvider.delayScriptTag(true);
-    }))
-    .run(function(Analytics) {
-        // In case you are relying on automatic page tracking, you need to inject Analytics
-        // at least once in your application (for example in the main run() block)
-    })
-    .controller('SampleController', function(Analytics) {
-        // create a new pageview event
-        Analytics.trackPage('/video/detail/XXX');
-
-        // or create a new pageview event with optional page title
-        Analytics.trackPage('/video/detail/XXX', 'Video XXX');
-
-        // or create a new pageview event with optional page title, custom dimension and metric
-        // (analytics.js only)
-        Analytics.trackPage('/video/detail/XXX', 'Video XXX', {dimension15: 'My Custom Dimension', metric18: 8000});
-
-        // create a new tracking event
-        Analytics.trackEvent('video', 'play', 'django.mp4');
-
-        // create a new tracking event with optional value
-        Analytics.trackEvent('video', 'play', 'django.mp4', 4);
-
-        // Create a new tracking event with optional value and noninteraction flag
-        Analytics.trackEvent('video', 'play', 'django.mp4', 4, true);
-
-        // Create a new tracking event with optional value, noninteraction flag, and custom dimension and metric
-        // (analytics.js only)
-        Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000});
-
-        // Tracking e-commerce
-        // - create transaction
-        Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands', 'EUR');
-
-        // - add items to transaction
-        Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
-        Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
-
-        // - complete transaction
-        Analytics.trackTrans();
-
-        // Enhanced Ecommerce Tracking
-
-        // Product Impression Tracking
-        Analytics.addImpression(productId, name, list, brand, category, variant, position, price);
-        Analytics.pageView();
-        // example:
-        Analytics.addImpression('sku-1', 'Test Product 1', 'Category List', 'Brand 1', 'Category-1', 'variant-1', '1', '24990');
-        Analytics.addImpression('sku-2', 'Test Product 2', 'Category List', 'Brand 2', 'Category-1', 'variant-3', '2', '2499');
-        Analytics.pageView();
-
-        // Product Click Tracking
-        Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-        Analytics.productClick(listName);
-        // example:
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.productClick('Search Result');
-
-        // Product Detail Tracking
-        Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-        Analytics.trackDetail();
-        // example:
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.trackDetail();
-
-        // Add to cart Tracking
-        Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-        Analytics.trackCart('add');
-        // example:
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.trackCart('add');
-
-        // Remove from cart Tracking
-        Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-        Analytics.trackCart('remove');
-        // example:
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.trackCart('remove');
-
-        // Checkout Tracking
-        Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-        Analytics.trackCheckout(checkoutStep, optionValue);
-        // example:
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-        Analytics.trackCheckout(1, 'Visa');
-
-        // Transaction Tracking
-        Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-        Analytics.trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
-        // example:
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2222', '1', 'MEN10', '1');
-        Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '1111', '1', 'WOMEN10', '1');
-        Analytics.trackTransaction('T1234', 'Online Store - Web', '3333', '10', '200', 'FLAT10', '', '', '');
-
-        // Promotion Impressions
-        Analytics.addPromo(productId, name, creative, position);
-        Analytics.addPromo(productId, name, creative, position);
-        Analytics.addPromo(productId, name, creative, position);
-        Analytics.pageView();
-        // Note: Before tracking promotion click, call pageView, otherwise promotion impressions will be treated as promotion clicks
-        // example:
-        Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
-        Analytics.pageView();
-
-        // Promotion Clicks
-        Analytics.addPromo(promotionId, promotionName, creative, position);
-        Analytics.addPromo(promotionId, promotionName, creative, position);
-        Analytics.addPromo(promotionId, promotionName, creative, position);
-        Analytics.promoClick(promotionName);
-        // example:
-        Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
-        Analytics.promoClick('Summer Sale');
-
-        // Populate a custom dimension
-        Analytics.set('dimension1', 'Paid');
-        // or set the User Id
-        Analytics.set('&uid', 1234);
-
-        // Manually create script tag after using delayScriptTag
-        Analytics.createScriptTag({ userId: 1234 });
-
-        // Manually create Analytics script tag after using delayScriptTag
-        Analytics.createAnalyticsScriptTag({ userId: 1234 });
-
-        // Track User Timings
-        Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel);
-        // example:
-        var endTime = new Date().getTime();
-        var timeSpent = endTime - startTime;
-        Analytics.trackTimings('Time to Checkout', 'User Timings', timeSpent);
-    });
+var app = angular.module('app', ['angular-google-analytics']);
 ```
 
-### Directive
-
-Alternatively you can use a directive to avoid filling controllers with `Analytics.trackEvent()` statements. Note: the directive does not create an isolate scope.
-
-```html
-    <button type="button" ga-track-event="['video', 'play', 'django.mp4']"></button>
-```
-    <!-- OR -->
-```html
-    <button type="button" ga-track-event="['video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000}]"></button>
-```
-
-You can define the properties on your controller too, `$scope.event = ['video', 'play', 'django.mp4']` and reference them
-
-```html
-    <button type="button" ga-track-event="event"></button>
-```
-
-`ga-track-event-if` is a conditional check. If the attribute value evaluates to a falsey, the event will NOT be fired. Useful for user tracking opt-out, etc.
-
-```html
-    <button type="button" ga-track-event="['video', 'play', 'django.mp4']" ga-track-event-if="shouldTrack"></button>
-```
-
-## Configuration
-
+## Configure Service
 ```js
-// Setup your account
-AnalyticsProvider.setAccount('UA-XXXXX-xx');
-// Automatic route tracking (default: true)
-AnalyticsProvider.trackPages(false);
-// Optional set domain (Use 'none' for testing on localhost)
-AnalyticsProvider.setDomainName('XXX');
-// Use display features plugin
-AnalyticsProvider.useDisplayFeatures(true);
-// Use analytics.js instead of ga.js
+app.config(function (AnalyticsProvider) {
+  // Add configuration code as desired - see below
+});
+```
+
+### Use Universal Analytics
+```js
+// Use analytics.js (universal) instead of ga.js (classic)
+// By default, classic analytics is used, unless this is called with a truthy value.
 AnalyticsProvider.useAnalytics(true);
-// Ignore first page view.
-AnalyticsProvider.ignoreFirstPageLoad(true);
+```
 
-// Enable eCommerce module for analytics.js
-AnalyticsProvider.useECommerce(true, false);
-// Enable enhanced eCommerce module for analytics.js
-AnalyticsProvider.useECommerce(true, true);
-// Enable enhanced link attribution module for analytics.js or ga.js
+### Set Google Analytics Accounts (Required)
+```js
+// Set a single account
+AnalyticsProvider.setAccount('UA-XXXXX-xx');
+```
+**Note:** the single account syntax is internally represented as an unnamed account object that will have all properties defined to defaults, except for name.
+
+```js
+// Set multiple accounts
+// Universal Analytics only
+AnalyticsProvider.setAccount([
+   { tracker: 'UA-12345-12', name: "tracker1" },
+   { tracker: 'UA-12345-34', name: "tracker2" }
+]);
+```
+**Note:** the above account objects will have all properties defined to defaults that are not defined.
+
+```js
+// Set a single account with all properties defined
+// Universal Analytics only
+AnalyticsProvider.setAccount({
+  tracker: 'UA-12345-12',
+  name: "tracker1",
+  cookieConfig: {
+    cookieDomain: 'foo.example.com',
+    cookieName: 'myNewName',
+    cookieExpires: 20000
+  },
+  crossDomainLinker: true,
+  crossLinkDomains: ['domain-1.com', 'domain-2.com'],
+  displayFeatures: true,
+  enhancedLinkAttribution: true,
+  trackEvent: true,
+  trackEcommerce: true
+});
+```
+**Note:** the above properties are referenced and discussed in proceeding sections.
+
+### Use Display Features
+```js
+// Use display features module
+AnalyticsProvider.useDisplayFeatures(true);
+```
+
+If set to a truthy value then the display features module is loaded with Google Analytics.
+
+In the case of universal analytics, this value will be used as the default for any tracker that does not have the `displayFeatures` property defined. All trackers with `displayFeatures: true` will be registered for display features.
+
+### Use Enhanced Link Attribution
+```js
+// Enable enhanced link attribution module
 AnalyticsProvider.useEnhancedLinkAttribution(true);
-// Enable analytics.js experiments
-AnalyticsProvider.setExperimentId('12345');
-// Set custom cookie parameters for analytics.js
+```
+
+If set to a truthy value then the enhanced link attribution module is loaded with Google Analytics.
+
+In the case of universal analytics, this value will be used as the default for any tracker that does not have the `enhancedLinkAttribution` property defined. All trackers with `enhancedLinkAttribution: true` will be registered for enhanced link attribution.
+
+### Use Cross Domain Linking
+```js
+// Use cross domain linking and set cross-linked domains
+AnalyticsProvider.useCrossDomainLinker(true);
+AnalyticsProvider.setCrossLinkDomains(['domain-1.com', 'domain-2.com']);
+```
+
+If set to a truthy value then the cross-linked domains are registered with Google Analytics.
+
+In the case of universal analytics, these values will be used as the default for any tracker that does not have the `crossDomainLinker` and `crossLinkDomains` properties defined. All trackers with `crossDomainLinker: true` will register the cross-linked domains.
+
+### Set Cookie Configuration
+```js
+// Set custom cookie parameters
 AnalyticsProvider.setCookieConfig({
   cookieDomain: 'foo.example.com',
   cookieName: 'myNewName',
   cookieExpires: 20000
 });
-// Change the default page event name. This is useful for ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess
+```
+In the case of universal analytics, this cookie configuration will be used as the default for any tracker that does not have the `cookieConfig` property defined.
+
+### Track Events
+This property is defined for universal analytics account objects only and is false by default.
+
+If `trackEvent: true` for an account object then all `trackEvent` calls will be supported for that account object.
+
+Set `trackEvent: false` for an account object that is not tracking events.
+
+### Track E-Commerce
+This property is defined for universal analytics account objects only. This property defaults to true if e-commerce is enabled (either classic or enhanced) and false otherwise.
+
+If `trackEcommerce: true` for an account object then all e-commerce calls will be supported for that account object.
+
+Set `trackEcommerce: false` for an account object that is not tracking e-commerce.
+
+### Enable E-Commerce
+```js
+// Enable e-commerce module (ecommerce.js)
+AnalyticsProvider.useECommerce(true, false);
+
+// Enabled enhanced e-commerce module (ec.js)
+// Universal Analytics only
+AnalyticsProvider.useECommerce(true, true);
+```
+**Note:** When enhanced e-commerce is enabled, the legacy e-commerce module is disabled and unsupported. This is a requirement of Google Analytics.
+
+### Set Route Tracking Behaviors
+```js
+// Track all routes (default is true).
+AnalyticsProvider.trackPages(true);
+
+// Track all URL query params (default is false).
+AnalyticsProvider.trackUrlParams(true);
+
+// Ignore first page view (default is false).
+// Helpful when using hashes and whenever your bounce rate looks obscenely low.
+AnalyticsProvider.ignoreFirstPageLoad(true);
+
+// URL prefix (default is empty).
+// Helpful when the app doesn't run in the root directory.
+AnalyticsProvider.trackPrefix('my-application');
+
+// Change the default page event name.
+// Helpful when using ui-router, which fires $stateChangeSuccess instead of $routeChangeSuccess.
 AnalyticsProvider.setPageEvent('$stateChangeSuccess');
-// Delay script tag creation. Must manually call Analytics.createScriptTag() or Analytics.createAnalyticsScriptTag() to enable analytics
-AnalyticsProvider.delayScriptTag(true);
-// RegEx to scrub location before sending to analytics. Internally replaces all matching segments with an empty string
+
+// RegEx to scrub location before sending to analytics.
+// Internally replaces all matching segments with an empty string.
 AnalyticsProvider.setRemoveRegExp(/\/\d+?$/);
-// Log all outbound calls to Google Analytics to an in-memory array accessible via ```Analytics._logs```. Logging is disabled (false) by default
+```
+
+### Set Domain Name
+```js
+// Set the domain name
+AnalyticsProvider.setDomainName('XXX');
+```
+**Note:** Use the string `'none'` for testing on localhost.
+
+### Enable Experiment (universal analytics only)
+```js
+// Enable analytics.js experiments
+AnalyticsProvider.setExperimentId('12345');
+```
+
+**Note:** only a single experiment can be defined.
+
+### Delay Script Tag Insertion
+```js
+// Must manually call create script tag method in order to insert and configure Google Analytics:
+//   Classic analytics:   Analytics.createScriptTag();
+//   Universal analytics: Analytics.createAnalyticsScriptTag();
+// Helpful when needing to do advanced configuration or user opt-out and wanting explicit control over when the Google Analytics script gets injected.
+AnalyticsProvider.delayScriptTag(true);
+```
+
+### Service Logging
+```js
+// Log all outbound calls to an in-memory array accessible via ```Analytics.log``` (default is false).
+// This is useful for troubleshooting and seeing the order of calls with parameters.
 AnalyticsProvider.logAllCalls(true);
 ```
 
-## AdBlock EasyPrivacy
+## Automatic Tracking
+If you are relying on automatic page tracking, you need to inject Analytics at least once in your application.
+```js
+// As an example, add the service to the run call:
+app.run(function(Analytics) {});
+```
+
+## Making Calls
+```js
+// As an example, a simple controller to make calls from:
+app.controller('SampleController', function (Analytics) {
+  // Add calls as desired - see below
+});
+```
+
+### Manual Script Tag Injection
+If `delayScriptTag(true)` was set during configuration then manual script tag injection is required. Otherwise, the script tag will be automatically injected and configured when the service is instantiated.
+```js
+  // Manually create classic analytics (ga.js) script tag
+  Analytics.createScriptTag({ userId: 1234 });
+
+  // Manually create universal analytics (analytics.js) script tag
+  Analytics.createAnalyticsScriptTag({ userId: 1234 });
+```
+
+### Advanced Settings / Custom Dimensions
+The `set` call allows for advanced configuration and definitions in univeral analytics only. This is a no-op when using classic analytics.
+```js
+    // As an example, set the User Id for the default, unnamed account object:
+    Analytics.set('&uid', 1234);
+
+  // Register a custom dimension
+  Analytics.set('dimension1', 'Paid');
+```
+
+### Page Tracking
+```js
+  // Create a new pageview event
+  Analytics.trackPage('/video/detail/XXX');
+
+  // Create a new pageview event with page title
+  Analytics.trackPage('/video/detail/XXX', 'Video XXX');
+
+  // Create a new pageview event with page title, custom dimension, and custom metric
+  // Universal Analytics only
+  Analytics.trackPage('/video/detail/XXX', 'Video XXX', { dimension15: 'My Custom Dimension', metric18: 8000 });
+```
+
+### Event Tracking
+```js
+  // Create a new tracking event
+  Analytics.trackEvent('video', 'play', 'django.mp4');
+
+  // Create a new tracking event with a value
+  Analytics.trackEvent('video', 'play', 'django.mp4', 4);
+
+  // Create a new tracking event with a value and non-interaction flag
+  Analytics.trackEvent('video', 'play', 'django.mp4', 4, true);
+
+  // Create a new tracking event with a value, non-interaction flag, custom dimension, and custom metric
+  // Universal Analytics only
+  Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, { dimension15: 'My Custom Dimension', metric18: 8000 });
+```
+
+### Track User Timings
+The `trackTimings` call is available for univeral analytics only. This is a no-op when using classic analytics.
+```js
+  Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel);
+  // example:
+  var endTime = new Date().getTime(),
+      timeSpent = endTime - startTime;
+  Analytics.trackTimings('Time to Checkout', 'User Timings', timeSpent);
+```
+
+### Classic E-Commerce (ecommerce.js)
+Classic e-commerce and enhanced e-commerce are mutually exclusive.
+```js
+  // Create transaction
+  Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands', 'EUR');
+
+  // Add items to transaction
+  Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
+  Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
+
+  // Complete transaction
+  Analytics.trackTrans();
+
+  // Clear transaction
+  Analytics.clearTrans();
+```
+
+### Enhanced E-Commerce (ec.js)
+Enhanced e-commerce is only available for universal analytics. Enhanced e-commerce and classic e-commerce are mutually exclusive.
+
+#### Product Impression Tracking
+```js
+  Analytics.addImpression(productId, name, list, brand, category, variant, position, price);
+  Analytics.pageView();
+
+  // example:
+  Analytics.addImpression('sku-1', 'Test Product 1', 'Category List', 'Brand 1', 'Category-1', 'variant-1', '1', '24990');
+  Analytics.addImpression('sku-2', 'Test Product 2', 'Category List', 'Brand 2', 'Category-1', 'variant-3', '2', '2499');
+  Analytics.pageView();
+```
+
+#### Product Click Tracking
+```js
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.productClick(listName);
+
+  // example:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.productClick('Search Result');
+```
+
+#### Product Detail Tracking
+```js
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.trackDetail();
+
+  // example:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.trackDetail();
+```
+
+#### Add to Cart Tracking
+```js
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.trackCart('add');
+
+  // example:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.trackCart('add');
+```
+
+#### Remove from Cart Tracking
+```js
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.trackCart('remove');
+
+  // example:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.trackCart('remove');
+```
+
+#### Checkout Tracking
+```js
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.trackCheckout(checkoutStep, optionValue);
+
+  // example:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.trackCheckout(1, 'Visa');
+```
+
+#### Transaction Tracking
+```js
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
+
+  // example:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2222', '1', 'MEN10', '1');
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '1111', '1', 'WOMEN10', '1');
+  Analytics.trackTransaction('T1234', 'Online Store - Web', '3333', '10', '200', 'FLAT10', '', '', '');
+```
+
+#### Promotion Impressions
+```js
+  Analytics.addPromo(productId, name, creative, position);
+  Analytics.pageView();
+
+  // example:
+  Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
+  Analytics.pageView();
+```
+**Note:** Before tracking promotion clicks, call pageView, otherwise promotion impressions will be treated as promotion clicks.
+
+#### Promotion Clicks
+```js
+  Analytics.addPromo(promotionId, promotionName, creative, position);
+  Analytics.promoClick(promotionName);
+
+  // example:
+  Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
+  Analytics.promoClick('Summer Sale');
+```
+
+## Directive
+
+Alternatively, you can use a directive to avoid filling controllers with `Analytics.trackEvent();` statements.
+
+**Note:** the directive does not create an isolate scope.
+
+```html
+  <button type="button" ga-track-event="['video', 'play', 'django.mp4']"></button>
+
+  <!-- OR -->
+
+  <button type="button" ga-track-event="['video', 'play', 'django.mp4', 4, true, {dimension15: 'My Custom Dimension', metric18: 8000}]"></button>
+```
+
+You can define the properties on your controller too, `$scope.event = ['video', 'play', 'django.mp4']` and reference them.
+
+```html
+  <button type="button" ga-track-event="event"></button>
+```
+
+`ga-track-event-if` is a conditional check. If the attribute value evaluates falsey, the event will **NOT** be fired. This is useful for user tracking opt-out, _etc._
+
+```html
+  <button type="button" ga-track-event="['video', 'play', 'django.mp4']" ga-track-event-if="shouldTrack"></button>
+```
+
+## Troubleshooting
+### AdBlock EasyPrivacy
 
 AdBlock has a module named [EasyPrivacy](https://easylist-downloads.adblockplus.org/easyprivacy.txt) that is meant to block web tracking scripts. angular-google-analytics.js gets filtered out by the EasyPrivacy blacklist.
 
-Users who are already concatenating and minifying their scripts should not notice a problem as long as the new script name is not also on the EasyPrivacy blacklist. Alternatively, consider changing the filename manually.
+Users who are already concatenating and minifying their scripts should not notice a problem as long as the new script name is not also on the EasyPrivacy blacklist. Alternatively, consider changing the file name manually.
 
 ## Licence
 
-As AngularJS itself, this module is released under the permissive [MIT license](http://revolunet.mit-license.org). Your contributions are always welcome.
+As AngularJS itself, this module is released under the permissive [MIT License](http://revolunet.mit-license.org). Your contributions are always welcome.
 
 ## Development
 
