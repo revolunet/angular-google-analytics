@@ -43,7 +43,7 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     it('should have a truthy value for Analytics.delayScriptTag', function () {
       inject(function (Analytics, $location) {
-        expect(Analytics.delayScriptTag).toBe(true);
+        expect(Analytics.configuration.delayScriptTag).toBe(true);
       });
     });
 
@@ -103,7 +103,7 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     it('supports ignoreFirstPageLoad config', function () {
       inject(function (Analytics, $rootScope) {
-        expect(Analytics.ignoreFirstPageLoad).toBe(true);
+        expect(Analytics.configuration.ignoreFirstPageLoad).toBe(true);
       });
     });
   });
@@ -139,25 +139,25 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     it('should support displayFeatures config', function () {
       inject(function (Analytics) {
-        expect(Analytics.displayFeatures).toBe(true);
+        expect(Analytics.configuration.displayFeatures).toBe(true);
       });
     });
 
     it('should support ecommerce config', function () {
       inject(function (Analytics) {
-        expect(Analytics.ecommerce).toBe(true);
+        expect(Analytics.configuration.ecommerce).toBe(true);
       });
     });
 
     it('should support enhancedLinkAttribution config', function () {
       inject(function (Analytics) {
-        expect(Analytics.enhancedLinkAttribution).toBe(true);
+        expect(Analytics.configuration.enhancedLinkAttribution).toBe(true);
       });
     });
 
     it('should support experimentId config', function () {
       inject(function (Analytics) {
-        expect(Analytics.experimentId).toBe('12345');
+        expect(Analytics.configuration.experimentId).toBe('12345');
       });
     });
 
@@ -237,13 +237,13 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     it('should have ecommerce enabled', function () {
       inject(function (Analytics) {
-        expect(Analytics.ecommerceEnabled()).toBe(true);
+        expect(Analytics.configuration.ecommerce).toBe(true);
       });
     });
 
     it('should have enhanced ecommerce disabled', function () {
       inject(function (Analytics) {
-        expect(Analytics.enhancedEcommerceEnabled()).toBe(false);
+        expect(Analytics.configuration.enhancedEcommerce).toBe(false);
       });
     });
 
@@ -326,13 +326,13 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     it('should have ecommerce disabled', function () {
       inject(function (Analytics) {
-        expect(Analytics.ecommerceEnabled()).toBe(false);
+        expect(Analytics.configuration.ecommerce).toBe(false);
       });
     });
 
     it('should have enhanced ecommerce enabled', function () {
       inject(function (Analytics) {
-        expect(Analytics.enhancedEcommerceEnabled()).toBe(true);
+        expect(Analytics.configuration.enhancedEcommerce).toBe(true);
       });
     });
 
@@ -702,6 +702,28 @@ describe('angular-google-analytics universal (analytics.js)', function () {
           expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'event', 'category', 'action', 'label', 'value', {});
           expect($window.ga).not.toHaveBeenCalledWith('tracker2.send', 'event', 'category', 'action', 'label', 'value', {});
           expect($window.ga).toHaveBeenCalledWith('send', 'event', 'category', 'action', 'label', 'value', {});
+        });
+      });
+    });
+  });
+
+  describe('supports advanced settings', function () {
+    it('should set value for default tracker if no trackerName provided', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.set('dimension1', 'metric1');
+          expect($window.ga).toHaveBeenCalledWith('set', 'dimension1', 'metric1');
+        });
+      });
+    });
+
+    it('should set value for named tracker if a trackerName provided', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.set('dimension2', 'metric2', 'tracker1');
+          expect($window.ga).toHaveBeenCalledWith('tracker1.set', 'dimension2', 'metric2');
         });
       });
     });

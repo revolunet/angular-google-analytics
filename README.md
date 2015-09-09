@@ -11,13 +11,13 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
 
 ## Features
 
- - configurable
+ - highly configurable
  - automatic page tracking
- - events tracking
- - e-commerce tracking
- - enhanced e-commerce tracking
+ - event tracking
+ - e-commerce (ecommerce.js) support
+ - enhanced e-commerce (ec.js) support
  - multiple-domains
- - ga.js and and analytics.js support
+ - ga.js (classic) and analytics.js (universal) support
  - cross-domain support
  - multiple tracking objects
  - offline mode
@@ -35,11 +35,11 @@ app.config(function (AnalyticsProvider) {
 });
 ```
 
-### Use Universal Analytics
+### Use Classic Analytics
 ```js
-// Use analytics.js (universal) instead of ga.js (classic)
-// By default, classic analytics is used, unless this is called with a truthy value.
-AnalyticsProvider.useAnalytics(true);
+// Use ga.js (classic) instead of analytics.js (universal)
+// By default, universal analytics is used, unless this is called with a falsey value.
+AnalyticsProvider.useAnalytics(false);
 ```
 
 ### Set Google Analytics Accounts (Required)
@@ -141,9 +141,13 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
   // Enable e-commerce module (ecommerce.js)
   AnalyticsProvider.useECommerce(true, false);
 
-  // Enabled enhanced e-commerce module (ec.js)
+  // Enable enhanced e-commerce module (ec.js)
   // Universal Analytics only
   AnalyticsProvider.useECommerce(true, true);
+
+  // Set Currency
+  // Default is 'USD'. Use ISO currency codes.
+  AnalyticsProvider.setCurrency('CDN');
 ```
 **Note:** When enhanced e-commerce is enabled, the legacy e-commerce module is disabled and unsupported. This is a requirement of Google Analytics.
 
@@ -222,6 +226,56 @@ If you are relying on automatic page tracking, you need to inject Analytics at l
   app.controller('SampleController', function (Analytics) {
     // Add calls as desired - see below
   });
+```
+
+### Accessing Configuration Settings
+The following configuration settings are intended to be immutable. While the values can be changed in this list by the user, this will not impact the behavior of the service as these values are not referenced internally; exceptions are noted below but are not intended to be utilized in such a way by the user. No guarantee will be made for future versions of this service supporting any functionality beyond reading values from this list.
+```js
+  // This is a mutable array. Changes to this list will impact service behaviors.
+  Analytics.configuration.accounts;
+
+  // If `true` then universal analytics is being used.
+  // If `false` then classic analytics is being used.
+  Analytics.configuration.universalAnalytics;
+
+  Analytics.configuration.crossDomainLinker;
+  Analytics.configuration.crossLinkDomains;
+  Analytics.configuration.currency;
+  Analytics.configuration.delayScriptTag;
+  Analytics.configuration.displayFeatures;
+  Analytics.configuration.domainName;
+
+  // ecommerce and enhancedEcommerce are mutually exclusive; either both will be false or one will be true.
+  Analytics.configuration.ecommerce;
+  Analytics.configuration.enhancedEcommerce;
+
+  Analytics.configuration.enhancedLinkAttribution;
+  Analytics.configuration.experimentId;
+  Analytics.configuration.ignoreFirstPageLoad;
+  Analytics.configuration.logAllCalls;
+  Analytics.configuration.pageEvent;
+  Analytics.configuration.removeRegExp;
+  Analytics.configuration.trackPrefix;
+  Analytics.configuration.trackRoutes;
+  Analytics.configuration.trackUrlParams;
+```
+
+### Get or Set Cookie Configuration
+```js
+  // Get the global cookie config.
+  Analytics.getCookieConfig();
+
+  // Set the global cookie config.
+  // Impacts all future calls for classic analytics (ga.js).
+  Analytics.setCookieConfig();
+```
+**Note:** Changing the cookie configuration after the AnalyticsProvider configuration only works for classic analytics (ga.js). This does not update the individual account objects used by universal analytics (analytics.js). If you want to change the account objects used by universal analytics those can be accessed through `Analytics.configuration.accounts`, but such modification to the accounts object is unsupported.
+
+### Get URL
+```js
+  // Returns the current URL that would be sent if a `trackPage` call was made.
+  // The returned value takes into account all configuration settings that modify the URL.
+  Analytics.getUrl();
 ```
 
 ### Manual Script Tag Injection
