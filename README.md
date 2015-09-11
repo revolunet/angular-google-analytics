@@ -291,11 +291,16 @@ If `delayScriptTag(true)` was set during configuration then manual script tag in
 ### Advanced Settings / Custom Dimensions
 The `set` call allows for advanced configuration and definitions in univeral analytics only. This is a no-op when using classic analytics.
 ```js
-  // As an example, set the User Id for the default, unnamed account object:
+  // Set the User Id
   Analytics.set('&uid', 1234);
 
-  // Register a custom dimension
+  // Register a custom dimension for the default, unnamed account object
+  // e.g., ga('set', 'dimension1', 'Paid');
   Analytics.set('dimension1', 'Paid');
+
+  // Register a custom dimenstion for a named account object
+  // e.g., ga('accountName.set', 'dimension2', 'Paid');
+  Analytics.set('dimension2', 'Paid', 'accountName');
 ```
 
 ### Page Tracking
