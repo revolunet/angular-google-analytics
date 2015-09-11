@@ -27,7 +27,7 @@ describe('angular-google-analytics offline mode', function () {
 
       it('should have delay script tag set to true', function () {
         inject(function (Analytics) {
-          expect(Analytics.delayScriptTag).toBe(true);
+          expect(Analytics.configuration.delayScriptTag).toBe(true);
         });
       });
 
@@ -115,7 +115,7 @@ describe('angular-google-analytics offline mode', function () {
 
       it('should have delay script tag set to true', function () {
         inject(function (Analytics) {
-          expect(Analytics.delayScriptTag).toBe(true);
+          expect(Analytics.configuration.delayScriptTag).toBe(true);
         });
       });
 

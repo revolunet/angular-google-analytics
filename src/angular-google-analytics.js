@@ -3,7 +3,7 @@
   angular.module('angular-google-analytics', [])
     .provider('Analytics', function () {
       var accounts,
-          analyticsJS = false,
+          analyticsJS = true,
           cookieConfig = 'auto',
           created = false,
           crossDomainLinker = false,
@@ -816,6 +816,15 @@
         };
 
         /**
+         * Track detail
+         * @private
+         */
+        this._trackDetail = function () {
+          this._setAction('detail');
+          this._pageView();
+        };
+
+        /**
          * Track add/remove to cart
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#add-remove-cart
          * @param action
@@ -920,15 +929,28 @@
 
         return {
           log: that.log,
-          accounts: accounts,
-          displayFeatures: displayFeatures,
-          ecommerce: ecommerce,
-          enhancedEcommerce: enhancedEcommerce,
-          enhancedLinkAttribution: enhancedLinkAttribution,
+          configuration: {
+            accounts: accounts,
+            universalAnalytics: analyticsJS,
+            crossDomainLinker: crossDomainLinker,
+            crossLinkDomains: crossLinkDomains,
+            currency: currency,
+            delayScriptTag: delayScriptTag,
+            displayFeatures: displayFeatures,
+            domainName: domainName,
+            ecommerce: that._ecommerceEnabled(),
+            enhancedEcommerce: that._enhancedEcommerceEnabled(),
+            enhancedLinkAttribution: enhancedLinkAttribution,
+            experimentId: experimentId,
+            ignoreFirstPageLoad: ignoreFirstPageLoad,
+            logAllCalls: logAllCalls,
+            pageEvent: pageEvent,
+            removeRegExp: removeRegExp,
+            trackPrefix: trackPrefix,
+            trackRoutes: trackRoutes,
+            trackUrlParams: trackUrlParams
+          },
           getUrl: getUrl,
-          experimentId: experimentId,
-          ignoreFirstPageLoad: ignoreFirstPageLoad,
-          delayScriptTag: delayScriptTag,
           setCookieConfig: that._setCookieConfig,
           getCookieConfig: function () {
             return cookieConfig;
@@ -961,12 +983,6 @@
               }
             }
             return offlineMode;
-          },
-          ecommerceEnabled: function () {
-            return that._ecommerceEnabled();
-          },
-          enhancedEcommerceEnabled: function () {
-            return that._enhancedEcommerceEnabled();
           },
           trackPage: function (url, title, custom) {
             that._trackPage(url, title, custom);
@@ -1002,8 +1018,7 @@
             that._promoClick(promotionName);
           },
           trackDetail: function () {
-            that._setAction('detail');
-            that._pageView();
+            that._trackDetail();
           },
           trackCart: function (action) {
             that._trackCart(action);
@@ -1020,14 +1035,14 @@
           setAction: function (action, obj) {
             that._setAction(action, obj);
           },
-          send: function (obj) {
-            that._send(obj);
-          },
           pageView: function () {
             that._pageView();
           },
-          set: function (name, value) {
-            that._set(name, value);
+          send: function (obj) {
+            that._send(obj);
+          },
+          set: function (name, value, trackerName) {
+            that._set(name, value, trackerName);
           }
         };
       }];

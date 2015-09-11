@@ -17,8 +17,9 @@ describe('angular-google-analytics classic (ga.js)', function() {
       }));
 
       it('should not inject a script tag', function () {
+        var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
         inject(function (Analytics) {
-          expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(0);
+          expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount);
         });
       });
 
@@ -42,13 +43,14 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should have a truthy value for Analytics.delayScriptTag', function () {
       inject(function (Analytics, $location) {
-        expect(Analytics.delayScriptTag).toBe(true);
+        expect(Analytics.configuration.delayScriptTag).toBe(true);
       });
     });
 
     it('should not inject a script tag', function () {
+      var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(0);
+        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount);
       });
     });
   });
@@ -232,7 +234,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('supports ignoreFirstPageLoad config', function () {
       inject(function (Analytics, $rootScope) {
-        expect(Analytics.ignoreFirstPageLoad).toBe(true);
+        expect(Analytics.configuration.ignoreFirstPageLoad).toBe(true);
       });
     });
   });
