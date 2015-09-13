@@ -1,37 +1,40 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.0.0 - 2015-08-26
+ * @version v1.1.0 - 2015-09-12
  * @link http://github.com/revolunet/angular-google-analytics
- * @author Julien Bouquillon <julien@revolunet.com>
+ * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
+ * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */
 (function (window, document, angular, undefined) {
   'use strict';
   angular.module('angular-google-analytics', [])
     .provider('Analytics', function () {
-      var created = false,
-          trackRoutes = true,
-          accounts,
-          displayFeatures,
-          trackPrefix = '',
-          domainName,
-          analyticsJS = false,
-          pageEvent = '$routeChangeSuccess',
+      var accounts,
+          analyticsJS = true,
           cookieConfig = 'auto',
+          created = false,
+          crossDomainLinker = false,
+          crossLinkDomains,
+          currency = 'USD',
+          delayScriptTag = false,
+          displayFeatures,
+          domainName,
           ecommerce = false,
           enhancedEcommerce = false,
           enhancedLinkAttribution = false,
-          currency = 'USD',
-          removeRegExp,
           experimentId,
           ignoreFirstPageLoad = false,
-          crossDomainLinker = false,
-          crossLinkDomains,
-          trackUrlParams = false,
-          delayScriptTag = false,
-          logAllCalls = false;
+          logAllCalls = false,
+          offlineMode = false,
+          pageEvent = '$routeChangeSuccess',
+          removeRegExp,
+          trackPrefix = '',
+          trackRoutes = true,
+          trackUrlParams = false;
 
-      this._logs = [];
+      this.log = [];
+      this._offlineQueue = [];
 
       /**
        * Configuration Methods
@@ -49,101 +52,108 @@
           // the trackEvent property must be set to true when there is only a single tracker.
           accounts = [{ tracker: tracker, trackEvent: true }];
         }
-        return true;
+        return this;
       };
 
       this.trackPages = function (doTrack) {
         trackRoutes = doTrack;
-        return true;
+        return this;
       };
 
       this.trackPrefix = function (prefix) {
         trackPrefix = prefix;
-        return true;
+        return this;
       };
 
       this.setDomainName = function (domain) {
         domainName = domain;
-        return true;
+        return this;
       };
 
       this.useDisplayFeatures = function (val) {
         displayFeatures = !!val;
-        return true;
+        return this;
       };
 
       this.useAnalytics = function (val) {
         analyticsJS = !!val;
-        return true;
+        return this;
       };
 
       this.useEnhancedLinkAttribution = function (val) {
         enhancedLinkAttribution = !!val;
-        return true;
+        return this;
       };
 
       this.useCrossDomainLinker = function (val) {
         crossDomainLinker = !!val;
-        return true;
+        return this;
       };
 
       this.setCrossLinkDomains = function (domains) {
         crossLinkDomains = domains;
-        return true;
+        return this;
       };
 
       this.setPageEvent = function (name) {
         pageEvent = name;
-        return true;
+        return this;
       };
 
       this.setCookieConfig = function (config) {
         cookieConfig = config;
-        return true;
+        return this;
       };
 
       this.useECommerce = function (val, enhanced) {
         ecommerce = !!val;
         enhancedEcommerce = !!enhanced;
-        return true;
+        return this;
       };
 
       this.setCurrency = function (currencyCode) {
         currency = currencyCode;
-        return true;
+        return this;
       };
 
       this.setRemoveRegExp = function (regex) {
         if (regex instanceof RegExp) {
           removeRegExp = regex;
-          return true;
         }
-        return false;
+        return this;
       };
 
       this.setExperimentId = function (id) {
         experimentId = id;
-        return true;
+        return this;
       };
 
       this.ignoreFirstPageLoad = function (val) {
         ignoreFirstPageLoad = !!val;
-        return true;
+        return this;
       };
 
       this.trackUrlParams = function (val) {
         trackUrlParams = !!val;
-        return true;
+        return this;
+      };
+
+      this.startOffline = function (val) {
+        offlineMode = !!val;
+        if (offlineMode === true) {
+          this.delayScriptTag(true);
+        }
+        return this;
       };
 
       this.delayScriptTag = function (val) {
         delayScriptTag = !!val;
-        return true;
+        return this;
       };
 
       this.logAllCalls = function (val) {
         logAllCalls = !!val;
-        return true;
+        return this;
       };
 
       /**
@@ -157,11 +167,18 @@
          **/
 
         var generateCommandName = function (commandName, config) {
+          if (angular.isString(config)) {
+            return config + '.' + commandName;
+          }
           return isPropertyDefined('name', config) ? (config.name + '.' + commandName) : commandName;
         };
 
         var isPropertyDefined = function (key, config) {
           return angular.isObject(config) && angular.isDefined(config[key]);
+        };
+
+        var isPropertySetTo = function (key, config, value) {
+          return isPropertyDefined(key, config) && config[key] === value;
         };
 
         var getUrl = function () {
@@ -191,6 +208,34 @@
         };
 
         /**
+         * get ActionFieldObject
+         * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
+         * @param id
+         * @param affliation
+         * @param revenue
+         * @param tax
+         * @param shipping
+         * @param coupon
+         * @param list
+         * @param step
+         * @param option
+         */
+        var getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
+          var obj = {};
+          if (id) { obj.id = id; }
+          if (affiliation) { obj.affiliation = affiliation; }
+          if (revenue) { obj.revenue = revenue; }
+          if (tax) { obj.tax = tax; }
+          if (shipping) { obj.shipping = shipping; }
+          if (coupon) { obj.coupon = coupon; }
+          if (list) { obj.list = list; }
+          if (step) { obj.step = step; }
+          if (option) { obj.option = option; }
+          return obj;
+        };
+
+
+        /**
          * Private Methods
          */
 
@@ -201,6 +246,10 @@
         };
 
         var _gaq = function () {
+          if (offlineMode === true) {
+            that._offlineQueue.push([_gaq, arguments]);
+            return;
+          }
           if (!$window._gaq) {
             $window._gaq = [];
           }
@@ -217,6 +266,10 @@
         };
 
         var _ga = function () {
+          if (offlineMode === true) {
+            that._offlineQueue.push([_ga, arguments]);
+            return;
+          }
           if (typeof $window.ga !== 'function') {
             that._log('warn', 'ga function not set on window');
             return;
@@ -228,24 +281,32 @@
         };
 
         var _gaMultipleTrackers = function (includeFn) {
-          if (typeof $window.ga !== 'function') {
-            that._log('warn', 'ga function not set on window');
+          // Drop the includeFn from the arguments and preserve the original command name
+          var args = Array.prototype.slice.call(arguments, 1),
+              commandName = args[0],
+              trackers = [];
+          if (typeof includeFn === 'function') {
+            accounts.forEach(function (account) {
+              if (includeFn(account)) {
+                trackers.push(account);
+              }
+            });
+          } else {
+            // No include function indicates that all accounts are to be used
+            trackers = accounts;
+          }
+
+          // To preserve backwards compatibility fallback to _ga method if no account
+          // matches the specified includeFn. This preserves existing behaviors by
+          // performing the single tracker operation.
+          if (trackers.length === 0) {
+            _ga.apply(that, args);
             return;
           }
 
-          // Drop the includeFn from the arguments and preserve the original command name
-          var args = Array.prototype.slice.call(arguments, 1),
-              commandName = args[0];
-
-          accounts.forEach(function (trackerObj) {
-            if (typeof includeFn === 'function' && !includeFn(trackerObj)) {
-              return;
-            }
-            args[0] = generateCommandName(commandName, trackerObj);
-            if (logAllCalls === true) {
-              that._log.apply(that, args);
-            }
-            $window.ga.apply(null, args);                
+          trackers.forEach(function (tracker) {
+            args[0] = generateCommandName(commandName, tracker);
+            _ga.apply(that, args);
           });
         };
 
@@ -261,7 +322,7 @@
                   break;
               }
             }
-            this._logs.push(Array.prototype.slice.call(arguments));
+            this.log.push(Array.prototype.slice.call(arguments));
           }
         };
 
@@ -331,9 +392,12 @@
 
           accounts.forEach(function (trackerObj) {
             var options = {};
-            trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
             trackerObj.cookieConfig = isPropertyDefined('cookieConfig', trackerObj) ? trackerObj.cookieConfig : cookieConfig;
+            trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
             trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
+            trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
+            trackerObj.enhancedLinkAttribution = isPropertyDefined('enhancedLinkAttribution', trackerObj) ? trackerObj.enhancedLinkAttribution : enhancedLinkAttribution;
+            trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
             trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
 
             options.allowLinker = trackerObj.crossDomainLinker;
@@ -349,28 +413,28 @@
                 _ga(generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
               }
             }
-          });
 
-          if (displayFeatures) {
-            _ga('require', 'displayfeatures');
-          }
-
-          if (trackRoutes && !ignoreFirstPageLoad) {
-            _ga('send', 'pageview', getUrl());
-          }
-
-          if (ecommerce) {
-            if (!enhancedEcommerce) {
-              _ga('require', 'ecommerce', 'ecommerce.js');
-            } else {
-              _ga('require', 'ec', 'ec.js');
-              _ga('set', '&cu', currency);
+            if (trackerObj.displayFeatures) {
+              _ga(generateCommandName('require', trackerObj), 'displayfeatures');
             }
-          }
 
-          if (enhancedLinkAttribution) {
-            _ga('require', 'linkid', 'linkid.js');
-          }
+            if (trackerObj.trackEcommerce) {
+              if (!enhancedEcommerce) {
+                _ga(generateCommandName('require', trackerObj), 'ecommerce');
+              } else {
+                _ga(generateCommandName('require', trackerObj), 'ec');
+                _ga(generateCommandName('set', trackerObj), '&cu', currency);
+              }
+            }
+
+            if (trackerObj.enhancedLinkAttribution) {
+              _ga(generateCommandName('require', trackerObj), 'linkid');
+            }
+
+            if (trackRoutes && !ignoreFirstPageLoad) {
+              _ga(generateCommandName('send', trackerObj), 'pageview', getUrl());
+            }
+          });
 
           if (experimentId) {
             var expScript = document.createElement('script'),
@@ -383,12 +447,24 @@
           return true;
         };
 
-        this._ecommerceEnabled = function () {
-          return ecommerce && !enhancedEcommerce;
+        this._ecommerceEnabled = function (warn, command) {
+          var result = ecommerce && !enhancedEcommerce;
+          if (warn === true && result === false) {
+            if (ecommerce && enhancedEcommerce) {
+              that._log('warn', command + ' is not available when Enhanced Ecommerce is enabled with analytics.js');
+            } else {
+              that._log('warn', 'Ecommerce must be enabled to use ' + command + ' with analytics.js');
+            }
+          }
+          return result;
         };
 
-        this._enhancedEcommerceEnabled = function () {
-          return ecommerce && enhancedEcommerce;
+        this._enhancedEcommerceEnabled = function (warn, command) {
+          var result = ecommerce && enhancedEcommerce;
+          if (warn === true && result === false) {
+            that._log('warn', 'Enhanced Ecommerce must be enabled to use ' + command + ' with analytics.js');
+          }
+          return result;
         };
 
         /**
@@ -440,7 +516,7 @@
           _analyticsJs(function () {
             var opt_fieldObject = {};
             var includeFn = function (trackerObj) {
-              return isPropertyDefined('trackEvent', trackerObj) && trackerObj.trackEvent === true;
+              return isPropertySetTo('trackEvent', trackerObj, true);
             };
 
             if (angular.isDefined(noninteraction)) {
@@ -472,17 +548,22 @@
             _gaq(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:addTransaction', {
-                id: transactionId,
-                affiliation: affiliation,
-                revenue: total,
-                tax: tax,
-                shipping: shipping,
-                currency: currency || 'USD'
-              });
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use addTrans with analytics.js');
+            if (that._ecommerceEnabled(true, 'addTrans')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ecommerce:addTransaction',
+                {
+                  id: transactionId,
+                  affiliation: affiliation,
+                  revenue: total,
+                  tax: tax,
+                  shipping: shipping,
+                  currency: currency || 'USD'
+                });
             }
           });
         };
@@ -504,17 +585,22 @@
             _gaq(['_addItem', transactionId, sku, name, category, price, quantity]);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:addItem', {
-                id: transactionId,
-                name: name,
-                sku: sku,
-                category: category,
-                price: price,
-                quantity: quantity
-              });
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use addItem with analytics.js');
+            if (that._ecommerceEnabled(true, 'addItem')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ecommerce:addItem',
+                {
+                  id: transactionId,
+                  name: name,
+                  sku: sku,
+                  category: category,
+                  price: price,
+                  quantity: quantity
+                });
             }
           });
         };
@@ -530,10 +616,12 @@
             _gaq(['_trackTrans']);
           });
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:send');
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use trackTrans with analytics.js');
+            if (that._ecommerceEnabled(true, 'trackTrans')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(includeFn, 'ecommerce:send');
             }
           });
         };
@@ -545,10 +633,12 @@
          */
         this._clearTrans = function () {
           _analyticsJs(function () {
-            if (that._ecommerceEnabled()) {
-              _ga('ecommerce:clear');
-            } else {
-              that._log('warn', 'Ecommerce must be enabled to use clearTrans with analytics.js');
+            if (that._ecommerceEnabled(true, 'clearTrans')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(includeFn, 'ecommerce:clear');
             }
           });
         };
@@ -569,26 +659,32 @@
          * @param quantity
          * @param coupon
          * @param position
+         * @private
          */
         this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
           _gaJs(function () {
             _gaq(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:addProduct', {
-                id: productId,
-                name: name,
-                category: category,
-                brand: brand,
-                variant: variant,
-                price: price,
-                quantity: quantity,
-                coupon: coupon,
-                position: position
-              });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addProduct with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'addProduct')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addProduct',
+                {
+                  id: productId,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  price: price,
+                  quantity: quantity,
+                  coupon: coupon,
+                  position: position
+                });
             }
           });
         };
@@ -604,25 +700,31 @@
          * @param variant
          * @param position
          * @param price
+         * @private
          */
         this._addImpression = function (id, name, list, brand, category, variant, position, price){
           _gaJs(function () {
             _gaq(['_addImpression', id, name, list, brand, category, variant, position, price]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:addImpression', {
-                id: id,
-                name: name,
-                category: category,
-                brand: brand,
-                variant: variant,
-                list: list,
-                position: position,
-                price: price
-              });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addImpression with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'addImpression')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addImpression',
+                {
+                  id: id,
+                  name: name,
+                  category: category,
+                  brand: brand,
+                  variant: variant,
+                  list: list,
+                  position: position,
+                  price: price
+                });
             }
           });
         };
@@ -634,50 +736,29 @@
          * @param name
          * @param creative
          * @param position
+         * @private
          */
         this._addPromo = function (productId, name, creative, position) {
           _gaJs(function () {
             _gaq(['_addPromo', productId, name, creative, position]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:addPromo', {
-                id: productId,
-                name: name,
-                creative: creative,
-                position: position
-              });
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use addPromo with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'addPromo')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(
+                includeFn,
+                'ec:addPromo',
+                {
+                  id: productId,
+                  name: name,
+                  creative: creative,
+                  position: position
+                });
             }
           });
-        };
-
-        /**
-         * get ActionFieldObject
-         * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
-         * @param id
-         * @param affliation
-         * @param revenue
-         * @param tax
-         * @param shipping
-         * @param coupon
-         * @param list
-         * @param step
-         * @param option
-         */
-        this._getActionFieldObject = function (id, affiliation, revenue, tax, shipping, coupon, list, step, option) {
-          var obj = {};
-          if (id) { obj.id = id; }
-          if (affiliation) { obj.affiliation = affiliation; }
-          if (revenue) { obj.revenue = revenue; }
-          if (tax) { obj.tax = tax; }
-          if (shipping) { obj.shipping = shipping; }
-          if (coupon) { obj.coupon = coupon; }
-          if (list) { obj.list = list; }
-          if (step) { obj.step = step; }
-          if (option) { obj.option = option; }
-          return obj;
         };
 
         /**
@@ -685,18 +766,20 @@
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-actions
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-types
          * @param action
-         * @param name
          * @param obj
+         * @private
          */
         this._setAction = function (action, obj){
           _gaJs(function () {
             _gaq(['_setAction', action, obj]);
           });
           _analyticsJs(function () {
-            if (that._enhancedEcommerceEnabled()) {
-              _ga('ec:setAction', action, obj);
-            } else {
-              that._log('warn', 'Enhanced ecommerce must be enabled to use setAction with analytics.js');
+            if (that._enhancedEcommerceEnabled(true, 'setAction')) {
+              var includeFn = function (trackerObj) {
+                return isPropertySetTo('trackEcommerce', trackerObj, true);
+              };
+
+              _gaMultipleTrackers(includeFn, 'ec:setAction', action, obj);
             }
           });
         };
@@ -713,19 +796,20 @@
          * @param list
          * @param step
          * @param option
+         * @private
          */
         this._trackTransaction = function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option) {
-          this._setAction('purchase', this._getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
+          this._setAction('purchase', getActionFieldObject(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option));
         };
 
         /**
          * Track Refund
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-refunds
          * @param transactionId
-         *
+         * @private
          */
         this._trackRefund = function (transactionId) {
-          this._setAction('refund', this._getActionFieldObject(transactionId));
+          this._setAction('refund', getActionFieldObject(transactionId));
         };
 
         /**
@@ -733,22 +817,31 @@
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-checkout
          * @param step
          * @param option
-         *
+         * @private
          */
         this._trackCheckOut = function (step, option) {
-          this._setAction('checkout', this._getActionFieldObject(null, null, null, null, null, null, null, step, option));
+          this._setAction('checkout', getActionFieldObject(null, null, null, null, null, null, null, step, option));
+        };
+
+        /**
+         * Track detail
+         * @private
+         */
+        this._trackDetail = function () {
+          this._setAction('detail');
+          this._pageView();
         };
 
         /**
          * Track add/remove to cart
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#add-remove-cart
          * @param action
-         *
+         * @private
          */
         this._trackCart = function (action) {
           if (['add', 'remove'].indexOf(action) !== -1) {
             this._setAction(action);
-            this._send('event', 'UX', 'click', action + ' to cart');
+            this._trackEvent('UX', 'click', action + (action === 'add' ? ' to cart' : ' from cart'));
           }
         };
 
@@ -756,30 +849,39 @@
          * Track promo click
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-promo-clicks
          * @param promotionName
-         *
+         * @private
          */
         this._promoClick = function (promotionName) {
           this._setAction('promo_click');
-          this._send('event', 'Internal Promotions', 'click', promotionName);
+          this._trackEvent('Internal Promotions', 'click', promotionName);
         };
 
         /**
          * Track product click
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-promo-clicks
          * @param promotionName
-         *
+         * @private
          */
         this._productClick = function (listName) {
-          this._setAction('click', this._getActionFieldObject(null, null, null, null, null, null, listName, null, null));
-          this._send('event', 'UX', 'click', listName);
+          this._setAction('click', getActionFieldObject(null, null, null, null, null, null, listName, null, null));
+          this._trackEvent('UX', 'click', listName);
+        };
+
+        /**
+         * Send page view
+         * @param trackerName
+         * @private
+         */
+        this._pageView = function (trackerName) {
+          _analyticsJs(function () {
+            _ga(generateCommandName('send', trackerName), 'pageview');
+          });
         };
 
         /**
          * Send custom events
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/user-timings#implementation
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/social-interactions#implementation
-         *
-         * @param obj
          * @private
          */
         this._send = function () {
@@ -790,30 +892,28 @@
           });
         };
 
-        this._pageView = function () {
-          this._send('pageview');
-        };
-
         /**
          * Set custom dimensions, metrics or experiment
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#customs
-         * @param name
-         * @param value
+         * @param name (Required)
+         * @param value (Required)
+         * @param trackerName (Not Required)
          * @private
          */
-        this._set = function (name, value) {
+        this._set = function (name, value, trackerName) {
           _analyticsJs(function () {
-            _ga('set', name, value);
+            _ga(generateCommandName('set', trackerName), name, value);
           });
         };
 
         /**
-         * Track User Timings
-         * @timingCategory (Required): A string for categorizing all user timing variables into logical groups(e.g jQuery).
-         * @timingVar (Required): A string to identify the variable being recorded(e.g. JavaScript Load).
-         * @timingValue (Required): The number of milliseconds in elapsed time to report to Google Analytics(e.g. 20).
-         * @timingLabel (Not Required): A string that can be used to add flexibility in visualizing user timings in the reports(e.g. Google CDN).
+         * Track user timings
+         * @param timingCategory (Required): A string for categorizing all user timing variables into logical groups(e.g jQuery).
+         * @param timingVar (Required): A string to identify the variable being recorded(e.g. JavaScript Load).
+         * @param timingValue (Required): The number of milliseconds in elapsed time to report to Google Analytics(e.g. 20).
+         * @param timingLabel (Not Required): A string that can be used to add flexibility in visualizing user timings in the reports(e.g. Google CDN).
+         * @private
          */
         this._trackTimings = function (timingCategory, timingVar, timingValue, timingLabel) {
           this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
@@ -836,15 +936,29 @@
         }
 
         return {
-          _logs: that._logs,
-          displayFeatures: displayFeatures,
-          ecommerce: ecommerce,
-          enhancedEcommerce: enhancedEcommerce,
-          enhancedLinkAttribution: enhancedLinkAttribution,
+          log: that.log,
+          configuration: {
+            accounts: accounts,
+            universalAnalytics: analyticsJS,
+            crossDomainLinker: crossDomainLinker,
+            crossLinkDomains: crossLinkDomains,
+            currency: currency,
+            delayScriptTag: delayScriptTag,
+            displayFeatures: displayFeatures,
+            domainName: domainName,
+            ecommerce: that._ecommerceEnabled(),
+            enhancedEcommerce: that._enhancedEcommerceEnabled(),
+            enhancedLinkAttribution: enhancedLinkAttribution,
+            experimentId: experimentId,
+            ignoreFirstPageLoad: ignoreFirstPageLoad,
+            logAllCalls: logAllCalls,
+            pageEvent: pageEvent,
+            removeRegExp: removeRegExp,
+            trackPrefix: trackPrefix,
+            trackRoutes: trackRoutes,
+            trackUrlParams: trackUrlParams
+          },
           getUrl: getUrl,
-          experimentId: experimentId,
-          ignoreFirstPageLoad: ignoreFirstPageLoad,
-          delayScriptTag: delayScriptTag,
           setCookieConfig: that._setCookieConfig,
           getCookieConfig: function () {
             return cookieConfig;
@@ -863,11 +977,20 @@
 
             return that._createScriptTag();
           },
-          ecommerceEnabled: function () {
-            return that._ecommerceEnabled();
-          },
-          enhancedEcommerceEnabled: function () {
-            return that._enhancedEcommerceEnabled();
+          offline: function (mode) {
+            if (mode === true && offlineMode === false) {
+              // Go to offline mode
+              offlineMode = true;
+            }
+            if (mode === false && offlineMode === true) {
+              // Go to online mode and process the offline queue
+              offlineMode = false;
+              while (that._offlineQueue.length > 0) {
+                var obj = that._offlineQueue.shift();
+                obj[0].apply(that, obj[1]);
+              }
+            }
+            return offlineMode;
           },
           trackPage: function (url, title, custom) {
             that._trackPage(url, title, custom);
@@ -903,8 +1026,7 @@
             that._promoClick(promotionName);
           },
           trackDetail: function () {
-            that._setAction('detail');
-            that._pageView();
+            that._trackDetail();
           },
           trackCart: function (action) {
             that._trackCart(action);
@@ -921,14 +1043,14 @@
           setAction: function (action, obj) {
             that._setAction(action, obj);
           },
-          send: function (obj) {
-            that._send(obj);
-          },
           pageView: function () {
             that._pageView();
           },
-          set: function (name, value) {
-            that._set(name, value);
+          send: function (obj) {
+            that._send(obj);
+          },
+          set: function (name, value, trackerName) {
+            that._set(name, value, trackerName);
           }
         };
       }];
