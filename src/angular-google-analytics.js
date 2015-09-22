@@ -10,7 +10,7 @@
           crossLinkDomains,
           currency = 'USD',
           delayScriptTag = false,
-          displayFeatures,
+          displayFeatures = false,
           domainName,
           ecommerce = false,
           enhancedEcommerce = false,
@@ -21,12 +21,13 @@
           offlineMode = false,
           pageEvent = '$routeChangeSuccess',
           removeRegExp,
+          testMode = false,
           trackPrefix = '',
           trackRoutes = true,
           trackUrlParams = false;
 
       this.log = [];
-      this._offlineQueue = [];
+      this.offlineQueue = [];
 
       /**
        * Configuration Methods
@@ -148,6 +149,11 @@
         return this;
       };
 
+      this.enterTestMode = function () {
+        testMode = true;
+        return this;
+      };
+
       /**
        * Public Service
        */
@@ -226,7 +232,6 @@
           return obj;
         };
 
-
         /**
          * Private Methods
          */
@@ -238,17 +243,18 @@
         };
 
         var _gaq = function () {
+          var args = Array.prototype.slice.call(arguments);
           if (offlineMode === true) {
-            that._offlineQueue.push([_gaq, arguments]);
+            that.offlineQueue.push([_gaq, args]);
             return;
           }
           if (!$window._gaq) {
             $window._gaq = [];
           }
           if (logAllCalls === true) {
-            that._log.apply(that, arguments);
+            that._log.apply(that, args);
           }
-          $window._gaq.push.apply($window._gaq, arguments);
+          $window._gaq.push(args);
         };
 
         var _analyticsJs = function (fn) {
@@ -258,8 +264,9 @@
         };
 
         var _ga = function () {
+          var args = Array.prototype.slice.call(arguments);
           if (offlineMode === true) {
-            that._offlineQueue.push([_ga, arguments]);
+            that.offlineQueue.push([_ga, args]);
             return;
           }
           if (typeof $window.ga !== 'function') {
@@ -267,9 +274,9 @@
             return;
           }
           if (logAllCalls === true) {
-            that._log.apply(that, arguments);
+            that._log.apply(that, args);
           }
-          $window.ga.apply(null, arguments);
+          $window.ga.apply(null, args);
         };
 
         var _gaMultipleTrackers = function (includeFn) {
@@ -303,63 +310,71 @@
         };
 
         this._log = function () {
-          if (arguments.length > 0) {
-            if (arguments.length > 1) {
-              switch (arguments[0]) {
+          var args = Array.prototype.slice.call(arguments);
+          if (args.length > 0) {
+            if (args.length > 1) {
+              switch (args[0]) {
                 case 'warn':
-                  $log.warn(Array.prototype.slice.call(arguments, 1));
+                  $log.warn(args.slice(1));
                   break;
                 case 'error':
-                  $log.error(Array.prototype.slice.call(arguments, 1));
+                  $log.error(args.slice(1));
                   break;
               }
             }
-            this.log.push(Array.prototype.slice.call(arguments));
+            that.log.push(args);
           }
         };
 
         this._createScriptTag = function () {
           if (!accounts || accounts.length < 1) {
-            this._log('warn', 'No account id set to create script tag');
+            that._log('warn', 'No account id set to create script tag');
             return;
           }
           if (accounts.length > 1) {
-            this._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
+            that._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
             accounts = accounts.slice(0, 1);
           }
 
           if (created === true) {
-            this._log('warn', 'ga.js or analytics.js script tag already created');
+            that._log('warn', 'ga.js or analytics.js script tag already created');
             return;
           }
 
-          // inject the Google Analytics tag
-          _gaq(['_setAccount', accounts[0].tracker]);
+          _gaq('_setAccount', accounts[0].tracker);
           if(domainName) {
-            _gaq(['_setDomainName', domainName]);
+            _gaq('_setDomainName', domainName);
           }
           if (enhancedLinkAttribution) {
-            _gaq(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
+            _gaq('_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js');
           }
           if (trackRoutes && !ignoreFirstPageLoad) {
             if (removeRegExp) {
-              _gaq(['_trackPageview', getUrl()]);
+              _gaq('_trackPageview', getUrl());
             } else {
-              _gaq(['_trackPageview']);
+              _gaq('_trackPageview');
             }
           }
-          var gaSrc;
-          if (displayFeatures) {
-            gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+
+          var scriptSource;
+          if (displayFeatures === true) {
+            scriptSource = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
           } else {
-            gaSrc = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            scriptSource = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
           }
-          (function () {
-            var document = $document[0];
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = gaSrc;
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-          })(gaSrc);
+
+          if (testMode !== true) {
+            // If not in test mode inject the Google Analytics tag
+            (function () {
+              var document = $document[0];
+              var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = scriptSource;
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+          } else {
+            // Log the source location for validation
+            that._log('inject', scriptSource);
+          }
 
           created = true;
           return true;
@@ -367,20 +382,30 @@
 
         this._createAnalyticsScriptTag = function () {
           if (!accounts) {
-            this._log('warn', 'No account id set to create analytics script tag');
+            that._log('warn', 'No account id set to create analytics script tag');
             return;
           }
 
           if (created === true) {
-            this._log('warn', 'ga.js or analytics.js script tag already created');
+            that._log('warn', 'ga.js or analytics.js script tag already created');
             return;
           }
 
-          // inject the Google Analytics tag
-          (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
-            (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          var scriptSource = '//www.google-analytics.com/analytics.js';
+          if (testMode !== true) {
+            // If not in test mode inject the Google Analytics tag
+            (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
+              (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
+            })(window,document,'script',scriptSource,'ga');
+          } else {
+            if (typeof $window.ga !== 'function') {
+              // In test mode create a ga function if none exists that is a noop sink.
+              $window.ga = function () {};
+            }
+            // Log script injection.
+            that._log('inject', scriptSource);
+          }
 
           accounts.forEach(function (trackerObj) {
             var options = {};
@@ -430,8 +455,8 @@
 
           if (experimentId) {
             var expScript = document.createElement('script'),
-              s = document.getElementsByTagName('script')[0];
-            expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
+                s = document.getElementsByTagName('script')[0];
+            expScript.src = '//www.google-analytics.com/cx/api.js?experiment=' + experimentId;
             s.parentNode.insertBefore(expScript, s);
           }
 
@@ -473,8 +498,8 @@
           title = title ? title : $document[0].title;
           _gaJs(function () {
             // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
-            _gaq(["_set", "title", title]);
-            _gaq(['_trackPageview', trackPrefix + url]);
+            _gaq('_set', 'title', title);
+            _gaq('_trackPageview', (trackPrefix + url));
           });
           _analyticsJs(function () {
             var opt_fieldObject = {
@@ -503,7 +528,7 @@
          */
         this._trackEvent = function (category, action, label, value, noninteraction, custom) {
           _gaJs(function () {
-            _gaq(['_trackEvent', category, action, label, value, !!noninteraction]);
+            _gaq('_trackEvent', category, action, label, value, !!noninteraction);
           });
           _analyticsJs(function () {
             var opt_fieldObject = {};
@@ -537,7 +562,7 @@
          */
         this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
           _gaJs(function () {
-            _gaq(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
+            _gaq('_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'addTrans')) {
@@ -574,7 +599,7 @@
          */
         this._addItem = function (transactionId, sku, name, category, price, quantity) {
           _gaJs(function () {
-            _gaq(['_addItem', transactionId, sku, name, category, price, quantity]);
+            _gaq('_addItem', transactionId, sku, name, category, price, quantity);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'addItem')) {
@@ -605,7 +630,7 @@
          */
         this._trackTrans = function () {
           _gaJs(function () {
-            _gaq(['_trackTrans']);
+            _gaq('_trackTrans');
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'trackTrans')) {
@@ -655,7 +680,7 @@
          */
         this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
           _gaJs(function () {
-            _gaq(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
+            _gaq('_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addProduct')) {
@@ -696,7 +721,7 @@
          */
         this._addImpression = function (id, name, list, brand, category, variant, position, price){
           _gaJs(function () {
-            _gaq(['_addImpression', id, name, list, brand, category, variant, position, price]);
+            _gaq('_addImpression', id, name, list, brand, category, variant, position, price);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addImpression')) {
@@ -732,7 +757,7 @@
          */
         this._addPromo = function (productId, name, creative, position) {
           _gaJs(function () {
-            _gaq(['_addPromo', productId, name, creative, position]);
+            _gaq('_addPromo', productId, name, creative, position);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addPromo')) {
@@ -763,7 +788,7 @@
          */
         this._setAction = function (action, obj){
           _gaJs(function () {
-            _gaq(['_setAction', action, obj]);
+            _gaq('_setAction', action, obj);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'setAction')) {
@@ -929,6 +954,7 @@
 
         return {
           log: that.log,
+          offlineQueue: that.offlineQueue,
           configuration: {
             accounts: accounts,
             universalAnalytics: analyticsJS,
@@ -946,6 +972,7 @@
             logAllCalls: logAllCalls,
             pageEvent: pageEvent,
             removeRegExp: removeRegExp,
+            testMode: testMode,
             trackPrefix: trackPrefix,
             trackRoutes: trackRoutes,
             trackUrlParams: trackUrlParams
@@ -977,8 +1004,8 @@
             if (mode === false && offlineMode === true) {
               // Go to online mode and process the offline queue
               offlineMode = false;
-              while (that._offlineQueue.length > 0) {
-                var obj = that._offlineQueue.shift();
+              while (that.offlineQueue.length > 0) {
+                var obj = that.offlineQueue.shift();
                 obj[0].apply(that, obj[1]);
               }
             }

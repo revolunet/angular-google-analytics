@@ -1,13 +1,18 @@
-/* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
+/* global afterEach, before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
 
-describe('angular-google-analytics universal (analytics.js)', function () {
+describe('universal analytics', function () {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider
       .setAccount('UA-XXXXXX-xx')
       .useAnalytics(true)
-      .logAllCalls(true);
+      .logAllCalls(true)
+      .enterTestMode();
+  }));
+
+  afterEach(inject(function (Analytics) {
+    Analytics.log.length = 0; // clear log
   }));
 
   describe('required settings missing', function () {
@@ -17,9 +22,9 @@ describe('angular-google-analytics universal (analytics.js)', function () {
       }));
 
       it('should not inject a script tag', function () {
-        var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
         inject(function (Analytics) {
-          expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount);
+          expect(Analytics.log.length).toBe(1);
+          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
         });
       });
 
@@ -48,67 +53,82 @@ describe('angular-google-analytics universal (analytics.js)', function () {
     });
 
     it('should not inject a script tag', function () {
-      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount);
+        expect(Analytics.log.length).toBe(0);
+        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
       });
     });
   });
 
-  describe('create analytics script tag', function () {
-    beforeEach(module(function (AnalyticsProvider) {
-      AnalyticsProvider.delayScriptTag(true);
-    }));
-
-    it('should inject a script tag', function () {
-      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
-      inject(function (Analytics, $location) {
-        Analytics.createAnalyticsScriptTag({ userId: 1234 });
-        expect(Analytics.getCookieConfig().userId).toBe(1234);
-        expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
+  describe('automatically create analytics script tag', function () {
+    it('should inject the script tag', function () {
+      inject(function (Analytics) {
+        expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
       });
     });
 
     it('should warn and prevent a second attempt to inject a script tag', function () {
-      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
       inject(function ($log) {
         spyOn($log, 'warn');
         inject(function (Analytics) {
-          Analytics.createAnalyticsScriptTag({ userId: 1234 });
-          expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
-          Analytics.createAnalyticsScriptTag({ userId: 1234 });
+          expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+          Analytics.createAnalyticsScriptTag();
           expect($log.warn).toHaveBeenCalledWith(['ga.js or analytics.js script tag already created']);
-          expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
+          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
         });
       });
     });
   });
 
-  describe('supports dc.js', function () {
+  describe('manually create analytics script tag', function () {
     beforeEach(module(function (AnalyticsProvider) {
-      AnalyticsProvider.useDisplayFeatures(true);
+      AnalyticsProvider.delayScriptTag(true);
     }));
 
-    it('should inject the DC script', function () {
+    it('should inject the script tag', function () {
+      inject(function (Analytics, $location) {
+          Analytics.log.length = 0; // clear log
+          Analytics.createAnalyticsScriptTag();
+          expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+      });
+    });
+
+    it('should warn and prevent a second attempt to inject a script tag', function () {
+      inject(function ($log) {
+        spyOn($log, 'warn');
+        inject(function (Analytics) {
+          Analytics.log.length = 0; // clear log
+          Analytics.createAnalyticsScriptTag();
+          expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+          Analytics.createAnalyticsScriptTag();
+          expect($log.warn).toHaveBeenCalledWith(['ga.js or analytics.js script tag already created']);
+          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
+        });
+      });
+    });
+
+    it('should support cookie config with the script call', function () {
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='http://stats.g.doubleclick.net/dc.js']").length).toBe(1);
+        Analytics.createAnalyticsScriptTag({ userId: 1234 });
+        expect(Analytics.getCookieConfig()).toEqual({ userId: 1234 });
       });
     });
   });
 
-  describe('supports ignoreFirstPageLoad', function () {
+  describe('ignoreFirstPageLoad configuration support', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.ignoreFirstPageLoad(true);
     }));
 
-    it('supports ignoreFirstPageLoad config', function () {
-      inject(function (Analytics, $rootScope) {
+    it('should support ignoreFirstPageLoad', function () {
+      inject(function (Analytics) {
         expect(Analytics.configuration.ignoreFirstPageLoad).toBe(true);
       });
     });
   });
 
-  describe('supports analytics.js', function () {
+  describe('cookie configuration support', function () {
     var cookieConfig = {
       cookieDomain: 'foo.example.com',
       cookieName: 'myNewName',
@@ -116,60 +136,53 @@ describe('angular-google-analytics universal (analytics.js)', function () {
     };
 
     beforeEach(module(function (AnalyticsProvider) {
-      AnalyticsProvider
-        .setCookieConfig(cookieConfig)
-        .useDisplayFeatures(true)
-        .useECommerce(true)
-        .useEnhancedLinkAttribution(true)
-        .setExperimentId('12345');
+      AnalyticsProvider.setCookieConfig(cookieConfig);
     }));
 
-    it('should inject the Analytics script', function () {
-      var scriptCount = document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length;
-      inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='//www.google-analytics.com/analytics.js']").length).toBe(scriptCount + 1);
-      });
-    });
-
-    it('should respect cookieConfig', function () {
+    it('should support cookie config', function () {
       inject(function (Analytics) {
         expect(Analytics.getCookieConfig()).toEqual(cookieConfig);
       });
     });
+  });
+
+  describe('displayFeature configuration support', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.useDisplayFeatures(true);
+    }));
 
     it('should support displayFeatures config', function () {
       inject(function (Analytics) {
         expect(Analytics.configuration.displayFeatures).toBe(true);
       });
     });
+  });
 
-    it('should support ecommerce config', function () {
-      inject(function (Analytics) {
-        expect(Analytics.configuration.ecommerce).toBe(true);
-      });
-    });
+  describe('enhancedLinkAttribution configuration support', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.useEnhancedLinkAttribution(true);
+    }));
 
     it('should support enhancedLinkAttribution config', function () {
       inject(function (Analytics) {
         expect(Analytics.configuration.enhancedLinkAttribution).toBe(true);
       });
     });
+  });
+
+  describe('experiment configuration support', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.setExperimentId('12345');
+    }));
 
     it('should support experimentId config', function () {
       inject(function (Analytics) {
         expect(Analytics.configuration.experimentId).toBe('12345');
       });
     });
+  });
 
-    it('should allow transaction clearing', function () {
-      inject(function (Analytics) {
-        Analytics.log.length = 0; // clear log
-        Analytics.clearTrans();
-        expect(Analytics.log.length).toBe(1);
-        expect(Analytics.log[0]).toEqual(['ecommerce:clear']);
-      });
-    });
-
+  describe('supports custom events, dimensions, and metrics', function () {
     it('should allow sending custom events', function () {
       inject(function (Analytics) {
         var social = {
@@ -189,8 +202,8 @@ describe('angular-google-analytics universal (analytics.js)', function () {
     it('should allow setting custom dimensions, metrics or experiment', function () {
       inject(function (Analytics) {
         var data = {
-          name: "dimension1",
-          value: "value1"
+          name: 'dimension1',
+          value: 'value1'
         };
         Analytics.log.length = 0; // clear log
         Analytics.set(data.name, data.value);
@@ -216,7 +229,7 @@ describe('angular-google-analytics universal (analytics.js)', function () {
         });
       });
 
-      it('should generate eventTracks and honour non-interactions', function () {
+      it('should generate eventTracks and honor non-interactions', function () {
         inject(function ($window) {
           spyOn($window, 'ga');
           inject(function (Analytics) {
@@ -235,13 +248,13 @@ describe('angular-google-analytics universal (analytics.js)', function () {
       AnalyticsProvider.useECommerce(true);
     }));
 
-    it('should have ecommerce enabled', function () {
+    it('should have e-commerce enabled', function () {
       inject(function (Analytics) {
         expect(Analytics.configuration.ecommerce).toBe(true);
       });
     });
 
-    it('should have enhanced ecommerce disabled', function () {
+    it('should have enhanced e-commerce disabled', function () {
       inject(function (Analytics) {
         expect(Analytics.configuration.enhancedEcommerce).toBe(false);
       });
@@ -274,7 +287,16 @@ describe('angular-google-analytics universal (analytics.js)', function () {
       });
     });
 
-    it('should not support enhanced ecommerce commands', function () {
+    it('should allow transaction clearing', function () {
+      inject(function (Analytics) {
+        Analytics.log.length = 0; // clear log
+        Analytics.clearTrans();
+        expect(Analytics.log.length).toBe(1);
+        expect(Analytics.log[0]).toEqual(['ecommerce:clear']);
+      });
+    });
+
+    it('should not support enhanced e-commerce commands', function () {
       var commands = [
         'addImpression',
         'addProduct',
@@ -295,8 +317,8 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     describe('supports multiple tracking objects', function () {
       var trackers = [
-        { tracker: 'UA-12345-12', name: "tracker1", trackEcommerce: true },
-        { tracker: 'UA-12345-34', name: "tracker2", trackEcommerce: false },
+        { tracker: 'UA-12345-12', name: 'tracker1', trackEcommerce: true },
+        { tracker: 'UA-12345-34', name: 'tracker2', trackEcommerce: false },
         { tracker: 'UA-12345-45', trackEcommerce: true }
       ];
 
@@ -499,8 +521,8 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
     describe('supports multiple tracking objects', function () {
       var trackers = [
-        { tracker: 'UA-12345-12', name: "tracker1", trackEcommerce: false },
-        { tracker: 'UA-12345-34', name: "tracker2", trackEcommerce: true },
+        { tracker: 'UA-12345-12', name: 'tracker1', trackEcommerce: false },
+        { tracker: 'UA-12345-34', name: 'tracker2', trackEcommerce: true },
         { tracker: 'UA-12345-45', trackEcommerce: true }
       ];
 
@@ -552,7 +574,7 @@ describe('angular-google-analytics universal (analytics.js)', function () {
       AnalyticsProvider.setPageEvent('$stateChangeSuccess');
     }));
 
-    it('should inject the Analytics script', function () {
+    it('should respond to non-default page event', function () {
       inject(function (Analytics, $rootScope) {
         Analytics.log.length = 0; // clear log
         $rootScope.$broadcast('$stateChangeSuccess');
@@ -604,8 +626,8 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
   describe('supports multiple tracking objects', function () {
     var trackers = [
-      { tracker: 'UA-12345-12', name: "tracker1" },
-      { tracker: 'UA-12345-34', name: "tracker2" },
+      { tracker: 'UA-12345-12', name: 'tracker1' },
+      { tracker: 'UA-12345-34', name: 'tracker2' },
       { tracker: 'UA-12345-45' }
     ];
 
@@ -624,16 +646,14 @@ describe('angular-google-analytics universal (analytics.js)', function () {
       });
     });
 
-    describe('#trackPage', function () {
-      it('should call send pageview event for each tracker', function () {
-        inject(function ($window) {
-          spyOn($window, 'ga');
-          inject(function (Analytics) {
-            Analytics.trackPage('/mypage', 'My Page');
-            expect($window.ga).toHaveBeenCalledWith(trackers[0].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
-            expect($window.ga).toHaveBeenCalledWith(trackers[1].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
-            expect($window.ga).toHaveBeenCalledWith('send', 'pageview', { page: '/mypage', title: 'My Page' });
-          });
+    it('should call send pageview event for each tracker', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.trackPage('/mypage', 'My Page');
+          expect($window.ga).toHaveBeenCalledWith(trackers[0].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
+          expect($window.ga).toHaveBeenCalledWith(trackers[1].name + '.send', 'pageview', { page: '/mypage', title: 'My Page' });
+          expect($window.ga).toHaveBeenCalledWith('send', 'pageview', { page: '/mypage', title: 'My Page' });
         });
       });
     });
@@ -641,8 +661,8 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
   describe('supports advanced options for multiple tracking objects', function () {
     var trackers = [
-      { tracker: 'UA-12345-12', name: "tracker1", crossDomainLinker: true },
-      { tracker: 'UA-12345-34', name: "tracker2", crossDomainLinker: true, crossLinkDomains: ['domain-1.com'] },
+      { tracker: 'UA-12345-12', name: 'tracker1', crossDomainLinker: true },
+      { tracker: 'UA-12345-34', name: 'tracker2', crossDomainLinker: true, crossLinkDomains: ['domain-1.com'] },
       { tracker: 'UA-12345-45', crossDomainLinker: true, crossLinkDomains: ['domain-2.com'] },
       { tracker: 'UA-12345-67', cookieConfig: 'yourdomain.org' }
     ];
@@ -685,8 +705,8 @@ describe('angular-google-analytics universal (analytics.js)', function () {
 
   describe('supports advanced tracking for multiple tracking objects', function () {
     var trackers = [
-      { tracker: 'UA-12345-12', name: "tracker1", trackEvent: true },
-      { tracker: 'UA-12345-34', name: "tracker2" },
+      { tracker: 'UA-12345-12', name: 'tracker1', trackEvent: true },
+      { tracker: 'UA-12345-34', name: 'tracker2' },
       { tracker: 'UA-12345-45', trackEvent: true }
     ];
 
@@ -705,9 +725,7 @@ describe('angular-google-analytics universal (analytics.js)', function () {
         });
       });
     });
-  });
 
-  describe('supports advanced settings', function () {
     it('should set value for default tracker if no trackerName provided', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
@@ -742,14 +760,12 @@ describe('angular-google-analytics universal (analytics.js)', function () {
     });
   });
 
-  describe('should add user timing', function () {
-    it('should add user timing', function () {
-      inject(function (Analytics) {
-        var length = Analytics.log.length;
-        Analytics.trackTimings('Time to Checkout', 'User Timings', '32', 'My Timings');
-        expect(length + 1).toBe(Analytics.log.length);
-        expect(Analytics.log[length]).toEqual(['send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings']);
-      });
+  it('should add user timing', function () {
+    inject(function (Analytics) {
+      var length = Analytics.log.length;
+      Analytics.trackTimings('Time to Checkout', 'User Timings', '32', 'My Timings');
+      expect(length + 1).toBe(Analytics.log.length);
+      expect(Analytics.log[length]).toEqual(['send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings']);
     });
   });
 });

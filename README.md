@@ -35,6 +35,16 @@ app.config(function (AnalyticsProvider) {
 });
 ```
 
+### Configuration Method Chaining
+```js
+  // All configuration methods return the provider object and can be chained to reduce typing.
+  // For example:
+  AnalyticsProvider
+    .logAllCalls(true)
+    .startOffline(true)
+    .useEcommerce(true, true);
+```
+
 ### Use Classic Analytics
 ```js
 // Use ga.js (classic) instead of analytics.js (universal)
@@ -211,6 +221,15 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
   // Log all outbound calls to an in-memory array accessible via ```Analytics.log``` (default is false).
   // This is useful for troubleshooting and seeing the order of calls with parameters.
   AnalyticsProvider.logAllCalls(true);
+```
+
+### Test Mode
+```js
+  // This method is designed specifically for unit testing and entering test mode cannot be changed after
+  // being called. Test mode skips the insertion of the Google Analytics script tags (both classic and universal)
+  // and ensures there is a $window.ga() method available for calling by unit tests. This corrects transient
+  // errors that were seen during unit tests due to the operation of the Google Analtics scripts.
+  AnalyticsProvider.enterTestMode();
 ```
 
 ## Automatic Tracking
@@ -467,6 +486,17 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
 
   // Reset offline mode to false
   Analytics.offline(false);
+```
+
+### In-Memory Queues
+```js
+  // If logging is enabled then all outbound calls are accessible via an in-memory array.
+  // This is useful for troubleshooting and seeing the order of outbound calls with parameters.
+  Analytics.log;
+
+  // If in offline mode then all calls are queued to an in-memory array for future processing.
+  // All calls queued to the offlineQueue are not outbound calls yet and hence do not show up in the log.
+  Analytics.offlineQueue;
 ```
 
 ## Directive
