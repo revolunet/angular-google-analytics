@@ -1,13 +1,18 @@
-/* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
+/* global afterEach, before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
 
-describe('angular-google-analytics classic (ga.js)', function() {
+describe('classic analytics', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider
       .setAccount('UA-XXXXXX-xx')
       .useAnalytics(false)
-      .logAllCalls(true);
+      .logAllCalls(true)
+      .enterTestMode();
+  }));
+
+  afterEach(inject(function (Analytics) {
+    Analytics.log.length = 0; // clear log
   }));
 
   describe('required settings missing', function () {
@@ -17,9 +22,9 @@ describe('angular-google-analytics classic (ga.js)', function() {
       }));
 
       it('should not inject a script tag', function () {
-        var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
+        var scriptCount = document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length;
         inject(function (Analytics) {
-          expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount);
+          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(scriptCount);
         });
       });
 
@@ -41,23 +46,23 @@ describe('angular-google-analytics classic (ga.js)', function() {
       AnalyticsProvider.delayScriptTag(true);
     }));
 
-    it('should have a truthy value for Analytics.delayScriptTag', function () {
+    it('should have a truthy value for delayScriptTag', function () {
       inject(function (Analytics, $location) {
         expect(Analytics.configuration.delayScriptTag).toBe(true);
       });
     });
 
     it('should not inject a script tag', function () {
-      var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
+      var scriptCount = document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length;
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount);
+        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(scriptCount);
       });
     });
   });
 
   describe('does not support multiple tracking objects', function () {
     var trackers = [
-      { tracker: 'UA-12345-12', name: "tracker1" },
+      { tracker: 'UA-12345-12', name: 'tracker1' },
       { tracker: 'UA-12345-45' }
     ];
 
@@ -69,7 +74,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
       inject(function ($log) {
         spyOn($log, 'warn');
         inject(function (Analytics) {
-          expect(Analytics.log.length).toBe(3);
+          expect(Analytics.log.length).toBe(4);
           expect(Analytics.log[0]).toEqual(['warn', 'Multiple trackers are not supported with ga.js. Using first tracker only']);
           expect($log.warn).toHaveBeenCalledWith(['Multiple trackers are not supported with ga.js. Using first tracker only']);
         });
@@ -84,10 +89,10 @@ describe('angular-google-analytics classic (ga.js)', function() {
 
     it('should inject a script tag', function () {
       inject(function (Analytics) {
-        var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
         Analytics.createScriptTag({ userId: 1234 });
+        expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
         expect(Analytics.getCookieConfig().userId).toBe(1234);
-        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
+        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
       });
     });
 
@@ -95,22 +100,21 @@ describe('angular-google-analytics classic (ga.js)', function() {
       inject(function ($log) {
         spyOn($log, 'warn');
         inject(function (Analytics) {
-          var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
-          Analytics.createScriptTag({ userId: 1234 });
-          expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
-          Analytics.createScriptTag({ userId: 1234 });
+          Analytics.createScriptTag();
+          expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+          Analytics.createScriptTag();
           expect($log.warn).toHaveBeenCalledWith(['ga.js or analytics.js script tag already created']);
-          expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
+          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
         });
       });
     });
   });
 
-  describe('automatic trackPages with ga.js', function () {
+  describe('automatic page tracking', function () {
     it('should inject the GA script', function () {
-      var scriptCount = document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length;
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='http://www.google-analytics.com/ga.js']").length).toBe(scriptCount + 1);
+        expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
       });
     });
 
@@ -135,7 +139,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
     });
   });
 
-  describe('NOT automatic trackPages', function () {
+  describe('NOT automatic page tracking', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.trackPages(false);
     }));
@@ -159,7 +163,7 @@ describe('angular-google-analytics classic (ga.js)', function() {
     });
   });
 
-  describe('eventTracks with ga.js', function () {
+  describe('event tracking', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.trackPages(false);
     }));
@@ -188,9 +192,11 @@ describe('angular-google-analytics classic (ga.js)', function() {
       AnalyticsProvider.useDisplayFeatures(true);
     }));
 
-    it('should inject the DC script', function () {
+    it('should inject the DC script and not the analytics script', function () {
       inject(function (Analytics) {
-        expect(document.querySelectorAll("script[src='http://stats.g.doubleclick.net/dc.js']").length).toBe(1);
+        expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://stats.g.doubleclick.net/dc.js']);
+        expect(document.querySelectorAll('script[src="//www.google-analytics.com/ga.js"]').length).toBe(0);
+        expect(document.querySelectorAll('script[src="http://stats.g.doubleclick.net/dc.js"]').length).toBe(0);
       });
     });
   });

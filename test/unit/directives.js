@@ -1,10 +1,12 @@
 /* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
-describe('angular-google-analytics directives', function() {
+describe('directives', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
-    AnalyticsProvider.setAccount('UA-XXXXXX-xx');
-    AnalyticsProvider.logAllCalls(true);
+    AnalyticsProvider
+      .setAccount('UA-XXXXXX-xx')
+      .logAllCalls(true)
+      .enterTestMode();
   }));
 
   describe('directives', function () {
@@ -59,13 +61,13 @@ describe('angular-google-analytics directives', function() {
               compiled = $compile(element)(scope);
           scope.$digest();
           compiled.triggerHandler('click');
-          expect(Analytics.trackEvent.calls.length).toBe(0);
+          expect(Analytics.trackEvent.calls.count()).toBe(0);
 
           element = '<div ga-track-event="[\'button\', \'click\', \'Some Button\']" ga-track-event-if="true">test</div>';
           compiled = $compile(element)(scope);
           scope.$digest();
           compiled.triggerHandler('click');
-          expect(Analytics.trackEvent.calls.length).toBe(1);
+          expect(Analytics.trackEvent.calls.count()).toBe(1);
         });
       });
     });

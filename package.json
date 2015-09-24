@@ -27,7 +27,9 @@
   "dependencies": {},
   "devDependencies": {
     "bower": "*",
-    "karma": "~0.8.0",
+    "karma": "*",
+    "karma-chrome-launcher": "*",
+    "karma-jasmine": "*",
     "grunt": ">=0.4.0",
     "grunt-contrib-concat": "*",
     "grunt-contrib-jshint": "*",

@@ -1,12 +1,17 @@
-/* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
+/* global afterEach, before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
 
-describe('angular-google-analytics offline mode', function () {
+describe('offline mode', function () {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {
     AnalyticsProvider
       .setAccount('UA-XXXXXX-xx')
-      .logAllCalls(true);
+      .logAllCalls(true)
+      .enterTestMode();
+  }));
+
+  afterEach(inject(function (Analytics) {
+    Analytics.log.length = 0; // clear log
   }));
 
   describe('with universal analytics', function () {
@@ -33,7 +38,6 @@ describe('angular-google-analytics offline mode', function () {
 
       it('should not have sent any commands while offline', function () {
         inject(function (Analytics) {
-          Analytics.log.length = 0; // clear log
           Analytics.trackPage('/page/here');
           expect(Analytics.log.length).toBe(0);
         });
@@ -41,12 +45,12 @@ describe('angular-google-analytics offline mode', function () {
 
       it('should send everything when script is added and reset to online', function () {
         inject(function (Analytics, $window) {
-          Analytics.log.length = 0; // clear log
           Analytics.createAnalyticsScriptTag();
           Analytics.offline(false);
-          expect(Analytics.log.length).toBe(2);
-          expect(Analytics.log[0]).toEqual(['create', 'UA-XXXXXX-xx', 'auto', { allowLinker : false }]);
-          expect(Analytics.log[1]).toEqual(['send', 'pageview', '']);
+          expect(Analytics.log.length).toBe(3);
+          expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+          expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', 'auto', { allowLinker : false }]);
+          expect(Analytics.log[2]).toEqual(['send', 'pageview', '']);
         });
       });
     });
@@ -132,9 +136,13 @@ describe('angular-google-analytics offline mode', function () {
           $window._gaq.length = 0; // clear queue
           Analytics.createScriptTag();
           Analytics.offline(false);
-          expect($window._gaq.length).toBe(2);
-          expect($window._gaq[0]).toEqual(['_setAccount', 'UA-XXXXXX-xx']);
-          expect($window._gaq[1]).toEqual(['_trackPageview']);
+          expect(Analytics.log.length).toBe(3);
+          expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+          expect(Analytics.log[1]).toEqual(['_setAccount', 'UA-XXXXXX-xx']);
+          expect(Analytics.log[2]).toEqual(['_trackPageview']);
+          expect($window._gaq.length).toBe(Analytics.log.length - 1);
+          expect($window._gaq[0]).toEqual(Analytics.log[1]);
+          expect($window._gaq[1]).toEqual(Analytics.log[2]);
         });
       });
     });
@@ -174,14 +182,19 @@ describe('angular-google-analytics offline mode', function () {
 
     it('should send all queued commands when reset to online', function () {
       inject(function (Analytics, $window) {
+        Analytics.log.length = 0; // clear log
         $window._gaq.length = 0; // clear queue
         Analytics.offline(true);
         Analytics.trackPage('/page/here');
+        expect(Analytics.log.length).toBe(0);
         expect($window._gaq.length).toBe(0);
         Analytics.offline(false);
-        expect($window._gaq.length).toBe(2);
-        expect($window._gaq[0]).toEqual(['_set', 'title', '']);
-        expect($window._gaq[1]).toEqual(['_trackPageview', '/page/here']);
+        expect(Analytics.log.length).toBe(2);
+        expect(Analytics.log[0]).toEqual(['_set', 'title', '']);
+        expect(Analytics.log[1]).toEqual(['_trackPageview', '/page/here']);
+        expect($window._gaq.length).toBe(Analytics.log.length);
+        expect($window._gaq[0]).toEqual(Analytics.log[0]);
+        expect($window._gaq[1]).toEqual(Analytics.log[1]);
       });
     });
   });
