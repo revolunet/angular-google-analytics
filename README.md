@@ -75,10 +75,11 @@ AnalyticsProvider.setAccount([
 AnalyticsProvider.setAccount({
   tracker: 'UA-12345-12',
   name: "tracker1",
-  cookieConfig: {
+  fields: {
     cookieDomain: 'foo.example.com',
     cookieName: 'myNewName',
     cookieExpires: 20000
+    // See: [Analytics Field Reference](https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference) for a list of all fields
   },
   crossDomainLinker: true,
   crossLinkDomains: ['domain-1.com', 'domain-2.com'],
@@ -89,6 +90,7 @@ AnalyticsProvider.setAccount({
 });
 ```
 **Note:** the above properties are referenced and discussed in proceeding sections.
+**Note:** the `cookieConfig` property is being **deprecated** for the `fields` property. At present `cookieConfig` is an alias for `fields` in an account object.
 
 ### Use Display Features
 ```js
@@ -122,6 +124,9 @@ If set to a truthy value then the cross-linked domains are registered with Googl
 In the case of universal analytics, these values will be used as the default for any tracker that does not have the `crossDomainLinker` and `crossLinkDomains` properties defined. All trackers with `crossDomainLinker: true` will register the cross-linked domains.
 
 ### Set Cookie Configuration
+**NOTE:** This method is being **deprecated**. Use the `fields` property on the account object instead.
+This property is defined for universal analytics account objects only and is set to `auto` by default.
+
 ```js
   // Set custom cookie parameters
   AnalyticsProvider.setCookieConfig({
@@ -130,7 +135,7 @@ In the case of universal analytics, these values will be used as the default for
     cookieExpires: 20000
   });
 ```
-In the case of universal analytics, this cookie configuration will be used as the default for any tracker that does not have the `cookieConfig` property defined.
+This cookie configuration will be used as the default for any tracker that does not have the `cookieConfig` property defined.
 
 ### Track Events
 This property is defined for universal analytics account objects only and is false by default.
@@ -280,6 +285,8 @@ The following configuration settings are intended to be immutable. While the val
 ```
 
 ### Get or Set Cookie Configuration
+**NOTE:** These methods are being **deprecated**. Use the `fields` property on the account object instead.
+
 ```js
   // Get the global cookie config.
   Analytics.getCookieConfig();
@@ -288,7 +295,7 @@ The following configuration settings are intended to be immutable. While the val
   // Impacts all future calls for classic analytics (ga.js).
   Analytics.setCookieConfig();
 ```
-**Note:** Changing the cookie configuration after the AnalyticsProvider configuration only works for classic analytics (ga.js). This does not update the individual account objects used by universal analytics (analytics.js). If you want to change the account objects used by universal analytics those can be accessed through `Analytics.configuration.accounts`, but such modification to the accounts object is unsupported.
+**Note:** Changing the cookie configuration after the AnalyticsProvider configuration does not update the individual account objects used by universal analytics (analytics.js). If you want to change the account objects used by universal analytics those can be accessed through `Analytics.configuration.accounts`, but such modification to the accounts object is unsupported.
 
 ### Get URL
 ```js
@@ -301,10 +308,10 @@ The following configuration settings are intended to be immutable. While the val
 If `delayScriptTag(true)` was set during configuration then manual script tag injection is required. Otherwise, the script tag will be automatically injected and configured when the service is instantiated.
 ```js
   // Manually create classic analytics (ga.js) script tag
-  Analytics.createScriptTag({ userId: 1234 });
+  Analytics.createScriptTag();
 
   // Manually create universal analytics (analytics.js) script tag
-  Analytics.createAnalyticsScriptTag({ userId: 1234 });
+  Analytics.createAnalyticsScriptTag();
 ```
 
 ### Advanced Settings / Custom Dimensions

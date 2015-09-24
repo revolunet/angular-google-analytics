@@ -4,7 +4,7 @@
     .provider('Analytics', function () {
       var accounts,
           analyticsJS = true,
-          cookieConfig = 'auto',
+          cookieConfig = 'auto', // DEPRECATED
           created = false,
           crossDomainLinker = false,
           crossLinkDomains,
@@ -93,6 +93,7 @@
         return this;
       };
 
+      /* DEPRECATED */
       this.setCookieConfig = function (config) {
         cookieConfig = config;
         return this;
@@ -408,8 +409,6 @@
           }
 
           accounts.forEach(function (trackerObj) {
-            var options = {};
-            trackerObj.cookieConfig = isPropertyDefined('cookieConfig', trackerObj) ? trackerObj.cookieConfig : cookieConfig;
             trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
             trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
             trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
@@ -417,12 +416,31 @@
             trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
             trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
 
-            options.allowLinker = trackerObj.crossDomainLinker;
-            if (isPropertyDefined('name', trackerObj)) {
-              options.name = trackerObj.name;
+            // Logic to choose what account fields to be used.
+            // cookieConfig is being deprecated for a tracker specific property: fields.
+            var fields = {};
+            if (isPropertyDefined('fields', trackerObj)) {
+              fields = trackerObj.fields;
+            } else if (isPropertyDefined('cookieConfig', trackerObj)) {
+              if (angular.isString(trackerObj.cookieConfig)) {
+                fields.cookieDomain = trackerObj.cookieConfig;
+              } else {
+                fields = trackerObj.cookieConfig;
+              }
+            } else if (angular.isString(cookieConfig)) {
+              fields.cookieDomain = cookieConfig;
+            } else if (cookieConfig) {
+              fields = cookieConfig;
             }
+            if (trackerObj.crossDomainLinker === true) {
+              fields.allowLinker = true;
+            }
+            if (isPropertyDefined('name', trackerObj)) {
+              fields.name = trackerObj.name;
+            }
+            trackerObj.fields = fields;
 
-            _ga('create', trackerObj.tracker, trackerObj.cookieConfig, options);
+            _ga('create', trackerObj.tracker, trackerObj.fields);
 
             if (trackerObj.crossDomainLinker === true) {
               _ga(generateCommandName('require', trackerObj), 'linker');
@@ -978,7 +996,9 @@
             trackUrlParams: trackUrlParams
           },
           getUrl: getUrl,
+          /* DEPRECATED */
           setCookieConfig: that._setCookieConfig,
+          /* DEPRECATED */
           getCookieConfig: function () {
             return cookieConfig;
           },
@@ -986,14 +1006,9 @@
             if (config) {
               cookieConfig = config;
             }
-
             return that._createAnalyticsScriptTag();
           },
-          createScriptTag: function (config) {
-            if (config) {
-              cookieConfig = config;
-            }
-
+          createScriptTag: function () {
             return that._createScriptTag();
           },
           offline: function (mode) {

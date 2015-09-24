@@ -639,9 +639,9 @@ describe('universal analytics', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, 'auto', { allowLinker: false, name: trackers[0].name });
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, 'auto', { allowLinker: false, name: trackers[1].name });
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[2].tracker, 'auto', { allowLinker: false });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, { cookieDomain: 'auto', name: trackers[0].name });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, { cookieDomain: 'auto', name: trackers[1].name });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[2].tracker, { cookieDomain: 'auto' });
         });
       });
     });
@@ -697,7 +697,7 @@ describe('universal analytics', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
-          expect($window.ga).toHaveBeenCalledWith('create', 'UA-12345-67', 'yourdomain.org', { allowLinker: false });
+          expect($window.ga).toHaveBeenCalledWith('create', 'UA-12345-67', { cookieDomain: 'yourdomain.org' });
         });
       });
     });

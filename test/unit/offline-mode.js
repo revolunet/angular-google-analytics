@@ -49,7 +49,7 @@ describe('offline mode', function () {
           Analytics.offline(false);
           expect(Analytics.log.length).toBe(3);
           expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
-          expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', 'auto', { allowLinker : false }]);
+          expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
           expect(Analytics.log[2]).toEqual(['send', 'pageview', '']);
         });
       });
