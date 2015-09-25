@@ -391,6 +391,31 @@ describe('universal analytics', function () {
       });
     });
 
+    it('should add product data with custom properties', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.log.length = 0; // clear log
+          Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', undefined, undefined, { dimension1: '1' });
+          expect(Analytics.log.length).toBe(1);
+          expect($window.ga).toHaveBeenCalledWith(
+            'ec:addProduct',
+            {
+              id: 'sku-2',
+              name: 'Test Product 2',
+              category: 'Category-1',
+              brand: 'Brand 2',
+              variant: 'variant-3',
+              price: '2499',
+              quantity: '1',
+              coupon: undefined,
+              position: undefined,
+              dimension1: '1'
+            });
+        });
+      });
+    });
+
     it('should add promo data', function () {
       inject(function (Analytics) {
         Analytics.log.length = 0; // clear log

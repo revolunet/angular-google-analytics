@@ -683,7 +683,7 @@
          */
 
         /**
-         * Add product data
+         * Add Product
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
          * @param productId
          * @param name
@@ -694,9 +694,10 @@
          * @param quantity
          * @param coupon
          * @param position
+         * @param custom
          * @private
          */
-        this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
+        this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position, custom) {
           _gaJs(function () {
             _gaq('_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position);
           });
@@ -705,27 +706,27 @@
               var includeFn = function (trackerObj) {
                 return isPropertySetTo('trackEcommerce', trackerObj, true);
               };
-
-              _gaMultipleTrackers(
-                includeFn,
-                'ec:addProduct',
-                {
-                  id: productId,
-                  name: name,
-                  category: category,
-                  brand: brand,
-                  variant: variant,
-                  price: price,
-                  quantity: quantity,
-                  coupon: coupon,
-                  position: position
-                });
+              var details = {
+                id: productId,
+                name: name,
+                category: category,
+                brand: brand,
+                variant: variant,
+                price: price,
+                quantity: quantity,
+                coupon: coupon,
+                position: position
+              };
+              if (angular.isObject(custom)) {
+                angular.extend(details, custom);
+              }
+              _gaMultipleTrackers(includeFn, 'ec:addProduct', details);
             }
           });
         };
 
         /**
-         * Add Impression data
+         * Add Impression
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#impression-data
          * @param id
          * @param name
@@ -765,7 +766,7 @@
         };
 
         /**
-         * Add promo data
+         * Add Promo
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce
          * @param productId
          * @param name
@@ -797,7 +798,7 @@
         };
 
         /**
-         * Set Action being performed
+         * Set Action
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-actions
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-types
          * @param action
@@ -1027,64 +1028,64 @@
             return offlineMode;
           },
           trackPage: function (url, title, custom) {
-            that._trackPage(url, title, custom);
+            that._trackPage.apply(that, arguments);
           },
           trackEvent: function (category, action, label, value, noninteraction, custom) {
-            that._trackEvent(category, action, label, value, noninteraction, custom);
+            that._trackEvent.apply(that, arguments);
           },
           addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
-            that._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
+            that._addTrans.apply(that, arguments);
           },
           addItem: function (transactionId, sku, name, category, price, quantity) {
-            that._addItem(transactionId, sku, name, category, price, quantity);
+            that._addItem.apply(that, arguments);
           },
           trackTrans: function () {
-            that._trackTrans();
+            that._trackTrans.apply(that, arguments);
           },
           clearTrans: function () {
-            that._clearTrans();
+            that._clearTrans.apply(that, arguments);
           },
-          addProduct: function (productId, name, category, brand, variant, price, quantity, coupon, position) {
-            that._addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+          addProduct: function (productId, name, category, brand, variant, price, quantity, coupon, position, custom) {
+            that._addProduct.apply(that, arguments);
           },
           addPromo: function (productId, name, creative, position) {
-            that._addPromo(productId, name, creative, position);
+            that._addPromo.apply(that, arguments);
           },
           addImpression: function (productId, name, list, brand, category, variant, position, price) {
-            that._addImpression(productId, name, list, brand, category, variant, position, price);
+            that._addImpression.apply(that, arguments);
           },
           productClick: function (listName) {
-            that._productClick(listName);
+            that._productClick.apply(that, arguments);
           },
           promoClick : function (promotionName) {
-            that._promoClick(promotionName);
+            that._promoClick.apply(that, arguments);
           },
           trackDetail: function () {
-            that._trackDetail();
+            that._trackDetail.apply(that, arguments);
           },
           trackCart: function (action) {
-            that._trackCart(action);
+            that._trackCart.apply(that, arguments);
           },
           trackCheckout: function (step, option) {
-            that._trackCheckOut(step, option);
+            that._trackCheckOut.apply(that, arguments);
           },
           trackTimings: function (timingCategory, timingVar, timingValue, timingLabel) {
-            that._trackTimings(timingCategory, timingVar, timingValue, timingLabel);
+            that._trackTimings.apply(that, arguments);
           },
           trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
-            that._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
+            that._trackTransaction.apply(that, arguments);
           },
           setAction: function (action, obj) {
-            that._setAction(action, obj);
+            that._setAction.apply(that, arguments);
           },
           pageView: function () {
-            that._pageView();
+            that._pageView.apply(that, arguments);
           },
           send: function (obj) {
-            that._send(obj);
+            that._send.apply(that, arguments);
           },
           set: function (name, value, trackerName) {
-            that._set(name, value, trackerName);
+            that._set.apply(that, arguments);
           }
         };
       }];

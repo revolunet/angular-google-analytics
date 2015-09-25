@@ -402,11 +402,15 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
 
 #### Product Click Tracking
 ```js
-  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+  Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position, custom);
   Analytics.productClick(listName);
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
+  Analytics.productClick('Search Result');
+
+  // example with custom dimension and metric:
+  Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1', { dimension4: 'strong', metric2: 5 });
   Analytics.productClick('Search Result');
 ```
 
