@@ -1,5 +1,6 @@
 /* global before, beforeEach, describe, document, expect, inject, it, module, spyOn */
 'use strict';
+
 describe('directives', function() {
   beforeEach(module('angular-google-analytics'));
   beforeEach(module(function (AnalyticsProvider) {

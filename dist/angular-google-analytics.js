@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.0 - 2015-09-12
+ * @version v1.1.0 - 2015-09-27
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
  * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
@@ -12,13 +12,13 @@
     .provider('Analytics', function () {
       var accounts,
           analyticsJS = true,
-          cookieConfig = 'auto',
+          cookieConfig = 'auto', // DEPRECATED
           created = false,
           crossDomainLinker = false,
           crossLinkDomains,
           currency = 'USD',
           delayScriptTag = false,
-          displayFeatures,
+          displayFeatures = false,
           domainName,
           ecommerce = false,
           enhancedEcommerce = false,
@@ -29,12 +29,13 @@
           offlineMode = false,
           pageEvent = '$routeChangeSuccess',
           removeRegExp,
+          testMode = false,
           trackPrefix = '',
           trackRoutes = true,
           trackUrlParams = false;
 
       this.log = [];
-      this._offlineQueue = [];
+      this.offlineQueue = [];
 
       /**
        * Configuration Methods
@@ -100,6 +101,7 @@
         return this;
       };
 
+      /* DEPRECATED */
       this.setCookieConfig = function (config) {
         cookieConfig = config;
         return this;
@@ -153,6 +155,11 @@
 
       this.logAllCalls = function (val) {
         logAllCalls = !!val;
+        return this;
+      };
+
+      this.enterTestMode = function () {
+        testMode = true;
         return this;
       };
 
@@ -234,7 +241,6 @@
           return obj;
         };
 
-
         /**
          * Private Methods
          */
@@ -246,17 +252,18 @@
         };
 
         var _gaq = function () {
+          var args = Array.prototype.slice.call(arguments);
           if (offlineMode === true) {
-            that._offlineQueue.push([_gaq, arguments]);
+            that.offlineQueue.push([_gaq, args]);
             return;
           }
           if (!$window._gaq) {
             $window._gaq = [];
           }
           if (logAllCalls === true) {
-            that._log.apply(that, arguments);
+            that._log.apply(that, args);
           }
-          $window._gaq.push.apply($window._gaq, arguments);
+          $window._gaq.push(args);
         };
 
         var _analyticsJs = function (fn) {
@@ -266,8 +273,9 @@
         };
 
         var _ga = function () {
+          var args = Array.prototype.slice.call(arguments);
           if (offlineMode === true) {
-            that._offlineQueue.push([_ga, arguments]);
+            that.offlineQueue.push([_ga, args]);
             return;
           }
           if (typeof $window.ga !== 'function') {
@@ -275,9 +283,9 @@
             return;
           }
           if (logAllCalls === true) {
-            that._log.apply(that, arguments);
+            that._log.apply(that, args);
           }
-          $window.ga.apply(null, arguments);
+          $window.ga.apply(null, args);
         };
 
         var _gaMultipleTrackers = function (includeFn) {
@@ -311,63 +319,71 @@
         };
 
         this._log = function () {
-          if (arguments.length > 0) {
-            if (arguments.length > 1) {
-              switch (arguments[0]) {
+          var args = Array.prototype.slice.call(arguments);
+          if (args.length > 0) {
+            if (args.length > 1) {
+              switch (args[0]) {
                 case 'warn':
-                  $log.warn(Array.prototype.slice.call(arguments, 1));
+                  $log.warn(args.slice(1));
                   break;
                 case 'error':
-                  $log.error(Array.prototype.slice.call(arguments, 1));
+                  $log.error(args.slice(1));
                   break;
               }
             }
-            this.log.push(Array.prototype.slice.call(arguments));
+            that.log.push(args);
           }
         };
 
         this._createScriptTag = function () {
           if (!accounts || accounts.length < 1) {
-            this._log('warn', 'No account id set to create script tag');
+            that._log('warn', 'No account id set to create script tag');
             return;
           }
           if (accounts.length > 1) {
-            this._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
+            that._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
             accounts = accounts.slice(0, 1);
           }
 
           if (created === true) {
-            this._log('warn', 'ga.js or analytics.js script tag already created');
+            that._log('warn', 'ga.js or analytics.js script tag already created');
             return;
           }
 
-          // inject the Google Analytics tag
-          _gaq(['_setAccount', accounts[0].tracker]);
+          _gaq('_setAccount', accounts[0].tracker);
           if(domainName) {
-            _gaq(['_setDomainName', domainName]);
+            _gaq('_setDomainName', domainName);
           }
           if (enhancedLinkAttribution) {
-            _gaq(['_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
+            _gaq('_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js');
           }
           if (trackRoutes && !ignoreFirstPageLoad) {
             if (removeRegExp) {
-              _gaq(['_trackPageview', getUrl()]);
+              _gaq('_trackPageview', getUrl());
             } else {
-              _gaq(['_trackPageview']);
+              _gaq('_trackPageview');
             }
           }
-          var gaSrc;
-          if (displayFeatures) {
-            gaSrc = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+
+          var scriptSource;
+          if (displayFeatures === true) {
+            scriptSource = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
           } else {
-            gaSrc = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            scriptSource = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
           }
-          (function () {
-            var document = $document[0];
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = gaSrc;
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-          })(gaSrc);
+
+          if (testMode !== true) {
+            // If not in test mode inject the Google Analytics tag
+            (function () {
+              var document = $document[0];
+              var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = scriptSource;
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+          } else {
+            // Log the source location for validation
+            that._log('inject', scriptSource);
+          }
 
           created = true;
           return true;
@@ -375,24 +391,32 @@
 
         this._createAnalyticsScriptTag = function () {
           if (!accounts) {
-            this._log('warn', 'No account id set to create analytics script tag');
+            that._log('warn', 'No account id set to create analytics script tag');
             return;
           }
 
           if (created === true) {
-            this._log('warn', 'ga.js or analytics.js script tag already created');
+            that._log('warn', 'ga.js or analytics.js script tag already created');
             return;
           }
 
-          // inject the Google Analytics tag
-          (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
-            (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          var scriptSource = '//www.google-analytics.com/analytics.js';
+          if (testMode !== true) {
+            // If not in test mode inject the Google Analytics tag
+            (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
+              (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
+            })(window,document,'script',scriptSource,'ga');
+          } else {
+            if (typeof $window.ga !== 'function') {
+              // In test mode create a ga function if none exists that is a noop sink.
+              $window.ga = function () {};
+            }
+            // Log script injection.
+            that._log('inject', scriptSource);
+          }
 
           accounts.forEach(function (trackerObj) {
-            var options = {};
-            trackerObj.cookieConfig = isPropertyDefined('cookieConfig', trackerObj) ? trackerObj.cookieConfig : cookieConfig;
             trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
             trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
             trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
@@ -400,12 +424,31 @@
             trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
             trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
 
-            options.allowLinker = trackerObj.crossDomainLinker;
-            if (isPropertyDefined('name', trackerObj)) {
-              options.name = trackerObj.name;
+            // Logic to choose what account fields to be used.
+            // cookieConfig is being deprecated for a tracker specific property: fields.
+            var fields = {};
+            if (isPropertyDefined('fields', trackerObj)) {
+              fields = trackerObj.fields;
+            } else if (isPropertyDefined('cookieConfig', trackerObj)) {
+              if (angular.isString(trackerObj.cookieConfig)) {
+                fields.cookieDomain = trackerObj.cookieConfig;
+              } else {
+                fields = trackerObj.cookieConfig;
+              }
+            } else if (angular.isString(cookieConfig)) {
+              fields.cookieDomain = cookieConfig;
+            } else if (cookieConfig) {
+              fields = cookieConfig;
             }
+            if (trackerObj.crossDomainLinker === true) {
+              fields.allowLinker = true;
+            }
+            if (isPropertyDefined('name', trackerObj)) {
+              fields.name = trackerObj.name;
+            }
+            trackerObj.fields = fields;
 
-            _ga('create', trackerObj.tracker, trackerObj.cookieConfig, options);
+            _ga('create', trackerObj.tracker, trackerObj.fields);
 
             if (trackerObj.crossDomainLinker === true) {
               _ga(generateCommandName('require', trackerObj), 'linker');
@@ -438,8 +481,8 @@
 
           if (experimentId) {
             var expScript = document.createElement('script'),
-              s = document.getElementsByTagName('script')[0];
-            expScript.src = "//www.google-analytics.com/cx/api.js?experiment=" + experimentId;
+                s = document.getElementsByTagName('script')[0];
+            expScript.src = '//www.google-analytics.com/cx/api.js?experiment=' + experimentId;
             s.parentNode.insertBefore(expScript, s);
           }
 
@@ -481,8 +524,8 @@
           title = title ? title : $document[0].title;
           _gaJs(function () {
             // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
-            _gaq(["_set", "title", title]);
-            _gaq(['_trackPageview', trackPrefix + url]);
+            _gaq('_set', 'title', title);
+            _gaq('_trackPageview', (trackPrefix + url));
           });
           _analyticsJs(function () {
             var opt_fieldObject = {
@@ -511,7 +554,7 @@
          */
         this._trackEvent = function (category, action, label, value, noninteraction, custom) {
           _gaJs(function () {
-            _gaq(['_trackEvent', category, action, label, value, !!noninteraction]);
+            _gaq('_trackEvent', category, action, label, value, !!noninteraction);
           });
           _analyticsJs(function () {
             var opt_fieldObject = {};
@@ -545,7 +588,7 @@
          */
         this._addTrans = function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
           _gaJs(function () {
-            _gaq(['_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country]);
+            _gaq('_addTrans', transactionId, affiliation, total, tax, shipping, city, state, country);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'addTrans')) {
@@ -582,7 +625,7 @@
          */
         this._addItem = function (transactionId, sku, name, category, price, quantity) {
           _gaJs(function () {
-            _gaq(['_addItem', transactionId, sku, name, category, price, quantity]);
+            _gaq('_addItem', transactionId, sku, name, category, price, quantity);
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'addItem')) {
@@ -613,7 +656,7 @@
          */
         this._trackTrans = function () {
           _gaJs(function () {
-            _gaq(['_trackTrans']);
+            _gaq('_trackTrans');
           });
           _analyticsJs(function () {
             if (that._ecommerceEnabled(true, 'trackTrans')) {
@@ -648,7 +691,7 @@
          */
 
         /**
-         * Add product data
+         * Add Product
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
          * @param productId
          * @param name
@@ -659,38 +702,39 @@
          * @param quantity
          * @param coupon
          * @param position
+         * @param custom
          * @private
          */
-        this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position) {
+        this._addProduct = function (productId, name, category, brand, variant, price, quantity, coupon, position, custom) {
           _gaJs(function () {
-            _gaq(['_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position]);
+            _gaq('_addProduct', productId, name, category, brand, variant, price, quantity, coupon, position);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addProduct')) {
               var includeFn = function (trackerObj) {
                 return isPropertySetTo('trackEcommerce', trackerObj, true);
               };
-
-              _gaMultipleTrackers(
-                includeFn,
-                'ec:addProduct',
-                {
-                  id: productId,
-                  name: name,
-                  category: category,
-                  brand: brand,
-                  variant: variant,
-                  price: price,
-                  quantity: quantity,
-                  coupon: coupon,
-                  position: position
-                });
+              var details = {
+                id: productId,
+                name: name,
+                category: category,
+                brand: brand,
+                variant: variant,
+                price: price,
+                quantity: quantity,
+                coupon: coupon,
+                position: position
+              };
+              if (angular.isObject(custom)) {
+                angular.extend(details, custom);
+              }
+              _gaMultipleTrackers(includeFn, 'ec:addProduct', details);
             }
           });
         };
 
         /**
-         * Add Impression data
+         * Add Impression
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#impression-data
          * @param id
          * @param name
@@ -704,7 +748,7 @@
          */
         this._addImpression = function (id, name, list, brand, category, variant, position, price){
           _gaJs(function () {
-            _gaq(['_addImpression', id, name, list, brand, category, variant, position, price]);
+            _gaq('_addImpression', id, name, list, brand, category, variant, position, price);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addImpression')) {
@@ -730,7 +774,7 @@
         };
 
         /**
-         * Add promo data
+         * Add Promo
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce
          * @param productId
          * @param name
@@ -740,7 +784,7 @@
          */
         this._addPromo = function (productId, name, creative, position) {
           _gaJs(function () {
-            _gaq(['_addPromo', productId, name, creative, position]);
+            _gaq('_addPromo', productId, name, creative, position);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'addPromo')) {
@@ -762,7 +806,7 @@
         };
 
         /**
-         * Set Action being performed
+         * Set Action
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-actions
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-types
          * @param action
@@ -771,7 +815,7 @@
          */
         this._setAction = function (action, obj){
           _gaJs(function () {
-            _gaq(['_setAction', action, obj]);
+            _gaq('_setAction', action, obj);
           });
           _analyticsJs(function () {
             if (that._enhancedEcommerceEnabled(true, 'setAction')) {
@@ -937,6 +981,7 @@
 
         return {
           log: that.log,
+          offlineQueue: that.offlineQueue,
           configuration: {
             accounts: accounts,
             universalAnalytics: analyticsJS,
@@ -954,12 +999,15 @@
             logAllCalls: logAllCalls,
             pageEvent: pageEvent,
             removeRegExp: removeRegExp,
+            testMode: testMode,
             trackPrefix: trackPrefix,
             trackRoutes: trackRoutes,
             trackUrlParams: trackUrlParams
           },
           getUrl: getUrl,
+          /* DEPRECATED */
           setCookieConfig: that._setCookieConfig,
+          /* DEPRECATED */
           getCookieConfig: function () {
             return cookieConfig;
           },
@@ -967,14 +1015,9 @@
             if (config) {
               cookieConfig = config;
             }
-
             return that._createAnalyticsScriptTag();
           },
-          createScriptTag: function (config) {
-            if (config) {
-              cookieConfig = config;
-            }
-
+          createScriptTag: function () {
             return that._createScriptTag();
           },
           offline: function (mode) {
@@ -985,72 +1028,72 @@
             if (mode === false && offlineMode === true) {
               // Go to online mode and process the offline queue
               offlineMode = false;
-              while (that._offlineQueue.length > 0) {
-                var obj = that._offlineQueue.shift();
+              while (that.offlineQueue.length > 0) {
+                var obj = that.offlineQueue.shift();
                 obj[0].apply(that, obj[1]);
               }
             }
             return offlineMode;
           },
           trackPage: function (url, title, custom) {
-            that._trackPage(url, title, custom);
+            that._trackPage.apply(that, arguments);
           },
           trackEvent: function (category, action, label, value, noninteraction, custom) {
-            that._trackEvent(category, action, label, value, noninteraction, custom);
+            that._trackEvent.apply(that, arguments);
           },
           addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
-            that._addTrans(transactionId, affiliation, total, tax, shipping, city, state, country, currency);
+            that._addTrans.apply(that, arguments);
           },
           addItem: function (transactionId, sku, name, category, price, quantity) {
-            that._addItem(transactionId, sku, name, category, price, quantity);
+            that._addItem.apply(that, arguments);
           },
           trackTrans: function () {
-            that._trackTrans();
+            that._trackTrans.apply(that, arguments);
           },
           clearTrans: function () {
-            that._clearTrans();
+            that._clearTrans.apply(that, arguments);
           },
-          addProduct: function (productId, name, category, brand, variant, price, quantity, coupon, position) {
-            that._addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
+          addProduct: function (productId, name, category, brand, variant, price, quantity, coupon, position, custom) {
+            that._addProduct.apply(that, arguments);
           },
           addPromo: function (productId, name, creative, position) {
-            that._addPromo(productId, name, creative, position);
+            that._addPromo.apply(that, arguments);
           },
           addImpression: function (productId, name, list, brand, category, variant, position, price) {
-            that._addImpression(productId, name, list, brand, category, variant, position, price);
+            that._addImpression.apply(that, arguments);
           },
           productClick: function (listName) {
-            that._productClick(listName);
+            that._productClick.apply(that, arguments);
           },
           promoClick : function (promotionName) {
-            that._promoClick(promotionName);
+            that._promoClick.apply(that, arguments);
           },
           trackDetail: function () {
-            that._trackDetail();
+            that._trackDetail.apply(that, arguments);
           },
           trackCart: function (action) {
-            that._trackCart(action);
+            that._trackCart.apply(that, arguments);
           },
           trackCheckout: function (step, option) {
-            that._trackCheckOut(step, option);
+            that._trackCheckOut.apply(that, arguments);
           },
           trackTimings: function (timingCategory, timingVar, timingValue, timingLabel) {
-            that._trackTimings(timingCategory, timingVar, timingValue, timingLabel);
+            that._trackTimings.apply(that, arguments);
           },
           trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
-            that._trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
+            that._trackTransaction.apply(that, arguments);
           },
           setAction: function (action, obj) {
-            that._setAction(action, obj);
+            that._setAction.apply(that, arguments);
           },
           pageView: function () {
-            that._pageView();
+            that._pageView.apply(that, arguments);
           },
           send: function (obj) {
-            that._send(obj);
+            that._send.apply(that, arguments);
           },
           set: function (name, value, trackerName) {
-            that._set(name, value, trackerName);
+            that._set.apply(that, arguments);
           }
         };
       }];

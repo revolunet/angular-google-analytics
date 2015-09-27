@@ -99,7 +99,7 @@ module.exports = function(grunt) {
         }
       },
       options: {
-        configFile: 'test/karma.conf.js'
+        configFile: __dirname + '/test/karma.conf.js'
       }
     }
   });
@@ -147,9 +147,11 @@ module.exports = function(grunt) {
 
   // Provides the "karma" task.
   grunt.registerMultiTask('karma', 'Starts up a karma server.', function() {
-    var done = this.async();
-    require('karma').server.start(this.options(), function(code) {
+    var karma = require('karma'),
+        done = this.async();
+    var server = new karma.Server(this.options(), function(code) {
       done(code === 0);
     });
+    server.start();
   });
 };
