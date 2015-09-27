@@ -22,7 +22,7 @@ describe('universal analytics scenarios', function () {
       inject(function (Analytics) {
         var i, count, expected = [
           ['inject', '//www.google-analytics.com/analytics.js'], // This entry is in the log only due to test mode
-          ['create', 'UA-XXXXXX-xx', 'auto', {allowLinker: false}],
+          ['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }],
           ['require', 'ec'],
           ['set', '&cu', 'EUR'],
           ['send', 'pageview', ''],

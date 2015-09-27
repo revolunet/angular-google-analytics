@@ -89,9 +89,8 @@ describe('classic analytics', function() {
 
     it('should inject a script tag', function () {
       inject(function (Analytics) {
-        Analytics.createScriptTag({ userId: 1234 });
+        Analytics.createScriptTag();
         expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
-        expect(Analytics.getCookieConfig().userId).toBe(1234);
         expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
       });
     });
