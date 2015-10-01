@@ -28,6 +28,21 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
 
+
+In your html/template add
+```html
+...
+<script src="bower_components/angular-google-analytics/dist/angular-google-analytics.js"></script>
+...
+```
+
+In your application, declare dependency injection like so..
+
+```javascript
+angular.module('myModule', ['angular-google-analytics']);
+...
+```
+
 ## Configure Service
 ```js
 app.config(function (AnalyticsProvider) {
