@@ -315,11 +315,12 @@
           if (args.length > 0) {
             if (args.length > 1) {
               switch (args[0]) {
-                case 'warn':
-                  $log.warn(args.slice(1));
-                  break;
+                case 'debug':
                 case 'error':
-                  $log.error(args.slice(1));
+                case 'info':
+                case 'log':
+                case 'warn':
+                  $log[args[0]](args.slice(1));
                   break;
               }
             }
