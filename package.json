@@ -1,7 +1,7 @@
 {
   "name": "angular-google-analytics",
   "description": "Angular Google Analytics - Easy tracking for your AngularJS application",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "homepage": "http://github.com/revolunet/angular-google-analytics",
   "author": "Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)",
   "contributors": [
