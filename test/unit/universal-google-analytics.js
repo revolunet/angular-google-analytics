@@ -116,6 +116,30 @@ describe('universal analytics', function () {
     });
   });
 
+  describe('hybrid mobile application support', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider
+        .setHybridMobileSupport(true)
+        .delayScriptTag(true);
+    }));
+
+    it('should support hybridMobileSupport', function () {
+      inject(function (Analytics) {
+        expect(Analytics.configuration.hybridMobileSupport).toBe(true);
+      });
+    });
+
+    it('should inject a script tag with the HTTPS protocol and set checkProtocolTask to null', function () {
+      inject(function (Analytics) {
+        Analytics.log.length = 0; // clear log
+        Analytics.createAnalyticsScriptTag();
+        expect(Analytics.log[0]).toEqual(['inject', 'https://www.google-analytics.com/analytics.js']);
+        expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
+        expect(Analytics.log[2]).toEqual(['set', 'checkProtocolTask', null]);
+      });
+    });
+  });
+
   describe('ignoreFirstPageLoad configuration support', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.ignoreFirstPageLoad(true);

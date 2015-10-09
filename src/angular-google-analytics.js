@@ -18,6 +18,7 @@
           experimentId,
           ignoreFirstPageLoad = false,
           logAllCalls = false,
+          hybridMobileSupport = false,
           offlineMode = false,
           pageEvent = '$routeChangeSuccess',
           removeRegExp,
@@ -129,6 +130,11 @@
 
       this.trackUrlParams = function (val) {
         trackUrlParams = !!val;
+        return this;
+      };
+
+      this.setHybridMobileSupport = function (val) {
+        hybridMobileSupport = !!val;
         return this;
       };
 
@@ -393,7 +399,8 @@
             return;
           }
 
-          var scriptSource = '//www.google-analytics.com/analytics.js';
+          var protocol = hybridMobileSupport === true ? 'https:' : '';
+          var scriptSource = protocol + '//www.google-analytics.com/analytics.js';
           if (testMode !== true) {
             // If not in test mode inject the Google Analytics tag
             (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
@@ -417,7 +424,7 @@
             trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
             trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
 
-            // Logic to choose what account fields to be used.
+            // Logic to choose the account fields to be used.
             // cookieConfig is being deprecated for a tracker specific property: fields.
             var fields = {};
             if (isPropertyDefined('fields', trackerObj)) {
@@ -442,6 +449,12 @@
             trackerObj.fields = fields;
 
             _ga('create', trackerObj.tracker, trackerObj.fields);
+
+            // Hybrid mobile application support
+            // https://developers.google.com/analytics/devguides/collection/analyticsjs/tasks
+            if (hybridMobileSupport === true) {
+              _ga(generateCommandName('set', trackerObj), 'checkProtocolTask', null);
+            }
 
             if (trackerObj.crossDomainLinker === true) {
               _ga(generateCommandName('require', trackerObj), 'linker');
@@ -475,7 +488,7 @@
           if (experimentId) {
             var expScript = document.createElement('script'),
                 s = document.getElementsByTagName('script')[0];
-            expScript.src = '//www.google-analytics.com/cx/api.js?experiment=' + experimentId;
+            expScript.src = protocol + '//www.google-analytics.com/cx/api.js?experiment=' + experimentId;
             s.parentNode.insertBefore(expScript, s);
           }
 
@@ -988,6 +1001,7 @@
             enhancedEcommerce: that._enhancedEcommerceEnabled(),
             enhancedLinkAttribution: enhancedLinkAttribution,
             experimentId: experimentId,
+            hybridMobileSupport: hybridMobileSupport,
             ignoreFirstPageLoad: ignoreFirstPageLoad,
             logAllCalls: logAllCalls,
             pageEvent: pageEvent,
