@@ -20,6 +20,7 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - ga.js (classic) and analytics.js (universal) support
  - cross-domain support
  - multiple tracking objects
+ - hybrid mobile application support
  - offline mode
 
 ## Installation
@@ -217,6 +218,16 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
   AnalyticsProvider.setExperimentId('12345');
 ```
 **Note:** only a single experiment can be defined.
+
+### Support Hybrid Mobile Applications
+This property is defined for universal analytics only and is false by default.
+
+```js
+  // Set hybrid mobile application support
+  AnalyticsProvider.setHybridMobileSupport(true);
+```
+
+If set to a truthy value then each account object will disable protocol checking and all injected scripts will use the HTTPS protocol.
 
 ### Delay Script Tag Insertion
 ```js
