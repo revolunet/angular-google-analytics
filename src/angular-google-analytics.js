@@ -421,6 +421,7 @@
             trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
             trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
             trackerObj.enhancedLinkAttribution = isPropertyDefined('enhancedLinkAttribution', trackerObj) ? trackerObj.enhancedLinkAttribution : enhancedLinkAttribution;
+            trackerObj.set = isPropertyDefined('set', trackerObj) ? trackerObj.set : {};
             trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
             trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
 
@@ -454,6 +455,13 @@
             // https://developers.google.com/analytics/devguides/collection/analyticsjs/tasks
             if (hybridMobileSupport === true) {
               _ga(generateCommandName('set', trackerObj), 'checkProtocolTask', null);
+            }
+
+            // Send all custom set commands from the trackerObj.set property
+            for (var key in trackerObj.set) {
+              if (trackerObj.set.hasOwnProperty(key)) {
+                _ga(generateCommandName('set', trackerObj), key, trackerObj.set[key]);
+              }
             }
 
             if (trackerObj.crossDomainLinker === true) {
