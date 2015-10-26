@@ -311,6 +311,11 @@
           }
 
           trackers.forEach(function (tracker) {
+            // Check tracker 'select' function, if it exists, for whether the tracker should be used with the current command.
+            // If the 'select' function returns false then the tracker will not be used with the current command.
+            if (isPropertyDefined('select', tracker) && typeof tracker.select === 'function' && !tracker.select(args)) {
+              return;
+            }
             args[0] = generateCommandName(commandName, tracker);
             _ga.apply(that, args);
           });

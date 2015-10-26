@@ -165,6 +165,30 @@ describe('universal analytics', function () {
     });
   });
 
+  describe('account select support', function () {
+    var account;
+
+    beforeEach(module(function (AnalyticsProvider) {
+       account = {
+        tracker: 'UA-XXXXXX-xx',
+        select: function () {
+          return false;
+        }
+      };
+      spyOn(account, 'select');
+      AnalyticsProvider.setAccount(account);
+    }));
+
+    it('should not run with commands after configuration when select returns false', function () {
+      inject(function (Analytics) {
+        Analytics.log.length = 0; // clear log
+        Analytics.trackPage('/path/to', 'title');
+        expect(Analytics.log.length).toEqual(0);
+        expect(account.select).toHaveBeenCalledWith(['send', 'pageview', { page: '/path/to', title: 'title' }]);
+      });
+    });
+  });
+
   describe('ignoreFirstPageLoad configuration support', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.ignoreFirstPageLoad(true);
