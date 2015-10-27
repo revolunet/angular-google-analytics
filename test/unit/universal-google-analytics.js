@@ -140,6 +140,55 @@ describe('universal analytics', function () {
     });
   });
 
+  describe('account custom set commands support', function () {
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider
+        .setAccount({
+          tracker: 'UA-XXXXXX-xx',
+          set: {
+            forceSSL: true
+          }
+        })
+        .setHybridMobileSupport(true)
+        .delayScriptTag(true);
+    }));
+
+    it('should set the account object to use forceSSL', function () {
+      inject(function (Analytics) {
+        Analytics.log.length = 0; // clear log
+        Analytics.createAnalyticsScriptTag();
+        expect(Analytics.log[0]).toEqual(['inject', 'https://www.google-analytics.com/analytics.js']);
+        expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
+        expect(Analytics.log[2]).toEqual(['set', 'checkProtocolTask', null]);
+        expect(Analytics.log[3]).toEqual(['set', 'forceSSL', true]);
+      });
+    });
+  });
+
+  describe('account select support', function () {
+    var account;
+
+    beforeEach(module(function (AnalyticsProvider) {
+       account = {
+        tracker: 'UA-XXXXXX-xx',
+        select: function () {
+          return false;
+        }
+      };
+      spyOn(account, 'select');
+      AnalyticsProvider.setAccount(account);
+    }));
+
+    it('should not run with commands after configuration when select returns false', function () {
+      inject(function (Analytics) {
+        Analytics.log.length = 0; // clear log
+        Analytics.trackPage('/path/to', 'title');
+        expect(Analytics.log.length).toEqual(0);
+        expect(account.select).toHaveBeenCalledWith(['send', 'pageview', { page: '/path/to', title: 'title' }]);
+      });
+    });
+  });
+
   describe('ignoreFirstPageLoad configuration support', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.ignoreFirstPageLoad(true);
