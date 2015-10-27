@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.2 - 2015-10-13
+ * @version v1.1.3 - 2015-10-26
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
  * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
@@ -319,6 +319,11 @@
           }
 
           trackers.forEach(function (tracker) {
+            // Check tracker 'select' function, if it exists, for whether the tracker should be used with the current command.
+            // If the 'select' function returns false then the tracker will not be used with the current command.
+            if (isPropertyDefined('select', tracker) && typeof tracker.select === 'function' && !tracker.select(args)) {
+              return;
+            }
             args[0] = generateCommandName(commandName, tracker);
             _ga.apply(that, args);
           });
@@ -429,6 +434,7 @@
             trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
             trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
             trackerObj.enhancedLinkAttribution = isPropertyDefined('enhancedLinkAttribution', trackerObj) ? trackerObj.enhancedLinkAttribution : enhancedLinkAttribution;
+            trackerObj.set = isPropertyDefined('set', trackerObj) ? trackerObj.set : {};
             trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
             trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
 
@@ -462,6 +468,13 @@
             // https://developers.google.com/analytics/devguides/collection/analyticsjs/tasks
             if (hybridMobileSupport === true) {
               _ga(generateCommandName('set', trackerObj), 'checkProtocolTask', null);
+            }
+
+            // Send all custom set commands from the trackerObj.set property
+            for (var key in trackerObj.set) {
+              if (trackerObj.set.hasOwnProperty(key)) {
+                _ga(generateCommandName('set', trackerObj), key, trackerObj.set[key]);
+              }
             }
 
             if (trackerObj.crossDomainLinker === true) {
