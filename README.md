@@ -2,6 +2,7 @@
 
 ![Bower Version](https://img.shields.io/bower/v/angular-google-analytics.svg)
 ![NPM Version](https://img.shields.io/npm/v/angular-google-analytics.svg)
+![Master Build Status](https://codeship.com/projects/ba7a0af0-33fe-0133-927c-127922174191/status?branch=master)
 
 This service lets you integrate google analytics tracker in your AngularJS applications easily.
 
