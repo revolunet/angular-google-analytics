@@ -494,7 +494,7 @@
             }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
-              _ga(generateCommandName('send', trackerObj), 'pageview', getUrl());
+              _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
             }
           });
 

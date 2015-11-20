@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.3 - 2015-10-26
+ * @version v1.1.3 - 2015-11-20
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
  * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
@@ -502,7 +502,7 @@
             }
 
             if (trackRoutes && !ignoreFirstPageLoad) {
-              _ga(generateCommandName('send', trackerObj), 'pageview', getUrl());
+              _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
             }
           });
 
