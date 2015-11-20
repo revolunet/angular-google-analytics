@@ -114,6 +114,21 @@ describe('universal analytics', function () {
         expect(Analytics.getCookieConfig()).toEqual({ userId: 1234 });
       });
     });
+
+    describe('with a prefix set', function(){
+      beforeEach(module(function (AnalyticsProvider){
+        AnalyticsProvider
+          .trackPrefix("test-prefix");
+      }));
+
+      it('should send the url, including the prefix', function(){
+        inject(function (Analytics) {
+          Analytics.log.length = 0; // clear log
+          Analytics.createAnalyticsScriptTag();
+          expect(Analytics.log[2]).toEqual(['send', 'pageview', 'test-prefix']);
+        });
+      });
+    });
   });
 
   describe('hybrid mobile application support', function () {
