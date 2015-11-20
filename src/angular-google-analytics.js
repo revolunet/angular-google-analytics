@@ -544,7 +544,6 @@
           _gaJs(function () {
             // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
             _gaq('_set', 'title', title);
-            _gaq('_set', 'page', (trackPrefix + url));
             _gaq('_trackPageview', (trackPrefix + url));
           });
           _analyticsJs(function () {
