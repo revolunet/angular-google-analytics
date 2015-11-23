@@ -357,43 +357,53 @@ The `set` call allows for advanced configuration and definitions in univeral ana
 ```js
   // Set the User Id
   Analytics.set('&uid', 1234);
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // Register a custom dimension for the default, unnamed account object
   // e.g., ga('set', 'dimension1', 'Paid');
   Analytics.set('dimension1', 'Paid');
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // Register a custom dimenstion for a named account object
   // e.g., ga('accountName.set', 'dimension2', 'Paid');
   Analytics.set('dimension2', 'Paid', 'accountName');
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 ```
 
 ### Page Tracking
 ```js
   // Create a new pageview event
   Analytics.trackPage('/video/detail/XXX');
+  Analytics.pageView();
 
   // Create a new pageview event with page title
   Analytics.trackPage('/video/detail/XXX', 'Video XXX');
+  Analytics.pageView();
 
   // Create a new pageview event with page title, custom dimension, and custom metric
   // Universal Analytics only
   Analytics.trackPage('/video/detail/XXX', 'Video XXX', { dimension15: 'My Custom Dimension', metric18: 8000 });
+  Analytics.pageView();
 ```
 
 ### Event Tracking
 ```js
   // Create a new tracking event
   Analytics.trackEvent('video', 'play', 'django.mp4');
+  Analytics.pageView();
 
   // Create a new tracking event with a value
   Analytics.trackEvent('video', 'play', 'django.mp4', 4);
+  Analytics.pageView();
 
   // Create a new tracking event with a value and non-interaction flag
   Analytics.trackEvent('video', 'play', 'django.mp4', 4, true);
+  Analytics.pageView();
 
   // Create a new tracking event with a value, non-interaction flag, custom dimension, and custom metric
   // Universal Analytics only
   Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, { dimension15: 'My Custom Dimension', metric18: 8000 });
+  Analytics.pageView();
 ```
 
 ### Track User Timings
@@ -412,16 +422,20 @@ Classic e-commerce and enhanced e-commerce are mutually exclusive.
 ```js
   // Create transaction
   Analytics.addTrans('1', '', '2.42', '0.42', '0', 'Amsterdam', '', 'Netherlands', 'EUR');
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // Add items to transaction
   Analytics.addItem('1', 'sku-1', 'Test product 1', 'Testing', '1', '1');
   Analytics.addItem('1', 'sku-2', 'Test product 2', 'Testing', '1', '1');
+  Analytics.pageView();
 
   // Complete transaction
   Analytics.trackTrans();
+  Analytics.pageView();
 
   // Clear transaction
   Analytics.clearTrans();
+  Analytics.pageView();
 ```
 
 ### Enhanced E-Commerce (ec.js)
@@ -430,7 +444,7 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
 #### Product Impression Tracking
 ```js
   Analytics.addImpression(productId, name, list, brand, category, variant, position, price);
-  Analytics.pageView();
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addImpression('sku-1', 'Test Product 1', 'Category List', 'Brand 1', 'Category-1', 'variant-1', '1', '24990');
@@ -442,74 +456,87 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position, custom);
   Analytics.productClick(listName);
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.productClick('Search Result');
+  Analytics.pageView();
 
   // example with custom dimension and metric:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1', { dimension4: 'strong', metric2: 5 });
   Analytics.productClick('Search Result');
+  Analytics.pageView();
 ```
 
 #### Product Detail Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
   Analytics.trackDetail();
+  Analytics.pageView();
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.trackDetail();
+  Analytics.pageView();
 ```
 
 #### Add to Cart Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
   Analytics.trackCart('add');
+  Analytics.pageView();
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.trackCart('add');
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 ```
 
 #### Remove from Cart Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
   Analytics.trackCart('remove');
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.trackCart('remove');
+  Analytics.pageView(); 
 ```
 
 #### Checkout Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
   Analytics.trackCheckout(checkoutStep, optionValue);
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.trackCheckout(1, 'Visa');
+  Analytics.pageView();
 ```
 
 #### Transaction Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
   Analytics.trackTransaction(transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option);
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2222', '1', 'MEN10', '1');
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '1111', '1', 'WOMEN10', '1');
   Analytics.trackTransaction('T1234', 'Online Store - Web', '3333', '10', '200', 'FLAT10', '', '', '');
+  Analytics.pageView();
 ```
 
 #### Promotion Impressions
 ```js
   Analytics.addPromo(productId, name, creative, position);
-  Analytics.pageView();
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
@@ -521,10 +548,12 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
 ```js
   Analytics.addPromo(promotionId, promotionName, creative, position);
   Analytics.promoClick(promotionName);
+  Analytics.pageView(); //ALWAYS user Analytics.pageView(); when you want to push the changes/functions to analytics.
 
   // example:
   Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
   Analytics.promoClick('Summer Sale');
+  Analytics.pageView();
 ```
 
 ### Online / Offline Mode
