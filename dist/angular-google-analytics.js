@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.3 - 2015-11-20
+ * @version v1.1.3 - 2015-12-10
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
  * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
@@ -907,11 +907,12 @@
          * Track add/remove to cart
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#add-remove-cart
          * @param action
+         * @param list
          * @private
          */
-        this._trackCart = function (action) {
+        this._trackCart = function (action, list) {
           if (['add', 'remove'].indexOf(action) !== -1) {
-            this._setAction(action);
+            this._setAction(action, {list: list});
             this._trackEvent('UX', 'click', action + (action === 'add' ? ' to cart' : ' from cart'));
           }
         };
@@ -1099,7 +1100,7 @@
           trackDetail: function () {
             that._trackDetail.apply(that, arguments);
           },
-          trackCart: function (action) {
+          trackCart: function (action, list) {
             that._trackCart.apply(that, arguments);
           },
           trackCheckout: function (step, option) {
