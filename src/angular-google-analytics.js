@@ -49,8 +49,8 @@
         return this;
       };
 
-      this.trackPages = function (doTrack) {
-        trackRoutes = doTrack;
+      this.trackPages = function (val) {
+        trackRoutes = !!val;
         return this;
       };
 

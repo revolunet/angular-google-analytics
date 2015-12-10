@@ -271,18 +271,21 @@ If set to a truthy value then each account object will disable protocol checking
   // This method is designed specifically for unit testing and entering test mode cannot be changed after
   // being called. Test mode skips the insertion of the Google Analytics script tags (both classic and universal)
   // and ensures there is a $window.ga() method available for calling by unit tests. This corrects transient
-  // errors that were seen during unit tests due to the operation of the Google Analtics scripts.
+  // errors that were seen during unit tests due to the operation of the Google Analytics scripts.
   AnalyticsProvider.enterTestMode();
 ```
 
-## Automatic Tracking
+## Using the Analytics Service
+**IMPORTANT!** Due to how Google Analytics works, it is important to remember that you must always call `Analytics.pageView();` when you want to push setting changes and function calls to Google Analytics.
+
+### Automatic Page View Tracking
 If you are relying on automatic page tracking, you need to inject Analytics at least once in your application.
 ```js
   // As an example, add the service to the run call:
   app.run(function(Analytics) {});
 ```
 
-## Making Calls
+### Declaring a Controller
 ```js
   // As an example, a simple controller to make calls from:
   app.controller('SampleController', function (Analytics) {
