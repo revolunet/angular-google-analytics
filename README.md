@@ -248,7 +248,8 @@ If set to a truthy value then each account object will disable protocol checking
   // Must manually call create script tag method in order to insert and configure Google Analytics:
   //   Classic analytics:   Analytics.createScriptTag();
   //   Universal analytics: Analytics.createAnalyticsScriptTag();
-  // Helpful when needing to do advanced configuration or user opt-out and wanting explicit control over when the Google Analytics script gets injected.
+  // Helpful when needing to do advanced configuration or user opt-out and wanting explicit control
+  // over when the Google Analytics script gets injected.
   AnalyticsProvider.delayScriptTag(true);
 ```
 
@@ -271,18 +272,29 @@ If set to a truthy value then each account object will disable protocol checking
   // This method is designed specifically for unit testing and entering test mode cannot be changed after
   // being called. Test mode skips the insertion of the Google Analytics script tags (both classic and universal)
   // and ensures there is a $window.ga() method available for calling by unit tests. This corrects transient
-  // errors that were seen during unit tests due to the operation of the Google Analtics scripts.
+  // errors that were seen during unit tests due to the operation of the Google Analytics scripts.
   AnalyticsProvider.enterTestMode();
 ```
 
-## Automatic Tracking
+### Debug Mode
+```js
+  // Calling this method will enable debugging mode for Universal Analytics. Supplying a truthy value for the
+  // optional parameter will further enable trace debugging for Universal Analytics. More information on this
+  // is available here: https://developers.google.com/analytics/devguides/collection/analyticsjs/debugging.
+  AnalyticsProvider.enterDebugMode(Boolean);
+```
+
+## Using the Analytics Service
+**IMPORTANT!** Due to how Google Analytics works, it is important to remember that you must always call `Analytics.pageView();` when you want to push setting changes and function calls to Google Analytics.
+
+### Automatic Page View Tracking
 If you are relying on automatic page tracking, you need to inject Analytics at least once in your application.
 ```js
   // As an example, add the service to the run call:
   app.run(function(Analytics) {});
 ```
 
-## Making Calls
+### Declaring a Controller
 ```js
   // As an example, a simple controller to make calls from:
   app.controller('SampleController', function (Analytics) {
@@ -303,6 +315,8 @@ The following configuration settings are intended to be immutable. While the val
   Analytics.configuration.crossDomainLinker;
   Analytics.configuration.crossLinkDomains;
   Analytics.configuration.currency;
+  Analytics.configuration.debugMode;
+
   Analytics.configuration.delayScriptTag;
   Analytics.configuration.displayFeatures;
   Analytics.configuration.domainName;
@@ -317,6 +331,7 @@ The following configuration settings are intended to be immutable. While the val
   Analytics.configuration.logAllCalls;
   Analytics.configuration.pageEvent;
   Analytics.configuration.removeRegExp;
+  Analytics.configuration.traceDebuggingMode;
   Analytics.configuration.trackPrefix;
   Analytics.configuration.trackRoutes;
   Analytics.configuration.trackUrlParams;
@@ -575,11 +590,17 @@ You can define the properties on your controller too, `$scope.event = ['video', 
 ```
 
 ## Troubleshooting
+
 ### AdBlock EasyPrivacy
 
 AdBlock has a module named [EasyPrivacy](https://easylist-downloads.adblockplus.org/easyprivacy.txt) that is meant to block web tracking scripts. angular-google-analytics.js gets filtered out by the EasyPrivacy blacklist.
 
 Users who are already concatenating and minifying their scripts should not notice a problem as long as the new script name is not also on the EasyPrivacy blacklist. Alternatively, consider changing the file name manually.
+
+### Debugging Resources
+
+Chrome Extension: [Google Analytics Debugger](https://chrome.google.com/webstore/detail/google-analytics-debugger/jnkmfdileelhofjcijamephohjechhna)
+Firefox Add-on: [Google Analytics Debugger](https://addons.mozilla.org/en-US/firefox/addon/gadebugger/)
 
 ## Licence
 

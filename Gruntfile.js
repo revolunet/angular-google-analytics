@@ -59,7 +59,7 @@ module.exports = function(grunt) {
       }
     },
     jshint: {
-      files: ['Gruntfile.js', 'src/*.js', 'test/unit/*.js'],
+      files: ['Gruntfile.js', 'index.js', 'src/*.js', 'test/*.js', 'test/unit/*.js'],
       options: {
         curly: true,
         browser: true,

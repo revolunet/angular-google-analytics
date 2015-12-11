@@ -18,17 +18,12 @@
     "universal-analytics"
   ],
   "homepage": "https://github.com/revolunet/angular-google-analytics",
-  "license": [
-    {
-      "type": "MIT",
-      "url": "http://revolunet.mit-license.org"
-    }
-  ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/revolunet/angular-google-analytics.git"
   },
-  "main": "./dist/angular-google-analytics.js",
+  "main": "./dist/angular-google-analytics.min.js",
   "dependencies": {
     "angular": ">=1"
   },
