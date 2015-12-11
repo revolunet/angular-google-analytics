@@ -9,6 +9,7 @@
           crossDomainLinker = false,
           crossLinkDomains,
           currency = 'USD',
+          debugMode = false,
           delayScriptTag = false,
           displayFeatures = false,
           domainName,
@@ -23,6 +24,7 @@
           pageEvent = '$routeChangeSuccess',
           removeRegExp,
           testMode = false,
+          traceDebuggingMode = false,
           trackPrefix = '',
           trackRoutes = true,
           trackUrlParams = false;
@@ -158,6 +160,12 @@
 
       this.enterTestMode = function () {
         testMode = true;
+        return this;
+      };
+
+      this.enterDebugMode = function (enableTraceDebugging) {
+        debugMode = true;
+        traceDebuggingMode = !!enableTraceDebugging;
         return this;
       };
 
@@ -369,6 +377,7 @@
             }
           }
 
+          var document = $document[0];
           var scriptSource;
           if (displayFeatures === true) {
             scriptSource = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
@@ -379,7 +388,6 @@
           if (testMode !== true) {
             // If not in test mode inject the Google Analytics tag
             (function () {
-              var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
               ga.src = scriptSource;
               var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
@@ -404,8 +412,9 @@
             return;
           }
 
+          var document = $document[0];
           var protocol = hybridMobileSupport === true ? 'https:' : '';
-          var scriptSource = protocol + '//www.google-analytics.com/analytics.js';
+          var scriptSource = protocol + '//www.google-analytics.com/' + (debugMode ? 'analytics_debug.js' : 'analytics.js');
           if (testMode !== true) {
             // If not in test mode inject the Google Analytics tag
             (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
@@ -419,6 +428,10 @@
             }
             // Log script injection.
             that._log('inject', scriptSource);
+          }
+
+          if (traceDebuggingMode) {
+            $window.ga_debug = { trace: true };
           }
 
           accounts.forEach(function (trackerObj) {
@@ -1008,6 +1021,7 @@
             crossDomainLinker: crossDomainLinker,
             crossLinkDomains: crossLinkDomains,
             currency: currency,
+            debugMode: debugMode,
             delayScriptTag: delayScriptTag,
             displayFeatures: displayFeatures,
             domainName: domainName,
@@ -1021,6 +1035,7 @@
             pageEvent: pageEvent,
             removeRegExp: removeRegExp,
             testMode: testMode,
+            traceDebuggingMode: traceDebuggingMode,
             trackPrefix: trackPrefix,
             trackRoutes: trackRoutes,
             trackUrlParams: trackUrlParams
