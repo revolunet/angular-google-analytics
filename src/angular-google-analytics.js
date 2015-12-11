@@ -902,9 +902,9 @@
          * @param list
          * @private
          */
-        this._trackCart = function (action, list) {
+        this._trackCart = function (action, listName) {
           if (['add', 'remove'].indexOf(action) !== -1) {
-            this._setAction(action, {list: list});
+            this._setAction(action, { list: listName });
             this._trackEvent('UX', 'click', action + (action === 'add' ? ' to cart' : ' from cart'));
           }
         };
