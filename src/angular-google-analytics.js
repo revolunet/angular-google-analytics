@@ -899,11 +899,12 @@
          * Track add/remove to cart
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#add-remove-cart
          * @param action
+         * @param list
          * @private
          */
-        this._trackCart = function (action) {
+        this._trackCart = function (action, list) {
           if (['add', 'remove'].indexOf(action) !== -1) {
-            this._setAction(action);
+            this._setAction(action, {list: list});
             this._trackEvent('UX', 'click', action + (action === 'add' ? ' to cart' : ' from cart'));
           }
         };
@@ -1091,7 +1092,7 @@
           trackDetail: function () {
             that._trackDetail.apply(that, arguments);
           },
-          trackCart: function (action) {
+          trackCart: function (action, list) {
             that._trackCart.apply(that, arguments);
           },
           trackCheckout: function (step, option) {
