@@ -1,4 +1,4 @@
-(function (window, document, angular, undefined) {
+(function (angular, undefined) {
   'use strict';
   angular.module('angular-google-analytics', [])
     .provider('Analytics', function () {
@@ -1153,4 +1153,4 @@
         }
       };
     }]);
-  })(window, document, window.angular);
+  })(window.angular);
