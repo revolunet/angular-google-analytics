@@ -465,23 +465,23 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
 #### Add to Cart Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-  Analytics.trackCart('add');
+  Analytics.trackCart('add', listName); // listname is optional
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-  Analytics.trackCart('add');
+  Analytics.trackCart('add', 'Search Result');
 ```
 
 #### Remove from Cart Tracking
 ```js
   Analytics.addProduct(productId, name, category, brand, variant, price, quantity, coupon, position);
-  Analytics.trackCart('remove');
+  Analytics.trackCart('remove', listName); // listname is optional
 
   // example:
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
   Analytics.addProduct('sku-2', 'Test Product 2', 'Category-1', 'Brand 2', 'variant-3', '2499', '1', 'FLAT10', '1');
-  Analytics.trackCart('remove');
+  Analytics.trackCart('remove', 'Search Result');
 ```
 
 #### Checkout Tracking
