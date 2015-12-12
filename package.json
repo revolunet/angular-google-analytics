@@ -28,9 +28,7 @@
     "grunt": ">=0.4.0",
     "grunt-contrib-concat": "*",
     "grunt-contrib-jshint": "*",
-    "grunt-contrib-uglify": "*",
-    "grunt-release": "~0.3.3",
-    "grunt-conventional-changelog": "0.0.12"
+    "grunt-contrib-uglify": "*"
   },
   "scripts": {
     "test": "karma start test/karma.conf.js --single-run --browsers Chrome",

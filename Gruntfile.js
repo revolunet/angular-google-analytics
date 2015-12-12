@@ -23,7 +23,7 @@ module.exports = function(grunt) {
         banner: '<%= meta.banner %>'
       },
       dist: {
-        src: ['src/*.js'],
+        src: ['index.js'],
         dest: '<%= dirs.dest %>/<%= pkg.name %>.js'
       }
     },
@@ -36,21 +36,11 @@ module.exports = function(grunt) {
         dest: '<%= dirs.dest %>/<%= pkg.name %>.min.js'
       }
     },
-    changelog: {
-      options: {
-        dest: 'CHANGELOG.md',
-        versionFile: 'package.json'
-      }
-    },
-    stage: {
-      options: {
-        files: ['CHANGELOG.md']
-      }
-    },
+    stage: {},
     release: {
       options: {
         commitMessage: '<%= version %>',
-        tagName: 'v<%= version %>',
+        tagName: '<%= version %>',
         file: 'package.json',
         push: false,
         tag: false,
@@ -59,7 +49,7 @@ module.exports = function(grunt) {
       }
     },
     jshint: {
-      files: ['Gruntfile.js', 'index.js', 'src/*.js', 'test/*.js', 'test/unit/*.js'],
+      files: ['Gruntfile.js', 'index.js', 'test/*.js', 'test/unit/*.js'],
       options: {
         curly: true,
         browser: true,
@@ -82,10 +72,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    // watch: {
-    //   files: '<config:jshint.files>',
-    //   tasks: 'default'
-    // },
     karma: {
       test: {
         options: {
@@ -113,12 +99,6 @@ module.exports = function(grunt) {
   // Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
-  // Load the plugin that provides the "watch" task.
-  //grunt.loadNpmTasks('grunt-contrib-watch');
-
-  grunt.loadNpmTasks('grunt-release');
-  grunt.loadNpmTasks('grunt-conventional-changelog');
-
   grunt.registerTask('stage', 'git add files before running the release task', function () {
     var files = this.options().files;
     grunt.util.spawn({
@@ -126,8 +106,6 @@ module.exports = function(grunt) {
       args: ['add'].concat(files)
     }, grunt.task.current.async());
   });
-
-  grunt.renameTask('release', 'originalRelease');
 
   // Default task.
   grunt.registerTask('default', ['test']);
@@ -142,7 +120,7 @@ module.exports = function(grunt) {
   // Build task.
   grunt.registerTask('build', ['test', 'concat', 'uglify']);
 
-  // release task
+  // Release task.
   grunt.registerTask('release', ['build']);
 
   // Provides the "karma" task.
