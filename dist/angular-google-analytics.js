@@ -1,12 +1,22 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.3 - 2015-12-10
+ * @version v1.1.4 - 2015-12-11
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
  * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */
-(function (window, document, angular, undefined) {
+/* globals define */
+(function (root, factory) {
+  'use strict';
+  if (typeof define === 'function' && define.amd) {
+    define(['angular'], factory);
+  } else if (typeof module === 'object' && module.exports) {
+    module.exports = factory(require('angular'));
+  } else {
+    factory(root.angular);
+  }
+}(this, function (angular, undefined) {
   'use strict';
   angular.module('angular-google-analytics', [])
     .provider('Analytics', function () {
@@ -17,6 +27,7 @@
           crossDomainLinker = false,
           crossLinkDomains,
           currency = 'USD',
+          debugMode = false,
           delayScriptTag = false,
           displayFeatures = false,
           domainName,
@@ -31,6 +42,7 @@
           pageEvent = '$routeChangeSuccess',
           removeRegExp,
           testMode = false,
+          traceDebuggingMode = false,
           trackPrefix = '',
           trackRoutes = true,
           trackUrlParams = false;
@@ -57,8 +69,8 @@
         return this;
       };
 
-      this.trackPages = function (doTrack) {
-        trackRoutes = doTrack;
+      this.trackPages = function (val) {
+        trackRoutes = !!val;
         return this;
       };
 
@@ -166,6 +178,12 @@
 
       this.enterTestMode = function () {
         testMode = true;
+        return this;
+      };
+
+      this.enterDebugMode = function (enableTraceDebugging) {
+        debugMode = true;
+        traceDebuggingMode = !!enableTraceDebugging;
         return this;
       };
 
@@ -377,6 +395,7 @@
             }
           }
 
+          var document = $document[0];
           var scriptSource;
           if (displayFeatures === true) {
             scriptSource = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
@@ -387,7 +406,6 @@
           if (testMode !== true) {
             // If not in test mode inject the Google Analytics tag
             (function () {
-              var document = $document[0];
               var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
               ga.src = scriptSource;
               var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
@@ -412,8 +430,9 @@
             return;
           }
 
+          var document = $document[0];
           var protocol = hybridMobileSupport === true ? 'https:' : '';
-          var scriptSource = protocol + '//www.google-analytics.com/analytics.js';
+          var scriptSource = protocol + '//www.google-analytics.com/' + (debugMode ? 'analytics_debug.js' : 'analytics.js');
           if (testMode !== true) {
             // If not in test mode inject the Google Analytics tag
             (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
@@ -427,6 +446,10 @@
             }
             // Log script injection.
             that._log('inject', scriptSource);
+          }
+
+          if (traceDebuggingMode) {
+            $window.ga_debug = { trace: true };
           }
 
           accounts.forEach(function (trackerObj) {
@@ -910,9 +933,9 @@
          * @param list
          * @private
          */
-        this._trackCart = function (action, list) {
+        this._trackCart = function (action, listName) {
           if (['add', 'remove'].indexOf(action) !== -1) {
-            this._setAction(action, {list: list});
+            this._setAction(action, { list: listName });
             this._trackEvent('UX', 'click', action + (action === 'add' ? ' to cart' : ' from cart'));
           }
         };
@@ -1016,6 +1039,7 @@
             crossDomainLinker: crossDomainLinker,
             crossLinkDomains: crossLinkDomains,
             currency: currency,
+            debugMode: debugMode,
             delayScriptTag: delayScriptTag,
             displayFeatures: displayFeatures,
             domainName: domainName,
@@ -1029,6 +1053,7 @@
             pageEvent: pageEvent,
             removeRegExp: removeRegExp,
             testMode: testMode,
+            traceDebuggingMode: traceDebuggingMode,
             trackPrefix: trackPrefix,
             trackRoutes: trackRoutes,
             trackUrlParams: trackUrlParams
@@ -1146,4 +1171,5 @@
         }
       };
     }]);
-  })(window, document, window.angular);
+  return angular.module('angular-google-analytics');
+}));
