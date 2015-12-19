@@ -23,6 +23,7 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - multiple tracking objects
  - hybrid mobile application support
  - offline mode
+ - analytics.js advanced debugging support
 
 ## Installation
 
@@ -540,6 +541,14 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
   // example:
   Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
   Analytics.promoClick('Summer Sale');
+```
+
+### Exception Tracking
+```js
+  Analytics.trackException(description, isFatal);
+
+  // example:
+  Analytics.trackException('Function "foo" is undefined on object "bar"', true);
 ```
 
 ### Online / Offline Mode

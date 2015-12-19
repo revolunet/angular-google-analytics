@@ -529,8 +529,7 @@ describe('universal analytics', function () {
         Analytics.productClick('dummy list');
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
-        expect(Analytics.log[1][0]).toBe('ec:setAction');
-        expect(Analytics.log[1][1]).toBe('click');
+        expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'click', { list: 'dummy list' } ]);
         expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list', undefined, {} ]);
       });
     });
@@ -542,8 +541,7 @@ describe('universal analytics', function () {
         Analytics.trackDetail();
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
-        expect(Analytics.log[1][0]).toBe('ec:setAction');
-        expect(Analytics.log[1][1]).toBe('detail');
+        expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'detail', undefined ]);
         expect(Analytics.log[2]).toEqual(['send', 'pageview']);
       });
     });
@@ -555,8 +553,7 @@ describe('universal analytics', function () {
         Analytics.trackCart('add');
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
-        expect(Analytics.log[1][0]).toBe('ec:setAction');
-        expect(Analytics.log[1][1]).toBe('add');
+        expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'add', { list: undefined } ]);
         expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart', undefined, {} ]);
       });
     });
@@ -568,7 +565,7 @@ describe('universal analytics', function () {
         Analytics.trackCart('add', 'product-list');
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
-        expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'add', {list: 'product-list'} ]);
+        expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'add', { list: 'product-list' } ]);
         expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart', undefined, {} ]);
       });
     });
@@ -580,8 +577,7 @@ describe('universal analytics', function () {
         Analytics.trackCart('remove');
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
-        expect(Analytics.log[1][0]).toBe('ec:setAction');
-        expect(Analytics.log[1][1]).toBe('remove');
+        expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'remove', { list: undefined } ]);
         expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'remove from cart', undefined, {} ]);
       });
     });
