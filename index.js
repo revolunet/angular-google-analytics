@@ -22,6 +22,7 @@
           debugMode = false,
           delayScriptTag = false,
           displayFeatures = false,
+          disableAnalytics = false,
           domainName,
           ecommerce = false,
           enhancedEcommerce = false,
@@ -142,6 +143,11 @@
 
       this.trackUrlParams = function (val) {
         trackUrlParams = !!val;
+        return this;
+      };
+
+      this.disableAnalytics = function (val) {
+        disableAnalytics = !!val;
         return this;
       };
 
@@ -372,6 +378,11 @@
             return;
           }
 
+          if (disableAnalytics === true) {
+            that._log('info', 'Analytics disabled: ' + accounts[0].tracker);
+            $window['ga-disable-' + accounts[0].tracker] = true;
+          }
+
           _gaq('_setAccount', accounts[0].tracker);
           if(domainName) {
             _gaq('_setDomainName', domainName);
@@ -420,6 +431,13 @@
           if (created === true) {
             that._log('warn', 'ga.js or analytics.js script tag already created');
             return;
+          }
+
+          if (disableAnalytics === true) {
+            accounts.forEach(function (trackerObj) {
+              that._log('info', 'Analytics disabled: ' + trackerObj.tracker);
+              $window['ga-disable-' + trackerObj.tracker] = true;
+            });
           }
 
           var document = $document[0];
@@ -985,7 +1003,7 @@
          * https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#customs
          * @param name (Required)
          * @param value (Required)
-         * @param trackerName (Not Required)
+         * @param trackerName (Optional)
          * @private
          */
         this._set = function (name, value, trackerName) {
@@ -999,11 +1017,22 @@
          * @param timingCategory (Required): A string for categorizing all user timing variables into logical groups(e.g jQuery).
          * @param timingVar (Required): A string to identify the variable being recorded(e.g. JavaScript Load).
          * @param timingValue (Required): The number of milliseconds in elapsed time to report to Google Analytics(e.g. 20).
-         * @param timingLabel (Not Required): A string that can be used to add flexibility in visualizing user timings in the reports(e.g. Google CDN).
+         * @param timingLabel (Optional): A string that can be used to add flexibility in visualizing user timings in the reports(e.g. Google CDN).
          * @private
          */
         this._trackTimings = function (timingCategory, timingVar, timingValue, timingLabel) {
           this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
+        };
+
+        /**
+         * Exception tracking
+         * https://developers.google.com/analytics/devguides/collection/analyticsjs/exceptions
+         * @param description (Optional): A description of the exception.
+         * @param isFatal (Optional): true if the exception was fatal, false otherwise.
+         * @private
+         */
+        this._trackException = function (description, isFatal) {
+          this._send('exception', { exDescription: description, exFatal: !!isFatal});
         };
 
         // creates the Google Analytics tracker
@@ -1033,6 +1062,7 @@
             currency: currency,
             debugMode: debugMode,
             delayScriptTag: delayScriptTag,
+            disableAnalytics: disableAnalytics,
             displayFeatures: displayFeatures,
             domainName: domainName,
             ecommerce: that._ecommerceEnabled(),
@@ -1126,8 +1156,11 @@
           trackTimings: function (timingCategory, timingVar, timingValue, timingLabel) {
             that._trackTimings.apply(that, arguments);
           },
-          trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option){
+          trackTransaction: function (transactionId, affiliation, revenue, tax, shipping, coupon, list, step, option) {
             that._trackTransaction.apply(that, arguments);
+          },
+          trackException: function (description, isFatal) {
+            that._trackException.apply(that, arguments);
           },
           setAction: function (action, obj) {
             that._setAction.apply(that, arguments);

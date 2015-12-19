@@ -23,6 +23,7 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - multiple tracking objects
  - hybrid mobile application support
  - offline mode
+ - analytics.js advanced debugging support
 
 ## Installation
 
@@ -260,6 +261,15 @@ If set to a truthy value then each account object will disable protocol checking
   AnalyticsProvider.startOffline(true);
 ```
 
+### Disable Analytics / User Opt-out
+```js
+  // Disable analytics data gathering via the user opt-out feature in Google Analytics. More information on this
+  // is available here: https://developers.google.com/analytics/devguides/collection/analyticsjs/advanced#optout.
+  AnalyticsProvider.disableAnalytics(true);
+```
+
+**Note:** Using this configuration option requires that you already know the user wants to opt-out before the analytics script is injected on the page. This is somewhat unlikely for most use cases given the nature of a single page application. This module provides a better alternative with `Offline` mode since you can effectively opt the user out of tracking by enabling offline mode at any time during execution.
+
 ### Service Logging
 ```js
   // Log all outbound calls to an in-memory array accessible via ```Analytics.log``` (default is false).
@@ -318,6 +328,7 @@ The following configuration settings are intended to be immutable. While the val
   Analytics.configuration.debugMode;
 
   Analytics.configuration.delayScriptTag;
+  Analytics.configuration.disableAnalytics;
   Analytics.configuration.displayFeatures;
   Analytics.configuration.domainName;
 
@@ -540,6 +551,14 @@ Enhanced e-commerce is only available for universal analytics. Enhanced e-commer
   // example:
   Analytics.addPromo('PROMO_1234', 'Summer Sale', 'summer_banner2', 'banner_slot1');
   Analytics.promoClick('Summer Sale');
+```
+
+### Exception Tracking
+```js
+  Analytics.trackException(description, isFatal);
+
+  // example:
+  Analytics.trackException('Function "foo" is undefined on object "bar"', true);
 ```
 
 ### Online / Offline Mode
