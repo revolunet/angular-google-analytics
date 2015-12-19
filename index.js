@@ -22,6 +22,7 @@
           debugMode = false,
           delayScriptTag = false,
           displayFeatures = false,
+          disableAnalytics = false,
           domainName,
           ecommerce = false,
           enhancedEcommerce = false,
@@ -142,6 +143,11 @@
 
       this.trackUrlParams = function (val) {
         trackUrlParams = !!val;
+        return this;
+      };
+
+      this.disableAnalytics = function (val) {
+        disableAnalytics = !!val;
         return this;
       };
 
@@ -372,6 +378,11 @@
             return;
           }
 
+          if (disableAnalytics === true) {
+            that._log('info', 'Analytics disabled: ' + accounts[0].tracker);
+            $window['ga-disable-' + accounts[0].tracker] = true;
+          }
+
           _gaq('_setAccount', accounts[0].tracker);
           if(domainName) {
             _gaq('_setDomainName', domainName);
@@ -420,6 +431,13 @@
           if (created === true) {
             that._log('warn', 'ga.js or analytics.js script tag already created');
             return;
+          }
+
+          if (disableAnalytics === true) {
+            accounts.forEach(function (trackerObj) {
+              that._log('info', 'Analytics disabled: ' + trackerObj.tracker);
+              $window['ga-disable-' + trackerObj.tracker] = true;
+            });
           }
 
           var document = $document[0];
@@ -1044,6 +1062,7 @@
             currency: currency,
             debugMode: debugMode,
             delayScriptTag: delayScriptTag,
+            disableAnalytics: disableAnalytics,
             displayFeatures: displayFeatures,
             domainName: domainName,
             ecommerce: that._ecommerceEnabled(),
