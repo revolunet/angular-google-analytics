@@ -195,19 +195,19 @@
          * Side-effect Free Helper Methods
          **/
 
-        var generateCommandName = function (commandName, config) {
-          if (angular.isString(config)) {
-            return config + '.' + commandName;
-          }
-          return isPropertyDefined('name', config) ? (config.name + '.' + commandName) : commandName;
-        };
-
         var isPropertyDefined = function (key, config) {
           return angular.isObject(config) && angular.isDefined(config[key]);
         };
 
         var isPropertySetTo = function (key, config, value) {
           return isPropertyDefined(key, config) && config[key] === value;
+        };
+
+        var generateCommandName = function (commandName, config) {
+          if (angular.isString(config)) {
+            return config + '.' + commandName;
+          }
+          return isPropertyDefined('name', config) ? (config.name + '.' + commandName) : commandName;
         };
 
         var getUrl = function () {
@@ -628,6 +628,9 @@
             if (angular.isObject(custom)) {
               angular.extend(opt_fieldObject, custom);
             }
+            if (!angular.isDefined(opt_fieldObject.page)) {
+              opt_fieldObject.page = getUrl();
+            }
             _gaMultipleTrackers(includeFn, 'send', 'event', category, action, label, value, opt_fieldObject);
           });
         };
@@ -1021,7 +1024,9 @@
          * @private
          */
         this._trackTimings = function (timingCategory, timingVar, timingValue, timingLabel) {
-          this._send('timing', timingCategory, timingVar, timingValue, timingLabel);
+          _analyticsJs(function () {
+            _gaMultipleTrackers(undefined, 'send', 'timing', timingCategory, timingVar, timingValue, timingLabel);
+          });
         };
 
         /**
@@ -1032,7 +1037,9 @@
          * @private
          */
         this._trackException = function (description, isFatal) {
-          this._send('exception', { exDescription: description, exFatal: !!isFatal});
+          _analyticsJs(function () {
+            _gaMultipleTrackers(undefined, 'send', 'exception', { exDescription: description, exFatal: !!isFatal});
+          });
         };
 
         // creates the Google Analytics tracker

@@ -36,4 +36,28 @@ describe('universal analytics exception tracking', function () {
       expect(Analytics.log[0]).toEqual(['send', 'exception', { exDescription: 'Something fatal happened!', exFatal: true }]);
     });
   });
+
+  describe('supports tracking for multiple tracking objects', function () {
+    var trackers = [
+      { tracker: 'UA-12345-12', name: 'tracker1', trackEvent: true },
+      { tracker: 'UA-12345-34', name: 'tracker2' },
+      { tracker: 'UA-12345-45', trackEvent: true }
+    ];
+
+    beforeEach(module(function (AnalyticsProvider) {
+      AnalyticsProvider.setAccount(trackers);
+    }));
+
+    it('should track exceptions for all objects', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.trackException('Something fatal happened!', true);
+          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'exception', { exDescription: 'Something fatal happened!', exFatal: true });
+          expect($window.ga).toHaveBeenCalledWith('tracker2.send', 'exception', { exDescription: 'Something fatal happened!', exFatal: true });
+          expect($window.ga).toHaveBeenCalledWith('send', 'exception', { exDescription: 'Something fatal happened!', exFatal: true });
+        });
+      });
+    });
+  });
 });

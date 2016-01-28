@@ -312,7 +312,7 @@ describe('universal analytics', function () {
             Analytics.log.length = 0; // clear log
             Analytics.trackEvent('test');
             expect(Analytics.log.length).toBe(1);
-            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', undefined, undefined, undefined, {});
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', undefined, undefined, undefined, { page: '' });
           });
         });
       });
@@ -324,7 +324,7 @@ describe('universal analytics', function () {
             Analytics.log.length = 0; // clear log
             Analytics.trackEvent('test', 'action', 'label', 0, true);
             expect(Analytics.log.length).toBe(1);
-            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0, { nonInteraction: true });
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0, { nonInteraction: true, page: '' });
           });
         });
       });
@@ -530,7 +530,7 @@ describe('universal analytics', function () {
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
         expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'click', { list: 'dummy list' } ]);
-        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list', undefined, {} ]);
+        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'dummy list', undefined, { page: '' } ]);
       });
     });
 
@@ -554,7 +554,7 @@ describe('universal analytics', function () {
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
         expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'add', { list: undefined } ]);
-        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart', undefined, {} ]);
+        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart', undefined, { page: '' } ]);
       });
     });
 
@@ -566,7 +566,7 @@ describe('universal analytics', function () {
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
         expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'add', { list: 'product-list' } ]);
-        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart', undefined, {} ]);
+        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'add to cart', undefined, { page: '' } ]);
       });
     });
 
@@ -578,7 +578,7 @@ describe('universal analytics', function () {
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
         expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'remove', { list: undefined } ]);
-        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'remove from cart', undefined, {} ]);
+        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'remove from cart', undefined, { page: '' } ]);
       });
     });
 
@@ -590,7 +590,7 @@ describe('universal analytics', function () {
         expect(Analytics.log.length).toBe(3);
         expect(Analytics.log[0][0]).toBe('ec:addProduct');
         expect(Analytics.log[1]).toEqual([ 'ec:setAction', 'remove', {list: 'product-list'} ]);
-        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'remove from cart', undefined, {} ]);
+        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'UX', 'click', 'remove from cart', undefined, { page: '' } ]);
       });
     });
 
@@ -629,7 +629,7 @@ describe('universal analytics', function () {
         expect(Analytics.log[0][0]).toBe('ec:addPromo');
         expect(Analytics.log[1][0]).toBe('ec:setAction');
         expect(Analytics.log[1][1]).toBe('promo_click');
-        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'Internal Promotions', 'click', 'Summer Sale', undefined, {} ]);
+        expect(Analytics.log[2]).toEqual([ 'send', 'event', 'Internal Promotions', 'click', 'Summer Sale', undefined, { page: '' } ]);
       });
     });
 
@@ -852,9 +852,21 @@ describe('universal analytics', function () {
         spyOn($window, 'ga');
         inject(function (Analytics) {
           Analytics.trackEvent('category', 'action', 'label', 'value');
-          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'event', 'category', 'action', 'label', 'value', {});
-          expect($window.ga).not.toHaveBeenCalledWith('tracker2.send', 'event', 'category', 'action', 'label', 'value', {});
-          expect($window.ga).toHaveBeenCalledWith('send', 'event', 'category', 'action', 'label', 'value', {});
+          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'event', 'category', 'action', 'label', 'value', { page: '' });
+          expect($window.ga).not.toHaveBeenCalledWith('tracker2.send', 'event', 'category', 'action', 'label', 'value', { page: '' });
+          expect($window.ga).toHaveBeenCalledWith('send', 'event', 'category', 'action', 'label', 'value', { page: '' });
+        });
+      });
+    });
+
+    it('should track user timings for all objects', function () {
+      inject(function ($window) {
+        spyOn($window, 'ga');
+        inject(function (Analytics) {
+          Analytics.trackTimings('Time to Checkout', 'User Timings', '32', 'My Timings');
+          expect($window.ga).toHaveBeenCalledWith('tracker1.send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings');
+          expect($window.ga).toHaveBeenCalledWith('tracker2.send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings');
+          expect($window.ga).toHaveBeenCalledWith('send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings');
         });
       });
     });
@@ -890,15 +902,6 @@ describe('universal analytics', function () {
         $location.url('/some/page?with_params=foo&more_param=123');
         expect(Analytics.getUrl()).toContain('?with_params=foo&more_param=123');
       });
-    });
-  });
-
-  it('should add user timing', function () {
-    inject(function (Analytics) {
-      var length = Analytics.log.length;
-      Analytics.trackTimings('Time to Checkout', 'User Timings', '32', 'My Timings');
-      expect(length + 1).toBe(Analytics.log.length);
-      expect(Analytics.log[length]).toEqual(['send', 'timing', 'Time to Checkout', 'User Timings', '32', 'My Timings']);
     });
   });
 });
