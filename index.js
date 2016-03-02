@@ -1,3 +1,11 @@
+/**
+ * Angular Google Analytics - Easy tracking for your AngularJS application
+ * @version v1.1.6 - 2016-01-27
+ * @link http://github.com/revolunet/angular-google-analytics
+ * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
+ * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
+ * @license MIT License, http://www.opensource.org/licenses/MIT
+ */
 /* globals define */
 (function (root, factory) {
   'use strict';
@@ -38,7 +46,8 @@
           traceDebuggingMode = false,
           trackPrefix = '',
           trackRoutes = true,
-          trackUrlParams = false;
+          trackUrlParams = false,
+          readFromRoute = false;
 
       this.log = [];
       this.offlineQueue = [];
@@ -184,11 +193,23 @@
         traceDebuggingMode = !!enableTraceDebugging;
         return this;
       };
+      
+      // Enable reading page url from route object
+      this.readFromRoute = function() {
+      	readFromRoute = true;
+      	return this;
+      };
 
       /**
        * Public Service
        */
-      this.$get = ['$document', '$location', '$log', '$rootScope', '$window', function ($document, $location, $log, $rootScope, $window) {
+      this.$get = ['$document', // To read title 
+                   '$location', // 
+                   '$log',      //
+                   '$rootScope',// 
+                   '$window',   //
+                   '$injector', // To access ngRoute module without declaring a fixed dependency
+                   function ($document, $location, $log, $rootScope, $window, $injector) {
         var that = this;
 
         /**
@@ -209,9 +230,26 @@
           }
           return isPropertyDefined('name', config) ? (config.name + '.' + commandName) : commandName;
         };
-
+        
+        var routes = readFromRoute ? $injector.get('$route').routes : { };
         var getUrl = function () {
-          var url = trackUrlParams ? $location.url() : $location.path();
+          // Using ngRoute provided tracking urls
+          var url = $location.url();
+          var trackUrl;
+          Object.keys(routes).forEach(function (key) {
+            var route = routes[key];
+            // Check if url matches this route
+          	if (!("regexp" in route) || !route.regexp.test(url))
+              return;
+          	if ("pageTrack" in route)
+          	  trackUrl = route.pageTrack;
+          });
+          // Check if we found something in routes
+          if(trackUrl)
+            return trackUrl;
+           
+          // Otherwise go the old way
+ 		  url = trackUrlParams ? $location.url() : $location.path(); 
           return removeRegExp ? url.replace(removeRegExp, '') : url;
         };
 
