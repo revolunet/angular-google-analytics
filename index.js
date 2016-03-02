@@ -1,11 +1,3 @@
-/**
- * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.6 - 2016-01-27
- * @link http://github.com/revolunet/angular-google-analytics
- * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
- * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
- * @license MIT License, http://www.opensource.org/licenses/MIT
- */
 /* globals define */
 (function (root, factory) {
   'use strict';
