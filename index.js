@@ -240,10 +240,10 @@
           Object.keys(routes).forEach(function (key) {
             var route = routes[key];
             // Check if url matches this route
-            if (!("regexp" in route) || !route.regexp.test(url)) {
+            if (!('regexp' in route) || !route.regexp.test(url)) {
               return;
             }
-            if ("pageTrack" in route) {
+            if ('pageTrack' in route) {
               trackUrl = route.pageTrack;
             }
           });
@@ -1122,7 +1122,7 @@
             ignoreFirstPageLoad: ignoreFirstPageLoad,
             logAllCalls: logAllCalls,
             pageEvent: pageEvent,
-            readFromRoute = readFromRoute,
+            readFromRoute: readFromRoute,
             removeRegExp: removeRegExp,
             testMode: testMode,
             traceDebuggingMode: traceDebuggingMode,
