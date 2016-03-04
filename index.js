@@ -240,12 +240,12 @@
           Object.keys(routes).forEach(function (key) {
             var route = routes[key];
             // Check if url matches this route
-          	if (!("regexp" in route) || !route.regexp.test(url)) {
+            if (!("regexp" in route) || !route.regexp.test(url)) {
               return;
             }
             if ("pageTrack" in route) {
               trackUrl = route.pageTrack;
-          	}
+            }
           });
           // Check if we found something in routes
           if (trackUrl) {
@@ -253,7 +253,7 @@
           }
            
           // Otherwise go the old way
- 		      url = trackUrlParams ? $location.url() : $location.path(); 
+          url = trackUrlParams ? $location.url() : $location.path(); 
           return removeRegExp ? url.replace(removeRegExp, '') : url;
         };
 
