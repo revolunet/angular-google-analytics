@@ -33,6 +33,7 @@
           hybridMobileSupport = false,
           offlineMode = false,
           pageEvent = '$routeChangeSuccess',
+          readFromRoute = false,
           removeRegExp,
           testMode = false,
           traceDebuggingMode = false,
@@ -184,11 +185,23 @@
         traceDebuggingMode = !!enableTraceDebugging;
         return this;
       };
+      
+      // Enable reading page url from route object
+      this.readFromRoute = function() {
+        readFromRoute = true;
+        return this;
+      };
 
       /**
        * Public Service
        */
-      this.$get = ['$document', '$location', '$log', '$rootScope', '$window', function ($document, $location, $log, $rootScope, $window) {
+      this.$get = ['$document', // To read title 
+                   '$location', // 
+                   '$log',      //
+                   '$rootScope',// 
+                   '$window',   //
+                   '$injector', // To access ngRoute module without declaring a fixed dependency
+                   function ($document, $location, $log, $rootScope, $window, $injector) {
         var that = this;
 
         /**
@@ -209,9 +222,38 @@
           }
           return isPropertyDefined('name', config) ? (config.name + '.' + commandName) : commandName;
         };
-
+        
+        // Try to read route configuration and log warning if not possible
+        var routes = {};
+        if (readFromRoute) {
+          var $route = $injector.get('$route');
+          if (!$route) {
+            $log.warn('$route service is not available. Make sure you have included ng-route in your application dependencies.');
+          } else {
+            routes = $route.routes;
+          }
+        }
         var getUrl = function () {
-          var url = trackUrlParams ? $location.url() : $location.path();
+          // Using ngRoute provided tracking urls
+          var url = $location.url();
+          var trackUrl;
+          Object.keys(routes).forEach(function (key) {
+            var route = routes[key];
+            // Check if url matches this route
+            if (!('regexp' in route) || !route.regexp.test(url)) {
+              return;
+            }
+            if ('pageTrack' in route) {
+              trackUrl = route.pageTrack;
+            }
+          });
+          // Check if we found something in routes
+          if (trackUrl) {
+            return trackUrl;
+          }
+           
+          // Otherwise go the old way
+          url = trackUrlParams ? $location.url() : $location.path(); 
           return removeRegExp ? url.replace(removeRegExp, '') : url;
         };
 
@@ -1080,6 +1122,7 @@
             ignoreFirstPageLoad: ignoreFirstPageLoad,
             logAllCalls: logAllCalls,
             pageEvent: pageEvent,
+            readFromRoute: readFromRoute,
             removeRegExp: removeRegExp,
             testMode: testMode,
             traceDebuggingMode: traceDebuggingMode,
