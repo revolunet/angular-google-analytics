@@ -187,8 +187,8 @@
       };
       
       // Enable reading page url from route object
-      this.readFromRoute = function() {
-        readFromRoute = true;
+      this.readFromRoute = function(val) {
+        readFromRoute = !!val;
         return this;
       };
 
