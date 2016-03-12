@@ -226,10 +226,10 @@
         // Try to read route configuration and log warning if not possible
         var routes = {};
         if (readFromRoute) {
-          var $route = $injector.get('$route');
-          if (!$route) {
+          if (!$injector.has('$route')) {
             $log.warn('$route service is not available. Make sure you have included ng-route in your application dependencies.');
           } else {
+            var $route = $injector.get('$route');
             routes = $route.routes;
           }
         }
