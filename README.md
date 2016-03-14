@@ -220,7 +220,7 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
   // Internally replaces all matching segments with an empty string.
   AnalyticsProvider.setRemoveRegExp(/\/\d+?$/);
   
-    // Activate reading custom tracking urls from $routeProvider config (default is false)
+  // Activate reading custom tracking urls from $routeProvider config (default is false)
   // This is more flexibale than using RegExp and easier to maintain for multiple parameters
   AnalyticsProvider.readFromRoute();
   // Add custom routes to the $routeProvider like this
