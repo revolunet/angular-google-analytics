@@ -21,20 +21,16 @@ describe('Reading from $route service', function() {
   });
   
   describe('without $route service available', function() {
-    beforeEach(module(function(AnalyticsProvider, $provide){
+    beforeEach(module(function(AnalyticsProvider){
       AnalyticsProvider.readFromRoute(true);
-      $provide.service('$log', function() {
-        this.messages = [];
-        this.warn = function (message) {
-          this.messages.push(message);
-        };
-      });
     }));
     
     it('should log warning if service is missing', function() {
-      inject(function(Analytics, $log) {
-        expect($log.messages.length).toBe(1);
-        expect($log.messages[0]).toBe('$route service is not available. Make sure you have included ng-route in your application dependencies.');
+      inject(function($log) {
+        spyOn($log, 'warn');
+        inject(function(Analytics) {
+          expect($log.warn).toHaveBeenCalledWith('$route service is not available. Make sure you have included ng-route in your application dependencies.');
+        });
       });
     });
   });
@@ -44,14 +40,11 @@ describe('Reading from $route service', function() {
       AnalyticsProvider.readFromRoute(true);
       $provide.service('$route', function () {
         this.routes = {
-          someroute: {
-            regexp: /\/someroute/,
-            pageTrack: '/some'
-          },
-          otherroute: {
-            regexp: /\/otherroute/
-          }
+          someroute: { pageTrack: '/some' },
+          otherroute: { },
+          null: { }
         };
+        this.current = { };
       });
     }));
     
@@ -62,21 +55,22 @@ describe('Reading from $route service', function() {
     });
     
     it('should read \'/someroute\' from routes object', function(){
-      inject(function(Analytics, $location){
-        $location.url('/someroute');
+      inject(function(Analytics, $route){
+        $route.current = $route.routes.someroute;
         expect(Analytics.getUrl()).toBe('/some');
       });
     });
     
     it('should fallback to url for \'/otherroute\' without \'pageTrack\' property', function(){
-      inject(function(Analytics, $location){
+      inject(function(Analytics, $route, $location){
+        $route.current = $route.routes.otherroute;
         $location.url('/otherroute');
         expect(Analytics.getUrl()).toBe('/otherroute');
       });
     });
     
     it('should fallback to url for \'/undefinedroute\' which is not present in $route config', function(){
-      inject(function(Analytics, $location){
+      inject(function(Analytics, $location) {
         $location.url('/undefinedroute');
         expect(Analytics.getUrl()).toBe('/undefinedroute');
       });

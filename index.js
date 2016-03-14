@@ -234,12 +234,12 @@
         }
         var getUrl = function () {
           // Using ngRoute provided tracking urls
-          if (readFromRoute && ('pageTrack' in $route.current)) {
+          if (readFromRoute && $route.current && ('pageTrack' in $route.current)) {
             return $route.current.pageTrack;
           }
            
           // Otherwise go the old way
-          url = trackUrlParams ? $location.url() : $location.path(); 
+          var url = trackUrlParams ? $location.url() : $location.path(); 
           return removeRegExp ? url.replace(removeRegExp, '') : url;
         };
 
