@@ -224,32 +224,18 @@
         };
         
         // Try to read route configuration and log warning if not possible
-        var routes = {};
+        var $route = {};
         if (readFromRoute) {
           if (!$injector.has('$route')) {
             $log.warn('$route service is not available. Make sure you have included ng-route in your application dependencies.');
           } else {
-            var $route = $injector.get('$route');
-            routes = $route.routes;
+            $route = $injector.get('$route');
           }
         }
         var getUrl = function () {
           // Using ngRoute provided tracking urls
-          var url = $location.url();
-          var trackUrl;
-          Object.keys(routes).forEach(function (key) {
-            var route = routes[key];
-            // Check if url matches this route
-            if (!('regexp' in route) || !route.regexp.test(url)) {
-              return;
-            }
-            if ('pageTrack' in route) {
-              trackUrl = route.pageTrack;
-            }
-          });
-          // Check if we found something in routes
-          if (trackUrl) {
-            return trackUrl;
+          if (readFromRoute && ('pageTrack' in $route.current)) {
+            return $route.current.pageTrack;
           }
            
           // Otherwise go the old way
