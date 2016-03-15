@@ -93,6 +93,15 @@ describe('Reading from $route service', function() {
       });
     });
     
+    it('should not track routes with \'dontTrack\' attribute', function() {
+      inject(function(Analytics, $window, $rootScope, $route) {
+        $route.current = { templateUrl: '/myTemplate', dontTrack: true };
+        $window._gaq.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect($window._gaq.length).toBe(0);
+      });
+    });
+    
     it('should track routes with a defined template (no redirect)', function() {
       inject(function(Analytics, $window, $rootScope, $route) {
         $route.current = { templateUrl: '/myTemplate', pageTrack: '/myTrack' };

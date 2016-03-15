@@ -223,7 +223,8 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
   // Activate reading custom tracking urls from $routeProvider config (default is false)
   // This is more flexible than using RegExp and easier to maintain for multiple parameters.
   // It also reduces tracked pages to routes defined in the $routeProvider and therefor reduces
-  // bounce rate created by redirects.
+  // bounce rate created by redirects. You can also exclude certain routes from tracking by
+  // adding 'dontTrack' property
   AnalyticsProvider.readFromRoute(true);
   // Add custom routes to the $routeProvider like this
   $routeProvider
@@ -240,6 +241,10 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
       templateUrl : 'member.html',
       controller: 'CardController',
       pageTrack: '/member',
+    })
+    .otherwise({
+      	templateUrl: '404.html',
+      	dontTrack: true
     });
 ```
 

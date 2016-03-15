@@ -1084,8 +1084,8 @@
         // activates page tracking
         if (trackRoutes) {
           $rootScope.$on(pageEvent, function () {
-            // Avoid tracking routes not defined as a page
-            if (readFromRoute && !($route.current && $route.current.templateUrl)) {
+            // Avoid tracking routes not defined as a page or which explicitly deactivate tracking
+            if (readFromRoute && !($route.current && $route.current.templateUrl && !$route.current.dontTrack)) {
               return;
             }
             
