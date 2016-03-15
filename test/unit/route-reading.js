@@ -37,14 +37,14 @@ describe('Reading from $route service', function() {
   
   describe('after setting readFromRoute', function() {
     beforeEach(module(function(AnalyticsProvider, $provide){
-      AnalyticsProvider.readFromRoute(true);
+      AnalyticsProvider.readFromRoute(true)
+              // Use classic analytics because have no idea how to track events for the universal one :D
+                       .useAnalytics(false);
       $provide.service('$route', function () {
         this.routes = {
           someroute: { pageTrack: '/some' },
           otherroute: { },
-          null: { }
         };
-        this.current = { };
       });
     }));
     
@@ -73,6 +73,34 @@ describe('Reading from $route service', function() {
       inject(function(Analytics, $location) {
         $location.url('/undefinedroute');
         expect(Analytics.getUrl()).toBe('/undefinedroute');
+      });
+    });
+    
+    it('should not track undefined routes', function() {
+      inject(function(Analytics, $window, $rootScope) {
+        $window._gaq.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect($window._gaq.length).toBe(0);
+      });
+    });
+    
+    it('should not track routes without template', function() {
+      inject(function(Analytics, $window, $rootScope, $route) {
+        $route.current = { };
+        $window._gaq.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect($window._gaq.length).toBe(0);
+      });
+    });
+    
+    it('should track routes with a defined template (no redirect)', function() {
+      inject(function(Analytics, $window, $rootScope, $route) {
+        $route.current = { templateUrl: '/myTemplate', pageTrack: '/myTrack' };
+        $window._gaq.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect($window._gaq.length).toBe(2);
+        expect($window._gaq[0]).toEqual(['_set', 'title', '']);
+        expect($window._gaq[1]).toEqual(['_trackPageview', '/myTrack']);
       });
     });
   });
