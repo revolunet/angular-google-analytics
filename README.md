@@ -243,8 +243,8 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
       pageTrack: '/member',
     })
     .otherwise({
-      	templateUrl: '404.html',
-      	dontTrack: true
+      templateUrl: '404.html',
+      dontTrack: true
     });
 ```
 
