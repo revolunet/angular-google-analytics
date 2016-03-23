@@ -37,13 +37,11 @@ describe('Reading from $route service', function() {
   
   describe('after setting readFromRoute', function() {
     beforeEach(module(function(AnalyticsProvider, $provide){
-      AnalyticsProvider.readFromRoute(true)
-              // Use classic analytics because have no idea how to track events for the universal one :D
-                       .useAnalytics(false);
+      AnalyticsProvider.readFromRoute(true);
       $provide.service('$route', function () {
         this.routes = {
           someroute: { pageTrack: '/some' },
-          otherroute: { },
+          otherroute: { }
         };
       });
     }));
@@ -74,7 +72,15 @@ describe('Reading from $route service', function() {
         $location.url('/undefinedroute');
         expect(Analytics.getUrl()).toBe('/undefinedroute');
       });
-    });
+    });  
+  });
+  
+  describe('after setting readFromRoute for classic analytics', function() {
+    beforeEach(module(function(AnalyticsProvider, $provide){
+      AnalyticsProvider.readFromRoute(true)
+                       .useAnalytics(false);
+      $provide.service('$route', function () { });
+    }));
     
     it('should not track undefined routes', function() {
       inject(function(Analytics, $window, $rootScope) {
@@ -95,7 +101,7 @@ describe('Reading from $route service', function() {
     
     it('should not track routes with \'dontTrack\' attribute', function() {
       inject(function(Analytics, $window, $rootScope, $route) {
-        $route.current = { templateUrl: '/myTemplate', dontTrack: true };
+        $route.current = { templateUrl: '/myTemplate', doNotTrack: true };
         $window._gaq.length = 0; // clear queue
         $rootScope.$broadcast('$routeChangeSuccess');
         expect($window._gaq.length).toBe(0);
@@ -110,6 +116,50 @@ describe('Reading from $route service', function() {
         expect($window._gaq.length).toBe(2);
         expect($window._gaq[0]).toEqual(['_set', 'title', '']);
         expect($window._gaq[1]).toEqual(['_trackPageview', '/myTrack']);
+      });
+    });
+  });
+  
+  describe('after setting readFromRoute for universal analytics', function() {
+    beforeEach(module(function(AnalyticsProvider, $provide){
+      AnalyticsProvider.readFromRoute(true)
+                       .useAnalytics(true);
+      $provide.service('$route', function () { });
+    }));
+    
+    it('should not track undefined routes', function() {
+      inject(function(Analytics, $rootScope) {
+        Analytics.log.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect(Analytics.log.length).toBe(0);
+      });
+    });
+    
+    it('should not track routes without template', function() {
+      inject(function(Analytics, $rootScope, $route) {
+        $route.current = { };
+        Analytics.log.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect(Analytics.log.length).toBe(0);
+      });
+    });
+    
+    it('should not track routes with \'dontTrack\' attribute', function() {
+      inject(function(Analytics, $rootScope, $route) {
+        $route.current = { templateUrl: '/myTemplate', doNotTrack: true };
+        Analytics.log.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect(Analytics.log.length).toBe(0);
+      });
+    });
+    
+    it('should track routes with a defined template (no redirect)', function() {
+      inject(function(Analytics, $window, $rootScope, $route) {
+        $route.current = { templateUrl: '/myTemplate', pageTrack: '/myTrack' };
+        Analytics.log.length = 0; // clear queue
+        $rootScope.$broadcast('$routeChangeSuccess');
+        expect(Analytics.log.length).toBe(1);
+        expect(Analytics.log[0]).toEqual(['send', 'pageview', { page: '/myTrack', title: '' }]);
       });
     });
   });
