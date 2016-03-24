@@ -99,7 +99,7 @@ describe('Reading from $route service', function() {
       });
     });
     
-    it('should not track routes with \'dontTrack\' attribute', function() {
+    it('should not track routes with \'doNotTrack\' attribute', function() {
       inject(function(Analytics, $window, $rootScope, $route) {
         $route.current = { templateUrl: '/myTemplate', doNotTrack: true };
         $window._gaq.length = 0; // clear queue
@@ -144,7 +144,7 @@ describe('Reading from $route service', function() {
       });
     });
     
-    it('should not track routes with \'dontTrack\' attribute', function() {
+    it('should not track routes with \'doNotTrack\' attribute', function() {
       inject(function(Analytics, $rootScope, $route) {
         $route.current = { templateUrl: '/myTemplate', doNotTrack: true };
         Analytics.log.length = 0; // clear queue

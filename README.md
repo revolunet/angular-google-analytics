@@ -224,7 +224,7 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
   // This is more flexible than using RegExp and easier to maintain for multiple parameters.
   // It also reduces tracked pages to routes defined in the $routeProvider and therefor reduces
   // bounce rate created by redirects. You can also exclude certain routes from tracking by
-  // adding 'dontTrack' property
+  // adding 'doNotTrack' property
   AnalyticsProvider.readFromRoute(true);
   // Add custom routes to the $routeProvider like this
   $routeProvider
