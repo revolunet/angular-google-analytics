@@ -232,6 +232,8 @@
             $route = $injector.get('$route');
           }
         }
+
+        // Get url for current page 
         var getUrl = function () {
           // Using ngRoute provided tracking urls
           if (readFromRoute && $route.current && ('pageTrack' in $route.current)) {
@@ -1082,6 +1084,15 @@
         // activates page tracking
         if (trackRoutes) {
           $rootScope.$on(pageEvent, function () {
+            // Apply $route based filtering if configured
+            if (readFromRoute) {
+              // Avoid tracking undefined routes, routes without template (e.g. redirect routes)
+              // and those explicitly marked as 'do not track'
+              if (!$route.current || !$route.current.templateUrl || $route.current.doNotTrack) {
+                return;
+              }
+            }
+            
             that._trackPage();
           });
         }
