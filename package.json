@@ -16,7 +16,8 @@
     "url": "git://github.com/revolunet/angular-google-analytics.git"
   },
   "engines": {
-    "node": ">= 0.8"
+    "node": "*",
+    "npm": "*"
   },
   "license": "MIT",
   "dependencies": {},
@@ -25,7 +26,8 @@
     "karma": "*",
     "karma-chrome-launcher": "*",
     "karma-jasmine": "*",
-    "grunt": ">=0.4.0",
+    "grunt": "*",
+    "grunt-cli": "*",
     "grunt-contrib-concat": "*",
     "grunt-contrib-jshint": "*",
     "grunt-contrib-uglify": "*"
