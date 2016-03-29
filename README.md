@@ -197,6 +197,8 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
 **Note:** When enhanced e-commerce is enabled, the legacy e-commerce module is disabled and unsupported. This is a requirement of Google Analytics.
 
 ### Set Route Tracking Behaviors
+**Note:** In order to set route tracking behavior in the $routeProvider you need the ngRoute module in your application. Please refer
+to the official [angular ngRoute documentation](https://docs.angularjs.org/api/ngRoute) on how to install and use this service.
 ```js
   // Track all routes (default is true).
   AnalyticsProvider.trackPages(true);
@@ -222,11 +224,12 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
 
   // Activate reading custom tracking urls from $routeProvider config (default is false)
   // This is more flexible than using RegExp and easier to maintain for multiple parameters.
-  // It also reduces tracked pages to routes defined in the $routeProvider and therefor reduces
-  // bounce rate created by redirects. You can also exclude certain routes from tracking by
-  // adding 'doNotTrack' property
+  // It also reduces tracked pages to routes (only those with a templateUrl) defined in the
+  // $routeProvider and therefor reduces bounce rate created by redirects.
+  // NOTE: The following option requires the ngRoute module
   AnalyticsProvider.readFromRoute(true);
-  // Add custom routes to the $routeProvider like this
+  // Add custom routes to the $routeProvider like this. You can also exclude certain routes from tracking by
+  // adding 'doNotTrack' property
   $routeProvider
     .when('/sessions', {
       templateUrl: 'list.html',
@@ -235,16 +238,16 @@ Set `trackEcommerce: false` for an account object that is not tracking e-commerc
     .when('/session/:id',{
       templateUrl : 'master.html',
       controller: 'MasterController',
-      pageTrack: '/session'
+      pageTrack: '/session'  // angular-google-analytics extension
     })
     .when('/member/:sessionId/:memberId', {
       templateUrl : 'member.html',
       controller: 'CardController',
-      pageTrack: '/member',
+      pageTrack: '/member',  // angular-google-analytics extension
     })
     .otherwise({
       templateUrl: '404.html',
-      doNotTrack: true
+      doNotTrack: true       // angular-google-analytics extension
     });
 ```
 
