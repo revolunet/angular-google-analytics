@@ -225,7 +225,7 @@ to the official [angular ngRoute documentation](https://docs.angularjs.org/api/n
   // Activate reading custom tracking urls from $routeProvider config (default is false)
   // This is more flexible than using RegExp and easier to maintain for multiple parameters.
   // It also reduces tracked pages to routes (only those with a templateUrl) defined in the
-  // $routeProvider and therefor reduces bounce rate created by redirects.
+  // $routeProvider and therefore reduces bounce rate created by redirects.
   // NOTE: The following option requires the ngRoute module
   AnalyticsProvider.readFromRoute(true);
   // Add custom routes to the $routeProvider like this. You can also exclude certain routes from tracking by
