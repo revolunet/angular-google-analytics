@@ -2,6 +2,7 @@
 
 [![Bower Version](https://img.shields.io/bower/v/angular-google-analytics.svg)](https://github.com/revolunet/angular-google-analytics)
 [![NPM Version](https://img.shields.io/npm/v/angular-google-analytics.svg)](https://www.npmjs.com/package/angular-google-analytics)
+[![NuGet](https://img.shields.io/nuget/v/angular-google-analytics.svg)](https://www.nuget.org/packages/angular-google-analytics/)
 [![Master Build Status](https://codeship.com/projects/ba7a0af0-33fe-0133-927c-127922174191/status?branch=master)](https://codeship.com/projects)
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/revolunet/angular-google-analytics/blob/master/LICENSE)
 
