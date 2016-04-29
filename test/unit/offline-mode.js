@@ -45,7 +45,8 @@ describe('offline mode', function () {
 
       it('should send everything when script is added and reset to online', function () {
         inject(function (Analytics, $window) {
-          Analytics.createAnalyticsScriptTag();
+          Analytics.registerScriptTags();
+          Analytics.registerTrackers();
           Analytics.offline(false);
           expect(Analytics.log.length).toBe(3);
           expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
@@ -134,7 +135,8 @@ describe('offline mode', function () {
       it('should send everything when script is added and reset to online', function () {
         inject(function (Analytics, $window) {
           $window._gaq.length = 0; // clear queue
-          Analytics.createScriptTag();
+          Analytics.registerScriptTags();
+          Analytics.registerTrackers();
           Analytics.offline(false);
           expect(Analytics.log.length).toBe(3);
           expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);

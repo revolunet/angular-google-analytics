@@ -21,10 +21,11 @@ describe('classic analytics', function() {
         AnalyticsProvider.setAccount(undefined);
       }));
 
-      it('should not inject a script tag', function () {
-        var scriptCount = document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length;
+      it('should inject a script tag', function () {
         inject(function (Analytics) {
-          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(scriptCount);
+          expect(Analytics.log.length).toBe(2);
+          expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+          expect(document.querySelectorAll('script[src="http://www.google-analytics.com/ga.js"]').length).toBe(0);
         });
       });
 
@@ -32,9 +33,10 @@ describe('classic analytics', function() {
         inject(function ($log) {
           spyOn($log, 'warn');
           inject(function (Analytics) {
-            expect(Analytics.log.length).toBe(1);
-            expect(Analytics.log[0]).toEqual(['warn', 'No account id set to create script tag']);
-            expect($log.warn).toHaveBeenCalledWith(['No account id set to create script tag']);
+            expect(Analytics.log.length).toBe(2);
+            expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+            expect(Analytics.log[1]).toEqual(['warn', 'No accounts to register']);
+            expect($log.warn).toHaveBeenCalledWith(['No accounts to register']);
           });
         });
       });
@@ -53,9 +55,9 @@ describe('classic analytics', function() {
     });
 
     it('should not inject a script tag', function () {
-      var scriptCount = document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length;
       inject(function (Analytics) {
-        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(scriptCount);
+        expect(Analytics.log.length).toBe(0);
+        expect(document.querySelectorAll('script[src="http://www.google-analytics.com/ga.js"]').length).toBe(0);
       });
     });
   });
@@ -75,23 +77,24 @@ describe('classic analytics', function() {
         spyOn($log, 'warn');
         inject(function (Analytics) {
           expect(Analytics.log.length).toBe(4);
-          expect(Analytics.log[0]).toEqual(['warn', 'Multiple trackers are not supported with ga.js. Using first tracker only']);
+          expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+          expect(Analytics.log[1]).toEqual(['warn', 'Multiple trackers are not supported with ga.js. Using first tracker only']);
           expect($log.warn).toHaveBeenCalledWith(['Multiple trackers are not supported with ga.js. Using first tracker only']);
         });
       });
     });
   });
   
-  describe('create script tag', function () {
+  describe('manually create script tag', function () {
     beforeEach(module(function (AnalyticsProvider) {
       AnalyticsProvider.delayScriptTag(true);
     }));
 
     it('should inject a script tag', function () {
       inject(function (Analytics) {
-        Analytics.createScriptTag();
-        expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
-        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
+        Analytics.registerScriptTags();
+        expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+        expect(document.querySelectorAll('script[src="http://www.google-analytics.com/ga.js"]').length).toBe(0);
       });
     });
 
@@ -99,11 +102,26 @@ describe('classic analytics', function() {
       inject(function ($log) {
         spyOn($log, 'warn');
         inject(function (Analytics) {
-          Analytics.createScriptTag();
-          expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
-          Analytics.createScriptTag();
-          expect($log.warn).toHaveBeenCalledWith(['ga.js or analytics.js script tag already created']);
-          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
+          Analytics.registerScriptTags();
+          expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+          Analytics.registerScriptTags();
+          expect(Analytics.log[1]).toEqual(['warn', 'Script tags already created']);
+          expect($log.warn).toHaveBeenCalledWith(['Script tags already created']);
+        });
+      });
+    });
+
+    describe('using the deprecated create script call', function () {
+      it('should warn and inject the script tag', function () {
+        inject(function ($log) {
+          spyOn($log, 'warn');
+          inject(function (Analytics) {
+            Analytics.createScriptTag();
+            expect(Analytics.log.length).toBe(4);
+            expect(Analytics.log[0]).toEqual(['warn', 'DEPRECATION WARNING: createScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
+            expect(Analytics.log[1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+            expect($log.warn).toHaveBeenCalledWith(['DEPRECATION WARNING: createScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
+          });
         });
       });
     });
@@ -112,8 +130,8 @@ describe('classic analytics', function() {
   describe('automatic page tracking', function () {
     it('should inject the GA script', function () {
       inject(function (Analytics) {
-        expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
-        expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
+        expect(Analytics.log[0]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
+        expect(document.querySelectorAll('script[src="http://www.google-analytics.com/ga.js"]').length).toBe(0);
       });
     });
 
@@ -193,9 +211,9 @@ describe('classic analytics', function() {
 
     it('should inject the DC script and not the analytics script', function () {
       inject(function (Analytics) {
-        expect(Analytics.log[Analytics.log.length - 1]).toEqual(['inject', 'http://stats.g.doubleclick.net/dc.js']);
+        expect(Analytics.log[0]).toEqual(['inject', '//stats.g.doubleclick.net/dc.js']);
         expect(document.querySelectorAll('script[src="//www.google-analytics.com/ga.js"]').length).toBe(0);
-        expect(document.querySelectorAll('script[src="http://stats.g.doubleclick.net/dc.js"]').length).toBe(0);
+        expect(document.querySelectorAll('script[src="//stats.g.doubleclick.net/dc.js"]').length).toBe(0);
       });
     });
   });
