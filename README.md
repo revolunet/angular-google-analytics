@@ -60,7 +60,7 @@ app.config(function (AnalyticsProvider) {
   AnalyticsProvider
     .logAllCalls(true)
     .startOffline(true)
-    .useEcommerce(true, true);
+    .useECommerce(true, true);
 ```
 
 ### Use Classic Analytics
