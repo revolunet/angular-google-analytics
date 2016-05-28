@@ -21,9 +21,10 @@ describe('universal analytics', function () {
         AnalyticsProvider.setAccount(undefined);
       }));
 
-      it('should not inject a script tag', function () {
+      it('should inject a script tag', function () {
         inject(function (Analytics) {
-          expect(Analytics.log.length).toBe(1);
+          expect(Analytics.log.length).toBe(2);
+          expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
           expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
         });
       });
@@ -32,9 +33,10 @@ describe('universal analytics', function () {
         inject(function ($log) {
           spyOn($log, 'warn');
           inject(function (Analytics) {
-            expect(Analytics.log.length).toBe(1);
-            expect(Analytics.log[0]).toEqual(['warn', 'No account id set to create analytics script tag']);
-            expect($log.warn).toHaveBeenCalledWith(['No account id set to create analytics script tag']);
+            expect(Analytics.log.length).toBe(2);
+            expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+            expect(Analytics.log[1]).toEqual(['warn', 'No accounts to register']);
+            expect($log.warn).toHaveBeenCalledWith(['No accounts to register']);
           });
         });
       });
@@ -73,9 +75,8 @@ describe('universal analytics', function () {
         spyOn($log, 'warn');
         inject(function (Analytics) {
           expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
-          Analytics.createAnalyticsScriptTag();
-          expect($log.warn).toHaveBeenCalledWith(['ga.js or analytics.js script tag already created']);
-          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
+          Analytics.registerScriptTags();
+          expect($log.warn).toHaveBeenCalledWith(['Script tags already created']);
         });
       });
     });
@@ -89,7 +90,7 @@ describe('universal analytics', function () {
     it('should inject the script tag', function () {
       inject(function (Analytics, $location) {
           Analytics.log.length = 0; // clear log
-          Analytics.createAnalyticsScriptTag();
+          Analytics.registerScriptTags();
           expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
       });
     });
@@ -99,19 +100,11 @@ describe('universal analytics', function () {
         spyOn($log, 'warn');
         inject(function (Analytics) {
           Analytics.log.length = 0; // clear log
-          Analytics.createAnalyticsScriptTag();
+          Analytics.registerScriptTags();
           expect(Analytics.log[0]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
-          Analytics.createAnalyticsScriptTag();
-          expect($log.warn).toHaveBeenCalledWith(['ga.js or analytics.js script tag already created']);
-          expect(document.querySelectorAll('script[src="//www.google-analytics.com/analytics.js"]').length).toBe(0);
+          Analytics.registerScriptTags();
+          expect($log.warn).toHaveBeenCalledWith(['Script tags already created']);
         });
-      });
-    });
-
-    it('should support cookie config with the script call', function () {
-      inject(function (Analytics) {
-        Analytics.createAnalyticsScriptTag({ userId: 1234 });
-        expect(Analytics.getCookieConfig()).toEqual({ userId: 1234 });
       });
     });
 
@@ -124,8 +117,32 @@ describe('universal analytics', function () {
       it('should send the url, including the prefix', function(){
         inject(function (Analytics) {
           Analytics.log.length = 0; // clear log
-          Analytics.createAnalyticsScriptTag();
+          Analytics.registerScriptTags();
+          Analytics.registerTrackers();
           expect(Analytics.log[2]).toEqual(['send', 'pageview', 'test-prefix']);
+        });
+      });
+    });
+
+    describe('using the deprecated create script call', function () {
+      it('should warn and inject the script tag', function () {
+        inject(function ($log) {
+          spyOn($log, 'warn');
+          inject(function (Analytics) {
+            Analytics.log.length = 0; // clear log
+            Analytics.createAnalyticsScriptTag();
+            expect(Analytics.log.length).toBe(4);
+            expect(Analytics.log[0]).toEqual(['warn', 'DEPRECATION WARNING: createAnalyticsScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
+            expect(Analytics.log[1]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
+            expect($log.warn).toHaveBeenCalledWith(['DEPRECATION WARNING: createAnalyticsScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
+          });
+        });
+      });
+
+      it('should support cookie config', function () {
+        inject(function (Analytics) {
+          Analytics.createAnalyticsScriptTag({ userId: 1234 });
+          expect(Analytics.getCookieConfig()).toEqual({ userId: 1234 });
         });
       });
     });
@@ -147,7 +164,8 @@ describe('universal analytics', function () {
     it('should inject a script tag with the HTTPS protocol and set checkProtocolTask to null', function () {
       inject(function (Analytics) {
         Analytics.log.length = 0; // clear log
-        Analytics.createAnalyticsScriptTag();
+        Analytics.registerScriptTags();
+        Analytics.registerTrackers();
         expect(Analytics.log[0]).toEqual(['inject', 'https://www.google-analytics.com/analytics.js']);
         expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
         expect(Analytics.log[2]).toEqual(['set', 'checkProtocolTask', null]);
@@ -171,7 +189,8 @@ describe('universal analytics', function () {
     it('should set the account object to use forceSSL', function () {
       inject(function (Analytics) {
         Analytics.log.length = 0; // clear log
-        Analytics.createAnalyticsScriptTag();
+        Analytics.registerScriptTags();
+        Analytics.registerTrackers();
         expect(Analytics.log[0]).toEqual(['inject', 'https://www.google-analytics.com/analytics.js']);
         expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
         expect(Analytics.log[2]).toEqual(['set', 'checkProtocolTask', null]);
