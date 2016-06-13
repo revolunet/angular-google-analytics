@@ -28,8 +28,18 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - analytics.js advanced debugging support
 
 ## Installation
+You can install the module from a package manger of your choice directly from the command line
 
-`bower install angular-google-analytics`
+```sh
+# Bower
+bower install angular-google-analytics
+
+# NPM
+npm i angular-google-analytics
+
+# Nuget
+nuget install angular-google-analytics
+```
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
 
