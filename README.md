@@ -12,6 +12,7 @@ You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4'
 
 Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaepsilon](https://github.com/deltaepsilon), [@justinsa](https://github.com/justinsa) and [contributors](https://github.com/revolunet/angular-google-analytics/graphs/contributors)
 
+
 ## Features
 
  - highly configurable
@@ -27,7 +28,11 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - offline mode
  - analytics.js advanced debugging support
 
-## Installation
+## Installation and Quick Start
+You need to read rest of documentation, but here is the quick start.
+
+#### 1- Installation:
+
 You can install the module from a package manger of your choice directly from the command line
 
 ```sh
@@ -50,11 +55,22 @@ In your application, declare the angular-google-analytics module dependency.
 <script src="bower_components/angular-google-analytics/dist/angular-google-analytics.js"></script>
 ```
 
-In your application, declare dependency injection like so.
+#### 2- In your application, declare dependency injection:
 
 ```javascript
-angular.module('myModule', ['angular-google-analytics']);
+var myApp = angular.module('myModule', ['angular-google-analytics']);
 ```
+
+#### 3- Set your Google Analytics account and start tracking:
+
+```JavaScript
+myApp.config(function (AnalyticsProvider) {
+        // Add configuration code as desired
+        AnalyticsProvider.setAccount('UU-XXXXXXX-X');  //UU-XXXXXXX-X should be your tracking code
+    }).run(function(Analytics) {});
+```
+Now [angular-google-analytics](https://github.com/revolunet/angular-google-analytics) is ready and is working which means Google Analytics is tracking your page now, but you still need to read rest of documentation to learn more about different configurations and more.
+
 
 ## Configure Service
 ```js
