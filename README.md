@@ -12,7 +12,6 @@ You can use basic functions, `Analytics.trackEvent('video', 'play', 'django.mp4'
 
 Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaepsilon](https://github.com/deltaepsilon), [@justinsa](https://github.com/justinsa) and [contributors](https://github.com/revolunet/angular-google-analytics/graphs/contributors)
 
-
 ## Features
 
  - highly configurable
@@ -29,10 +28,9 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - analytics.js advanced debugging support
 
 ## Installation and Quick Start
-You need to read rest of documentation, but here is the quick start.
+The quick start is designed to give you a simple, working example for the most common usage scenario. There are numerous other ways to configure and use this library as explained in the documentation.
 
-#### 1- Installation:
-
+### 1- Installation:
 You can install the module from a package manger of your choice directly from the command line
 
 ```sh
@@ -55,13 +53,13 @@ In your application, declare the angular-google-analytics module dependency.
 <script src="bower_components/angular-google-analytics/dist/angular-google-analytics.js"></script>
 ```
 
-#### 2- In your application, declare dependency injection:
+### 2- In your application, declare dependency injection:
 
 ```javascript
 var myApp = angular.module('myModule', ['angular-google-analytics']);
 ```
 
-#### 3- Set your Google Analytics account and start tracking:
+### 3- Set your Google Analytics account and start tracking:
 
 ```JavaScript
 myApp.config(function (AnalyticsProvider) {
