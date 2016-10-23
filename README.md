@@ -67,8 +67,7 @@ myApp.config(function (AnalyticsProvider) {
    AnalyticsProvider.setAccount('UU-XXXXXXX-X');  //UU-XXXXXXX-X should be your tracking code
 }).run(['Analytics'], function(Analytics) { });
 ```
-Now [angular-google-analytics](https://github.com/revolunet/angular-google-analytics) is ready and is working which means Google Analytics is tracking your page now, but you still need to read rest of documentation to learn more about different configurations and more.
-
+Congratulations! [angular-google-analytics](https://github.com/revolunet/angular-google-analytics) is ready and Google Analytics will track your page views once the application is run
 
 ## Configure Service
 ```js
