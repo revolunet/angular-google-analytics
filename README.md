@@ -27,7 +27,10 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - offline mode
  - analytics.js advanced debugging support
 
-## Installation
+## Installation and Quick Start
+The quick start is designed to give you a simple, working example for the most common usage scenario. There are numerous other ways to configure and use this library as explained in the documentation.
+
+### 1- Installation:
 You can install the module from a package manger of your choice directly from the command line
 
 ```sh
@@ -50,11 +53,21 @@ In your application, declare the angular-google-analytics module dependency.
 <script src="bower_components/angular-google-analytics/dist/angular-google-analytics.js"></script>
 ```
 
-In your application, declare dependency injection like so.
+### 2- In your application, declare dependency injection:
 
 ```javascript
-angular.module('myModule', ['angular-google-analytics']);
+var myApp = angular.module('myModule', ['angular-google-analytics']);
 ```
+
+### 3- Set your Google Analytics account and start tracking:
+
+```JavaScript
+myApp.config(function (AnalyticsProvider) {
+   // Add configuration code as desired
+   AnalyticsProvider.setAccount('UU-XXXXXXX-X');  //UU-XXXXXXX-X should be your tracking code
+}).run(['Analytics'], function(Analytics) { });
+```
+Congratulations! [angular-google-analytics](https://github.com/revolunet/angular-google-analytics) is ready and Google Analytics will track your page views once the application is run
 
 ## Configure Service
 ```js
