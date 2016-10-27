@@ -490,7 +490,11 @@
           } else {
             if (typeof $window.ga !== 'function') {
               // In test mode create a ga function if none exists that is a noop sink.
-              $window.ga = function () {};
+              $window.ga = function () {
+                if (traceDebuggingMode) {
+                  $log.debug('GA: ' + Array.prototype.slice.call(arguments).join());
+                }
+              };
             }
             // Log script injection.
             that._log('inject', scriptSource);
