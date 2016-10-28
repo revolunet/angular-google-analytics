@@ -492,7 +492,7 @@
               // In test mode create a ga function if none exists that is a noop sink.
               $window.ga = function () {
                 if (traceDebuggingMode) {
-                  $log.debug('GA: ' + Array.prototype.slice.call(arguments).join());
+                   that._log('debug', 'ga(' + Array.prototype.slice.call(arguments).join() + ')');
                 }
               };
             }
