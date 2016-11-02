@@ -1,10 +1,15 @@
 /* globals define */
 (function (root, factory) {
   'use strict';
-  if (typeof define === 'function' && define.amd) {
+  if (typeof module !== 'undefined' && module.exports) {
+    if (typeof angular === 'undefined') {
+      factory(require('angular'));
+    } else {
+      factory(angular);
+    }
+    module.exports = 'angular-google-analytics';
+  } else if (typeof define === 'function' && define.amd) {
     define(['angular'], factory);
-  } else if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('angular'));
   } else {
     factory(root.angular);
   }
