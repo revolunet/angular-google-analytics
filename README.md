@@ -62,10 +62,10 @@ var myApp = angular.module('myModule', ['angular-google-analytics']);
 ### 3- Set your Google Analytics account and start tracking:
 
 ```JavaScript
-myApp.config(function (AnalyticsProvider) {
+myApp.config(['AnalyticsProvider', function (AnalyticsProvider) {
    // Add configuration code as desired
    AnalyticsProvider.setAccount('UU-XXXXXXX-X');  //UU-XXXXXXX-X should be your tracking code
-}).run(['Analytics'], function(Analytics) { });
+}]).run(['Analytics', function(Analytics) { }]);
 ```
 Congratulations! [angular-google-analytics](https://github.com/revolunet/angular-google-analytics) is ready and Google Analytics will track your page views once the application is run
 
