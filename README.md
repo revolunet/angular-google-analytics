@@ -662,7 +662,7 @@ Users who are already concatenating and minifying their scripts should not notic
 Chrome Extension: [Google Analytics Debugger](https://chrome.google.com/webstore/detail/google-analytics-debugger/jnkmfdileelhofjcijamephohjechhna)
 Firefox Add-on: [Google Analytics Debugger](https://addons.mozilla.org/en-US/firefox/addon/gadebugger/)
 
-## Licence
+## License
 
 As AngularJS itself, this module is released under the permissive [MIT License](http://revolunet.mit-license.org). Your contributions are always welcome.
 
