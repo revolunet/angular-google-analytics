@@ -1,6 +1,6 @@
 /**
  * Angular Google Analytics - Easy tracking for your AngularJS application
- * @version v1.1.7 - 2016-03-25
+ * @version v1.1.8 - 2016-12-30
  * @link http://github.com/revolunet/angular-google-analytics
  * @author Julien Bouquillon <julien@revolunet.com> (https://github.com/revolunet)
  * @contributors Julien Bouquillon (https://github.com/revolunet),Justin Saunders (https://github.com/justinsa),Chris Esplin (https://github.com/deltaepsilon),Adam Misiorny (https://github.com/adam187)
@@ -9,10 +9,15 @@
 /* globals define */
 (function (root, factory) {
   'use strict';
-  if (typeof define === 'function' && define.amd) {
+  if (typeof module !== 'undefined' && module.exports) {
+    if (typeof angular === 'undefined') {
+      factory(require('angular'));
+    } else {
+      factory(angular);
+    }
+    module.exports = 'angular-google-analytics';
+  } else if (typeof define === 'function' && define.amd) {
     define(['angular'], factory);
-  } else if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('angular'));
   } else {
     factory(root.angular);
   }
@@ -203,10 +208,10 @@
       /**
        * Public Service
        */
-      this.$get = ['$document', // To read title 
-                   '$location', // 
+      this.$get = ['$document', // To read page title 
+                   '$location', //
                    '$log',      //
-                   '$rootScope',// 
+                   '$rootScope',//
                    '$window',   //
                    '$injector', // To access ngRoute module without declaring a fixed dependency
                    function ($document, $location, $log, $rootScope, $window, $injector) {
@@ -305,6 +310,22 @@
          * Private Methods
          */
 
+        var _getProtocol = function (httpPostfix, httpsPostfix) {
+          var protocol = '',
+              isSslEnabled = document.location.protocol === 'https:',
+              isChromeExtension = document.location.protocol === 'chrome-extension:',
+              isHybridApplication = analyticsJS === true && hybridMobileSupport === true;
+          httpPostfix = angular.isString(httpPostfix) ? httpPostfix : '';
+          httpsPostfix = angular.isString(httpsPostfix) ? httpsPostfix : '';
+          if (httpPostfix !== '') {
+            protocol = 'http:' + httpPostfix;
+          }
+          if (isChromeExtension || isHybridApplication || (isSslEnabled && httpsPostfix !== '')) {
+            protocol = 'https:' + httpsPostfix;
+          }
+          return protocol;
+        };
+
         var _gaJs = function (fn) {
           if (!analyticsJS && $window._gaq && typeof fn === 'function') {
             fn();
@@ -401,73 +422,25 @@
           }
         };
 
+        /* DEPRECATED */
         this._createScriptTag = function () {
-          if (!accounts || accounts.length < 1) {
-            that._log('warn', 'No account id set to create script tag');
-            return;
-          }
-          if (accounts.length > 1) {
-            that._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
-            accounts = accounts.slice(0, 1);
-          }
-
-          if (created === true) {
-            that._log('warn', 'ga.js or analytics.js script tag already created');
-            return;
-          }
-
-          if (disableAnalytics === true) {
-            that._log('info', 'Analytics disabled: ' + accounts[0].tracker);
-            $window['ga-disable-' + accounts[0].tracker] = true;
-          }
-
-          _gaq('_setAccount', accounts[0].tracker);
-          if(domainName) {
-            _gaq('_setDomainName', domainName);
-          }
-          if (enhancedLinkAttribution) {
-            _gaq('_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js');
-          }
-          if (trackRoutes && !ignoreFirstPageLoad) {
-            if (removeRegExp) {
-              _gaq('_trackPageview', getUrl());
-            } else {
-              _gaq('_trackPageview');
-            }
-          }
-
-          var document = $document[0];
-          var scriptSource;
-          if (displayFeatures === true) {
-            scriptSource = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
-          } else {
-            scriptSource = ('https:' === document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-          }
-
-          if (testMode !== true) {
-            // If not in test mode inject the Google Analytics tag
-            (function () {
-              var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = scriptSource;
-              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
-          } else {
-            // Log the source location for validation
-            that._log('inject', scriptSource);
-          }
-
-          created = true;
-          return true;
+          that._registerScriptTags();
+          that._registerTrackers();
         };
 
+        /* DEPRECATED */
         this._createAnalyticsScriptTag = function () {
-          if (!accounts) {
-            that._log('warn', 'No account id set to create analytics script tag');
-            return;
-          }
+          that._registerScriptTags();
+          that._registerTrackers();
+        };
+
+        this._registerScriptTags = function () {
+          var document = $document[0],
+              protocol = _getProtocol(),
+              scriptSource;
 
           if (created === true) {
-            that._log('warn', 'ga.js or analytics.js script tag already created');
+            that._log('warn', 'Script tags already created');
             return;
           }
 
@@ -478,115 +451,173 @@
             });
           }
 
-          var document = $document[0];
-          var protocol = hybridMobileSupport === true ? 'https:' : '';
-          var scriptSource = protocol + '//www.google-analytics.com/' + (debugMode ? 'analytics_debug.js' : 'analytics.js');
-          if (testMode !== true) {
-            // If not in test mode inject the Google Analytics tag
-            (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
-              (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
-              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
-            })(window,document,'script',scriptSource,'ga');
+          //
+          // Universal Analytics
+          //
+          if (analyticsJS === true) {
+            scriptSource = protocol + '//www.google-analytics.com/' + (debugMode ? 'analytics_debug.js' : 'analytics.js');
+            if (testMode !== true) {
+              // If not in test mode inject the Google Analytics tag
+              (function (i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function (){
+                (i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
+              })(window,document,'script',scriptSource,'ga');
+            } else {
+              if (typeof $window.ga !== 'function') {
+                // In test mode create a ga function if none exists that is a noop sink.
+                $window.ga = function () {};
+              }
+              // Log script injection.
+              that._log('inject', scriptSource);
+            }
+
+            if (traceDebuggingMode) {
+              $window.ga_debug = { trace: true };
+            }
+
+            if (experimentId) {
+              var expScript = document.createElement('script'),
+                  s = document.getElementsByTagName('script')[0];
+              expScript.src = protocol + '//www.google-analytics.com/cx/api.js?experiment=' + experimentId;
+              s.parentNode.insertBefore(expScript, s);
+            }
+          //
+          // Classic Analytics
+          //
           } else {
-            if (typeof $window.ga !== 'function') {
-              // In test mode create a ga function if none exists that is a noop sink.
-              $window.ga = function () {
-                   that._log('debug', 'ga(' + Array.prototype.slice.call(arguments).join() + ')');                
-              };
-            }
-            // Log script injection.
-            that._log('inject', scriptSource);
-          }
-
-          if (traceDebuggingMode) {
-            $window.ga_debug = { trace: true };
-          }
-
-          accounts.forEach(function (trackerObj) {
-            trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
-            trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
-            trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
-            trackerObj.enhancedLinkAttribution = isPropertyDefined('enhancedLinkAttribution', trackerObj) ? trackerObj.enhancedLinkAttribution : enhancedLinkAttribution;
-            trackerObj.set = isPropertyDefined('set', trackerObj) ? trackerObj.set : {};
-            trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
-            trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
-
-            // Logic to choose the account fields to be used.
-            // cookieConfig is being deprecated for a tracker specific property: fields.
-            var fields = {};
-            if (isPropertyDefined('fields', trackerObj)) {
-              fields = trackerObj.fields;
-            } else if (isPropertyDefined('cookieConfig', trackerObj)) {
-              if (angular.isString(trackerObj.cookieConfig)) {
-                fields.cookieDomain = trackerObj.cookieConfig;
-              } else {
-                fields = trackerObj.cookieConfig;
-              }
-            } else if (angular.isString(cookieConfig)) {
-              fields.cookieDomain = cookieConfig;
-            } else if (cookieConfig) {
-              fields = cookieConfig;
-            }
-            if (trackerObj.crossDomainLinker === true) {
-              fields.allowLinker = true;
-            }
-            if (isPropertyDefined('name', trackerObj)) {
-              fields.name = trackerObj.name;
-            }
-            trackerObj.fields = fields;
-
-            _ga('create', trackerObj.tracker, trackerObj.fields);
-
-            // Hybrid mobile application support
-            // https://developers.google.com/analytics/devguides/collection/analyticsjs/tasks
-            if (hybridMobileSupport === true) {
-              _ga(generateCommandName('set', trackerObj), 'checkProtocolTask', null);
+            scriptSource = _getProtocol('//www', '//ssl') + '.google-analytics.com/ga.js';
+            if (displayFeatures === true) {
+              scriptSource = protocol + '//stats.g.doubleclick.net/dc.js';
             }
 
-            // Send all custom set commands from the trackerObj.set property
-            for (var key in trackerObj.set) {
-              if (trackerObj.set.hasOwnProperty(key)) {
-                _ga(generateCommandName('set', trackerObj), key, trackerObj.set[key]);
-              }
+            if (testMode !== true) {
+              // If not in test mode inject the Google Analytics tag
+              (function () {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = scriptSource;
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+              })();
+            } else {
+              // Log the source location for validation
+              that._log('inject', scriptSource);
             }
-
-            if (trackerObj.crossDomainLinker === true) {
-              _ga(generateCommandName('require', trackerObj), 'linker');
-              if (angular.isDefined(trackerObj.crossLinkDomains)) {
-                _ga(generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
-              }
-            }
-
-            if (trackerObj.displayFeatures) {
-              _ga(generateCommandName('require', trackerObj), 'displayfeatures');
-            }
-
-            if (trackerObj.trackEcommerce) {
-              if (!enhancedEcommerce) {
-                _ga(generateCommandName('require', trackerObj), 'ecommerce');
-              } else {
-                _ga(generateCommandName('require', trackerObj), 'ec');
-                _ga(generateCommandName('set', trackerObj), '&cu', currency);
-              }
-            }
-
-            if (trackerObj.enhancedLinkAttribution) {
-              _ga(generateCommandName('require', trackerObj), 'linkid');
-            }
-
-            if (trackRoutes && !ignoreFirstPageLoad) {
-              _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
-            }
-          });
-
-          if (experimentId) {
-            var expScript = document.createElement('script'),
-                s = document.getElementsByTagName('script')[0];
-            expScript.src = protocol + '//www.google-analytics.com/cx/api.js?experiment=' + experimentId;
-            s.parentNode.insertBefore(expScript, s);
           }
 
           created = true;
+          return true;
+        };
+
+        this._registerTrackers = function () {
+          if (!accounts || accounts.length < 1) {
+            that._log('warn', 'No accounts to register');
+            return;
+          }
+
+          //
+          // Universal Analytics
+          //
+          if (analyticsJS === true) {
+            accounts.forEach(function (trackerObj) {
+              trackerObj.crossDomainLinker = isPropertyDefined('crossDomainLinker', trackerObj) ? trackerObj.crossDomainLinker : crossDomainLinker;
+              trackerObj.crossLinkDomains = isPropertyDefined('crossLinkDomains', trackerObj) ? trackerObj.crossLinkDomains : crossLinkDomains;
+              trackerObj.displayFeatures = isPropertyDefined('displayFeatures', trackerObj) ? trackerObj.displayFeatures : displayFeatures;
+              trackerObj.enhancedLinkAttribution = isPropertyDefined('enhancedLinkAttribution', trackerObj) ? trackerObj.enhancedLinkAttribution : enhancedLinkAttribution;
+              trackerObj.set = isPropertyDefined('set', trackerObj) ? trackerObj.set : {};
+              trackerObj.trackEcommerce = isPropertyDefined('trackEcommerce', trackerObj) ? trackerObj.trackEcommerce : ecommerce;
+              trackerObj.trackEvent = isPropertyDefined('trackEvent', trackerObj) ? trackerObj.trackEvent : false;
+
+              // Logic to choose the account fields to be used.
+              // cookieConfig is being deprecated for a tracker specific property: fields.
+              var fields = {};
+              if (isPropertyDefined('fields', trackerObj)) {
+                fields = trackerObj.fields;
+              } else if (isPropertyDefined('cookieConfig', trackerObj)) {
+                if (angular.isString(trackerObj.cookieConfig)) {
+                  fields.cookieDomain = trackerObj.cookieConfig;
+                } else {
+                  fields = trackerObj.cookieConfig;
+                }
+              } else if (angular.isString(cookieConfig)) {
+                fields.cookieDomain = cookieConfig;
+              } else if (cookieConfig) {
+                fields = cookieConfig;
+              }
+              if (trackerObj.crossDomainLinker === true) {
+                fields.allowLinker = true;
+              }
+              if (isPropertyDefined('name', trackerObj)) {
+                fields.name = trackerObj.name;
+              }
+              trackerObj.fields = fields;
+
+              _ga('create', trackerObj.tracker, trackerObj.fields);
+
+              // Hybrid mobile application support
+              // https://developers.google.com/analytics/devguides/collection/analyticsjs/tasks
+              if (hybridMobileSupport === true) {
+                _ga(generateCommandName('set', trackerObj), 'checkProtocolTask', null);
+              }
+
+              // Send all custom set commands from the trackerObj.set property
+              for (var key in trackerObj.set) {
+                if (trackerObj.set.hasOwnProperty(key)) {
+                  _ga(generateCommandName('set', trackerObj), key, trackerObj.set[key]);
+                }
+              }
+
+              if (trackerObj.crossDomainLinker === true) {
+                _ga(generateCommandName('require', trackerObj), 'linker');
+                if (angular.isDefined(trackerObj.crossLinkDomains)) {
+                  _ga(generateCommandName('linker:autoLink', trackerObj), trackerObj.crossLinkDomains);
+                }
+              }
+
+              if (trackerObj.displayFeatures) {
+                _ga(generateCommandName('require', trackerObj), 'displayfeatures');
+              }
+
+              if (trackerObj.trackEcommerce) {
+                if (!enhancedEcommerce) {
+                  _ga(generateCommandName('require', trackerObj), 'ecommerce');
+                } else {
+                  _ga(generateCommandName('require', trackerObj), 'ec');
+                  _ga(generateCommandName('set', trackerObj), '&cu', currency);
+                }
+              }
+
+              if (trackerObj.enhancedLinkAttribution) {
+                _ga(generateCommandName('require', trackerObj), 'linkid');
+              }
+
+              if (trackRoutes && !ignoreFirstPageLoad) {
+                _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
+              }
+            });
+          //
+          // Classic Analytics
+          //
+          } else {
+            if (accounts.length > 1) {
+              that._log('warn', 'Multiple trackers are not supported with ga.js. Using first tracker only');
+              accounts = accounts.slice(0, 1);
+            }
+
+            _gaq('_setAccount', accounts[0].tracker);
+            if(domainName) {
+              _gaq('_setDomainName', domainName);
+            }
+            if (enhancedLinkAttribution) {
+              _gaq('_require', 'inpage_linkid', '//www.google-analytics.com/plugins/ga/inpage_linkid.js');
+            }
+            if (trackRoutes && !ignoreFirstPageLoad) {
+              if (removeRegExp) {
+                _gaq('_trackPageview', getUrl());
+              } else {
+                _gaq('_trackPageview');
+              }
+            }
+          }
+
           return true;
         };
 
@@ -1084,11 +1115,8 @@
 
         // creates the Google Analytics tracker
         if (!delayScriptTag) {
-          if (analyticsJS) {
-            this._createAnalyticsScriptTag();
-          } else {
-            this._createScriptTag();
-          }
+          this._registerScriptTags();
+          this._registerTrackers();
         }
 
         // activates page tracking
@@ -1139,19 +1167,33 @@
           },
           getUrl: getUrl,
           /* DEPRECATED */
-          setCookieConfig: that._setCookieConfig,
+          setCookieConfig: function (config) {
+            that._log('warn', 'DEPRECATION WARNING: setCookieConfig method is deprecated. Please use tracker fields instead.');
+            return that._setCookieConfig.apply(that, arguments);
+          },
           /* DEPRECATED */
           getCookieConfig: function () {
+            that._log('warn', 'DEPRECATION WARNING: getCookieConfig method is deprecated. Please use tracker fields instead.');
             return cookieConfig;
           },
+          /* DEPRECATED */
           createAnalyticsScriptTag: function (config) {
+            that._log('warn', 'DEPRECATION WARNING: createAnalyticsScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.');
             if (config) {
               cookieConfig = config;
             }
             return that._createAnalyticsScriptTag();
           },
+          /* DEPRECATED */
           createScriptTag: function () {
+            that._log('warn', 'DEPRECATION WARNING: createScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.');
             return that._createScriptTag();
+          },
+          registerScriptTags: function () {
+            return that._registerScriptTags();
+          },
+          registerTrackers: function () {
+            return that._registerTrackers();
           },
           offline: function (mode) {
             if (mode === true && offlineMode === false) {

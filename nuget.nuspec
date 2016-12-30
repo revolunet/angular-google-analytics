@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>angular-google-analytics</id>
-        <version>1.1.7</version>
+        <version>1.1.8</version>
         <title>Angular Google Analytics module</title>
         <authors>Julien Bouquillon,Justin Saunders (packaged Thomas Fuchs)</authors>
         <licenseUrl>https://github.com/revolunet/angular-google-analytics/blob/master/LICENSE</licenseUrl>
