@@ -24,8 +24,11 @@ Proudly brought to you by [@revolunet](http://twitter.com/revolunet), [@deltaeps
  - cross-domain support
  - multiple tracking objects
  - hybrid mobile application support
+ - Chrome extension support
  - offline mode
  - analytics.js advanced debugging support
+
+  **IMPORTANT!** As of version 2.x, methods that were previously marked as deprecated have been removed from this library. The following methods are no longer available: `setCookieConfig`, `getCookieConfig`, `createAnalyticsScriptTag`, and `createScriptTag`. Each have been replaced with alternative implementations that can be found in this documentation.
 
 ## Installation and Quick Start
 The quick start is designed to give you a simple, working example for the most common usage scenario. There are numerous other ways to configure and use this library as explained in the documentation.
@@ -45,7 +48,6 @@ nuget install angular-google-analytics
 ```
 
 Or alternatively, grab the dist/angular-google-analytics.min.js and include it in your project
-
 
 In your application, declare the angular-google-analytics module dependency.
 
@@ -144,7 +146,6 @@ AnalyticsProvider.setAccount({
 });
 ```
 **Note:** the above properties are referenced and discussed in proceeding sections.
-**Note:** the `cookieConfig` property is being **deprecated** for the `fields` property. At present `cookieConfig` is an alias for `fields` in an account object.
 
 ### Use Display Features
 ```js
@@ -176,20 +177,6 @@ In the case of universal analytics, this value will be used as the default for a
 If set to a truthy value then the cross-linked domains are registered with Google Analytics.
 
 In the case of universal analytics, these values will be used as the default for any tracker that does not have the `crossDomainLinker` and `crossLinkDomains` properties defined. All trackers with `crossDomainLinker: true` will register the cross-linked domains.
-
-### Set Cookie Configuration
-**NOTE:** This method is being **deprecated**. Use the `fields` property on the account object instead.
-This property is defined for universal analytics account objects only and is set to `auto` by default.
-
-```js
-  // Set custom cookie parameters
-  AnalyticsProvider.setCookieConfig({
-    cookieDomain: 'foo.example.com',
-    cookieName: 'myNewName',
-    cookieExpires: 20000
-  });
-```
-This cookie configuration will be used as the default for any tracker that does not have the `cookieConfig` property defined.
 
 ### Track Events
 This property is defined for universal analytics account objects only and is false by default.

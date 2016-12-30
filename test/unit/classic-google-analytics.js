@@ -110,21 +110,6 @@ describe('classic analytics', function() {
         });
       });
     });
-
-    describe('using the deprecated create script call', function () {
-      it('should warn and inject the script tag', function () {
-        inject(function ($log) {
-          spyOn($log, 'warn');
-          inject(function (Analytics) {
-            Analytics.createScriptTag();
-            expect(Analytics.log.length).toBe(4);
-            expect(Analytics.log[0]).toEqual(['warn', 'DEPRECATION WARNING: createScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
-            expect(Analytics.log[1]).toEqual(['inject', 'http://www.google-analytics.com/ga.js']);
-            expect($log.warn).toHaveBeenCalledWith(['DEPRECATION WARNING: createScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
-          });
-        });
-      });
-    });
   });
 
   describe('automatic page tracking', function () {
