@@ -433,7 +433,7 @@
 
           if (created === true) {
             that._log('warn', 'Script tags already created');
-            return;
+            return false;
           }
 
           if (disableAnalytics === true) {
@@ -502,7 +502,7 @@
         this._registerTrackers = function () {
           if (!accounts || accounts.length < 1) {
             that._log('warn', 'No accounts to register');
-            return;
+            return false;
           }
 
           //
