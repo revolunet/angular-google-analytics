@@ -123,29 +123,6 @@ describe('universal analytics', function () {
         });
       });
     });
-
-    describe('using the deprecated create script call', function () {
-      it('should warn and inject the script tag', function () {
-        inject(function ($log) {
-          spyOn($log, 'warn');
-          inject(function (Analytics) {
-            Analytics.log.length = 0; // clear log
-            Analytics.createAnalyticsScriptTag();
-            expect(Analytics.log.length).toBe(4);
-            expect(Analytics.log[0]).toEqual(['warn', 'DEPRECATION WARNING: createAnalyticsScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
-            expect(Analytics.log[1]).toEqual(['inject', '//www.google-analytics.com/analytics.js']);
-            expect($log.warn).toHaveBeenCalledWith(['DEPRECATION WARNING: createAnalyticsScriptTag method is deprecated. Please use registerScriptTags and registerTrackers methods instead.']);
-          });
-        });
-      });
-
-      it('should support cookie config', function () {
-        inject(function (Analytics) {
-          Analytics.createAnalyticsScriptTag({ userId: 1234 });
-          expect(Analytics.getCookieConfig()).toEqual({ userId: 1234 });
-        });
-      });
-    });
   });
 
   describe('hybrid mobile application support', function () {
@@ -167,7 +144,7 @@ describe('universal analytics', function () {
         Analytics.registerScriptTags();
         Analytics.registerTrackers();
         expect(Analytics.log[0]).toEqual(['inject', 'https://www.google-analytics.com/analytics.js']);
-        expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
+        expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', {}]);
         expect(Analytics.log[2]).toEqual(['set', 'checkProtocolTask', null]);
       });
     });
@@ -192,7 +169,7 @@ describe('universal analytics', function () {
         Analytics.registerScriptTags();
         Analytics.registerTrackers();
         expect(Analytics.log[0]).toEqual(['inject', 'https://www.google-analytics.com/analytics.js']);
-        expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', { cookieDomain: 'auto' }]);
+        expect(Analytics.log[1]).toEqual(['create', 'UA-XXXXXX-xx', {}]);
         expect(Analytics.log[2]).toEqual(['set', 'checkProtocolTask', null]);
         expect(Analytics.log[3]).toEqual(['set', 'forceSSL', true]);
       });
@@ -231,24 +208,6 @@ describe('universal analytics', function () {
     it('should support ignoreFirstPageLoad', function () {
       inject(function (Analytics) {
         expect(Analytics.configuration.ignoreFirstPageLoad).toBe(true);
-      });
-    });
-  });
-
-  describe('cookie configuration support', function () {
-    var cookieConfig = {
-      cookieDomain: 'foo.example.com',
-      cookieName: 'myNewName',
-      cookieExpires: 20000
-    };
-
-    beforeEach(module(function (AnalyticsProvider) {
-      AnalyticsProvider.setCookieConfig(cookieConfig);
-    }));
-
-    it('should support cookie config', function () {
-      inject(function (Analytics) {
-        expect(Analytics.getCookieConfig()).toEqual(cookieConfig);
       });
     });
   });
@@ -791,9 +750,9 @@ describe('universal analytics', function () {
       inject(function ($window) {
         spyOn($window, 'ga');
         inject(function (Analytics) {
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, { cookieDomain: 'auto', name: trackers[0].name });
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, { cookieDomain: 'auto', name: trackers[1].name });
-          expect($window.ga).toHaveBeenCalledWith('create', trackers[2].tracker, { cookieDomain: 'auto' });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[0].tracker, { name: trackers[0].name });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[1].tracker, { name: trackers[1].name });
+          expect($window.ga).toHaveBeenCalledWith('create', trackers[2].tracker, {});
         });
       });
     });
@@ -815,8 +774,7 @@ describe('universal analytics', function () {
     var trackers = [
       { tracker: 'UA-12345-12', name: 'tracker1', crossDomainLinker: true },
       { tracker: 'UA-12345-34', name: 'tracker2', crossDomainLinker: true, crossLinkDomains: ['domain-1.com'] },
-      { tracker: 'UA-12345-45', crossDomainLinker: true, crossLinkDomains: ['domain-2.com'] },
-      { tracker: 'UA-12345-67', cookieConfig: 'yourdomain.org' }
+      { tracker: 'UA-12345-45', crossDomainLinker: true, crossLinkDomains: ['domain-2.com'] }
     ];
 
     beforeEach(module(function (AnalyticsProvider) {
@@ -841,15 +799,6 @@ describe('universal analytics', function () {
           expect($window.ga).not.toHaveBeenCalledWith('tracker1.linker:autoLink');
           expect($window.ga).toHaveBeenCalledWith('tracker2.linker:autoLink', ['domain-1.com']);
           expect($window.ga).toHaveBeenCalledWith('linker:autoLink', ['domain-2.com']);
-        });
-      });
-    });
-
-    it ('should call create with custom cookie config', function() {
-      inject(function ($window) {
-        spyOn($window, 'ga');
-        inject(function (Analytics) {
-          expect($window.ga).toHaveBeenCalledWith('create', 'UA-12345-67', { cookieDomain: 'yourdomain.org' });
         });
       });
     });
