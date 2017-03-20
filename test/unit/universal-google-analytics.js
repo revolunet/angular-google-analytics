@@ -122,6 +122,18 @@ describe('universal analytics', function () {
           expect(Analytics.log[2]).toEqual(['send', 'pageview', 'test-prefix']);
         });
       });
+
+      it('should send the url, including the prefix with each event', function() {
+        inject(function ($window) {
+          spyOn($window, 'ga');
+          inject(function (Analytics) {
+            Analytics.log.length = 0; // clear log
+            Analytics.trackEvent('test', 'action', 'label', 0);
+            expect(Analytics.log.length).toBe(1);
+            expect($window.ga).toHaveBeenCalledWith('send', 'event', 'test', 'action', 'label', 0, { page: 'test-prefix' });
+          });
+        });
+      });
     });
   });
 

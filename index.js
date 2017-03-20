@@ -661,7 +661,7 @@
               angular.extend(opt_fieldObject, custom);
             }
             if (!angular.isDefined(opt_fieldObject.page)) {
-              opt_fieldObject.page = getUrl();
+              opt_fieldObject.page = trackPrefix + getUrl();
             }
             _gaMultipleTrackers(includeFn, 'send', 'event', category, action, label, value, opt_fieldObject);
           });
