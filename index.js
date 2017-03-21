@@ -295,6 +295,10 @@
          * Private Methods
          */
 
+        var _getTrackPrefixUrl = function (url) {
+          return trackPrefix + (url ? url : getUrl());
+        };
+
         var _getProtocol = function (httpPostfix, httpsPostfix) {
           var protocol = '',
               isSslEnabled = document.location.protocol === 'https:',
@@ -551,7 +555,7 @@
               }
 
               if (trackRoutes && !ignoreFirstPageLoad) {
-                _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
+                _ga(generateCommandName('send', trackerObj), 'pageview', _getTrackPrefixUrl());
               }
             });
           //
@@ -612,16 +616,15 @@
          * @private
          */
         this._trackPage = function (url, title, custom) {
-          url = url ? url : getUrl();
           title = title ? title : $document[0].title;
           _gaJs(function () {
             // http://stackoverflow.com/questions/7322288/how-can-i-set-a-page-title-with-google-analytics
             _gaq('_set', 'title', title);
-            _gaq('_trackPageview', (trackPrefix + url));
+            _gaq('_trackPageview', _getTrackPrefixUrl(url));
           });
           _analyticsJs(function () {
             var opt_fieldObject = {
-              'page': trackPrefix + url,
+              'page': _getTrackPrefixUrl(url),
               'title': title
             };
             angular.extend(opt_fieldObject, getUtmParams());
@@ -661,7 +664,7 @@
               angular.extend(opt_fieldObject, custom);
             }
             if (!angular.isDefined(opt_fieldObject.page)) {
-              opt_fieldObject.page = trackPrefix + getUrl();
+              opt_fieldObject.page = _getTrackPrefixUrl();
             }
             _gaMultipleTrackers(includeFn, 'send', 'event', category, action, label, value, opt_fieldObject);
           });
