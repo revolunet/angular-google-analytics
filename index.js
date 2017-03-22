@@ -36,7 +36,7 @@
           logAllCalls = false,
           hybridMobileSupport = false,
           offlineMode = false,
-          pageEvent = '$routeChangeSuccess',
+          pageEvent = '$stateChangeSuccess',
           readFromRoute = false,
           removeRegExp,
           testMode = false,
