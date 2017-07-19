@@ -683,7 +683,7 @@
          * @param custom
          * @private
          */
-        this._trackEvent = function (category, action, label, value, noninteraction, custom) {
+        this._trackEvent = function (category, action, label, value, noninteraction, custom, transport, href) {
           _gaJs(function () {
             _gaq('_trackEvent', category, action, label, value, !!noninteraction);
           });
@@ -696,12 +696,25 @@
             if (angular.isDefined(noninteraction)) {
               opt_fieldObject.nonInteraction = !!noninteraction;
             }
+            
+            if (angular.isDefined(transport) && angular.isDefined(href)) {
+                opt_fieldObject.transport = transport;
+                opt_fieldObject.hitCallback = loadPage;
+            } else if (angular.isDefined(transport) || angular.isDefined(href)) {
+                alert("transport and outbound href required")
+            }
+            
             if (angular.isObject(custom)) {
               angular.extend(opt_fieldObject, custom);
             }
             if (!angular.isDefined(opt_fieldObject.page)) {
               opt_fieldObject.page = getUrl();
             }
+            
+            function loadPage() {
+                document.location = href;
+            }
+            
             _gaMultipleTrackers(includeFn, 'send', 'event', category, action, label, value, opt_fieldObject);
           });
         };
@@ -1213,7 +1226,7 @@
           trackPage: function (url, title, custom) {
             that._trackPage.apply(that, arguments);
           },
-          trackEvent: function (category, action, label, value, noninteraction, custom) {
+          trackEvent: function (category, action, label, value, noninteraction, custom, transport, href) {
             that._trackEvent.apply(that, arguments);
           },
           addTrans: function (transactionId, affiliation, total, tax, shipping, city, state, country, currency) {
