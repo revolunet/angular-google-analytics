@@ -448,6 +448,9 @@ The `set` call allows for advanced configuration and definitions in univeral ana
   // Create a new tracking event with a value, non-interaction flag, custom dimension, and custom metric
   // Universal Analytics only
   Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, { dimension15: 'My Custom Dimension', metric18: 8000 });
+  
+  // Track an event that is outbound
+  Analytics.trackEvent('video', 'play', 'django.mp4', 4, true, { dimension15: 'My Custom Dimension', metric18: 8000 }, 'beacon', 'http://google.com');
 ```
 
 ### Track User Timings
