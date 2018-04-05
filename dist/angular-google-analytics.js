@@ -47,6 +47,7 @@
           offlineMode = false,
           pageEvent = '$routeChangeSuccess',
           readFromRoute = false,
+          readFromState = false,
           removeRegExp,
           testMode = false,
           traceDebuggingMode = false,
@@ -199,9 +200,15 @@
         return this;
       };
       
-      // Enable reading page url from route object
+      // Enable reading page url from route object (ngRoute)
       this.readFromRoute = function(val) {
         readFromRoute = !!val;
+        return this;
+      };
+      
+      // Enable reading page url from state object (ui-router)
+      this.readFromState = function(val) {
+        readFromState = !!val;
         return this;
       };
 
@@ -214,7 +221,8 @@
                    '$rootScope',//
                    '$window',   //
                    '$injector', // To access ngRoute module without declaring a fixed dependency
-                   function ($document, $location, $log, $rootScope, $window, $injector) {
+                   '$timeout', // To wait for the $state loading
+                   function ($document, $location, $log, $rootScope, $window, $injector, $timeout) {
         var that = this;
 
         /**
@@ -245,12 +253,27 @@
             $route = $injector.get('$route');
           }
         }
+        
+        // Try to read state configuration and log warning if not possible
+        var $state = {};
+        if (readFromState) {
+          if (!$injector.has('$state')) {
+            $log.warn('$state service is not available. Make sure you have included ng-route in your application dependencies.');
+          } else {
+            $state = $injector.get('$state');
+          }
+        }
 
         // Get url for current page 
         var getUrl = function () {
           // Using ngRoute provided tracking urls
           if (readFromRoute && $route.current && ('pageTrack' in $route.current)) {
             return $route.current.pageTrack;
+          }
+          
+          // Using ui-router provided tracking urls
+          if (readFromState && $state.current && ('pageTrack' in $state.current)) {
+            return $state.current.pageTrack;
           }
            
           // Otherwise go the old way
@@ -590,7 +613,19 @@
               }
 
               if (trackRoutes && !ignoreFirstPageLoad) {
-                _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
+                if (readFromState) {
+                  // Evaluate whether send or not the first pageview
+                  // I didn't find a better approach than $timeout since in this context the $state hasn't been loaded yet
+                  $timeout(function() {
+                    if ($state.current && !$state.current.doNotTrack) {
+                      _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
+                    }
+                  }, 1000);
+                }
+                else {
+                  // Send immediately the pageview
+                  _ga(generateCommandName('send', trackerObj), 'pageview', trackPrefix + getUrl());
+                }
               }
             });
           //
@@ -1133,6 +1168,19 @@
             
             that._trackPage();
           });
+          
+          $rootScope.$on('$stateChangeSuccess', function () {
+            // Apply $state based filtering if configured
+            if (readFromState) {
+              // Avoid tracking undefined routes, routes without template (e.g. redirect routes)
+              // and those explicitly marked as 'do not track'
+              if (!$state.current || !$state.current.templateUrl || $state.current.doNotTrack) {
+                return;
+              }
+            }
+            
+            that._trackPage();
+          });
         }
 
         return {
@@ -1158,6 +1206,7 @@
             logAllCalls: logAllCalls,
             pageEvent: pageEvent,
             readFromRoute: readFromRoute,
+            readFromState: readFromState,
             removeRegExp: removeRegExp,
             testMode: testMode,
             traceDebuggingMode: traceDebuggingMode,
