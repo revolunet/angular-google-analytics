@@ -684,3 +684,6 @@ After install you have the following commands available to you from a command li
 3. ```npm test-server``` or ```grunt test-server```
 4. ```grunt build``` or ```grunt release```
 5. ```grunt stage```
+
+## Related Projects
++ [analytics-angular](https://github.com/segmentio/analytics-angular): Write analytics code once, collect customer data from any source, and send it to over 250+ destinations with [Segment](https://segment.com/).
