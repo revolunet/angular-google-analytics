@@ -407,7 +407,7 @@ If `delayScriptTag(true)` was set during configuration then manual script tag in
 ```
 
 ### Advanced Settings / Custom Dimensions
-The `set` call allows for advanced configuration and definitions in univeral analytics only. This is a no-op when using classic analytics.
+The `set` call allows for advanced configuration and definitions in universal analytics only. This is a no-op when using classic analytics.
 ```js
   // Set the User Id
   Analytics.set('&uid', 1234);
@@ -468,7 +468,7 @@ The `set` call allows for advanced configuration and definitions in univeral ana
 ```
 
 ### Track User Timings
-The `trackTimings` call is available for univeral analytics only. This is a no-op when using classic analytics.
+The `trackTimings` call is available for universal analytics only. This is a no-op when using classic analytics.
 ```js
   Analytics.trackTimings(timingCategory, timingVar, timingValue, timingLabel);
 
