@@ -20,19 +20,27 @@
     "npm": "*"
   },
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "angular": ">=1"
+  },
   "devDependencies": {
-    "bower": "*",
-    "karma": "*",
-    "karma-chrome-launcher": "*",
-    "karma-jasmine": "*",
-    "grunt": "*",
-    "grunt-cli": "*",
-    "grunt-contrib-concat": "*",
-    "grunt-contrib-jshint": "*",
-    "grunt-contrib-uglify": "*"
+    "angular-mocks": ">=1",
+    "angular-scenario": ">=1",
+    "grunt": "1.0.4",
+    "grunt-cli": "1.3.2",
+    "grunt-contrib-concat": "1.0.1",
+    "grunt-contrib-jshint": "2.1.0",
+    "grunt-contrib-uglify": "4.0.1",
+    "jasmine-core": "3.4.0",
+    "karma": "4.0.1",
+    "karma-chrome-launcher": "2.2.0",
+    "karma-jasmine": "2.0.1"
   },
   "scripts": {
+    "build": "grunt build",
+    "lint": "grunt lint",
+    "release": "grunt release",
+    "stage": "grunt stage",
     "test": "karma start test/karma.conf.js --single-run --browsers Chrome",
     "test-server": "karma start test/karma.conf.js --browsers Chrome"
   }

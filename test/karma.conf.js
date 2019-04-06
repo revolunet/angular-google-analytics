@@ -7,8 +7,8 @@ module.exports = function(config) {
     autoWatch: true,
     colors: true,
     files: [
-      'bower_components/angular/angular.js',
-      'bower_components/angular-mocks/angular-mocks.js',
+      'node_modules/angular/angular.js',
+      'node_modules/angular-mocks/angular-mocks.js',
       'index.js',
       'test/unit/*.js'
     ],
