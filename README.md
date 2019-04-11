@@ -675,12 +675,11 @@ As AngularJS itself, this module is released under the permissive [MIT License](
 After forking you will need to run the following from a command line to get your environment setup:
 
 1. ```npm install```
-2. ```bower install```
 
 After install you have the following commands available to you from a command line:
 
-1. ```grunt lint```
-2. ```npm test``` or ```grunt``` or ```grunt test```
-3. ```npm test-server``` or ```grunt test-server```
-4. ```grunt build``` or ```grunt release```
-5. ```grunt stage```
+1. ```npm run-script lint```
+2. ```npm test```
+3. ```npm run-script test-server```
+4. ```npm run-script build``` or ```npm run-script release```
+5. ```npm run-script stage```

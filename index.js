@@ -206,6 +206,10 @@
          * Side-effect Free Helper Methods
          **/
 
+        var isFunction = function (fn) {
+          return typeof fn === 'function';
+        };
+
         var isPropertyDefined = function (key, config) {
           return angular.isObject(config) && angular.isDefined(config[key]);
         };
@@ -316,7 +320,7 @@
         };
 
         var _gaJs = function (fn) {
-          if (!analyticsJS && $window._gaq && typeof fn === 'function') {
+          if (!analyticsJS && $window._gaq && isFunction(fn)) {
             fn();
           }
         };
@@ -337,7 +341,7 @@
         };
 
         var _analyticsJs = function (fn) {
-          if (analyticsJS && $window.ga && typeof fn === 'function') {
+          if (analyticsJS && $window.ga && isFunction(fn)) {
             fn();
           }
         };
@@ -348,7 +352,7 @@
             that.offlineQueue.push([_ga, args]);
             return;
           }
-          if (typeof $window.ga !== 'function') {
+          if (!isFunction($window.ga)) {
             that._log('warn', 'ga function not set on window');
             return;
           }
@@ -363,7 +367,7 @@
           var args = Array.prototype.slice.call(arguments, 1),
               commandName = args[0],
               trackers = [];
-          if (typeof includeFn === 'function') {
+          if (isFunction(includeFn)) {
             accounts.forEach(function (account) {
               if (includeFn(account)) {
                 trackers.push(account);
@@ -385,7 +389,7 @@
           trackers.forEach(function (tracker) {
             // Check tracker 'select' function, if it exists, for whether the tracker should be used with the current command.
             // If the 'select' function returns false then the tracker will not be used with the current command.
-            if (isPropertyDefined('select', tracker) && typeof tracker.select === 'function' && !tracker.select(args)) {
+            if (isPropertyDefined('select', tracker) && isFunction(tracker.select) && !tracker.select(args)) {
               return;
             }
             args[0] = generateCommandName(commandName, tracker);
@@ -440,7 +444,7 @@
                 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);
               })(window,document,'script',scriptSource,'ga');
             } else {
-              if (typeof $window.ga !== 'function') {
+              if (!isFunction($window.ga)) {
                 // In test mode create a ga function if none exists that is a noop sink.
                 $window.ga = function () {};
               }

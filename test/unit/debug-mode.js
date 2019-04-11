@@ -51,6 +51,7 @@ describe('universal analytics debug mode', function () {
     });
 
     it('should not set the analytics trace debugging variable', function () {
+      delete window.ga_debug;
       inject(function (Analytics, $window) {
         expect($window.ga_debug).toEqual(undefined);
       });
@@ -81,6 +82,7 @@ describe('universal analytics debug mode', function () {
     });
 
     it('should set the analytics trace debugging variable', function () {
+      delete window.ga_debug;
       inject(function (Analytics, $window) {
         expect($window.ga_debug).toEqual({ trace: true });
       });
