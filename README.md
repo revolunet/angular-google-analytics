@@ -335,6 +335,16 @@ If set to a truthy value then each account object will disable protocol checking
   AnalyticsProvider.enterDebugMode(Boolean);
 ```
 
+### Anonymize IP
+```js
+AnalyticsProvider.setAccount({
+  tracker: 'UA-12345-12',
+  set: {
+    anonymizeIp: true
+  }
+}
+```
+
 ## Using the Analytics Service
 **IMPORTANT!** Due to how Google Analytics works, it is important to remember that you must always call `Analytics.pageView();` when you want to push setting changes and function calls to Google Analytics.
 
